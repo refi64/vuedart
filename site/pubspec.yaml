@@ -1,0 +1,23 @@
+name: vuedart_site
+version: 0.1.0
+description: VueDart website
+author: Ryan Gonzalez
+dependencies:
+  browser: any
+  dart_to_js_script_rewriter: any
+  initialize: any
+  md_to_html: ">=0.1.0 <0.2.0"
+  vue2: any
+dependency_overrides:
+  vue2:
+    path: ..
+transformers:
+  - md_to_html:
+      template: web/template.html
+  - vue2
+  - initialize:
+      entry_points:
+        - web/index.html
+  - dart_to_js_script_rewriter
+  - $dart2js:
+      commandLineOptions: [--show-package-warnings]

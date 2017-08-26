@@ -1,0 +1,5 @@
+#!/bin/sh
+cd "`dirname "$0"`"
+cp logo.png ../site/web
+convert -density 384 -background transparent logo.svg -define icon:auto-resize \
+        -colors 256 ../site/web/favicon.ico
