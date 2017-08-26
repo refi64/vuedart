@@ -12,8 +12,8 @@ import 'dart:async';
 @JS('vuedart_getvue')
 external dynamic _getVue();
 
-@JS('console.log')
-external dynamic _log(dynamic value);
+// @JS('console.log')
+// external dynamic _log(dynamic value);
 
 dynamic mapToJs(Map<String, dynamic> map) {
   var obj = newObject();
@@ -44,9 +44,8 @@ class VueComponentConstructor {
 
     for (var prop in props.keys) {
       jsprops[prop] = mapToJs({
-        // 'default': _jsify(props[prop].initializer),
         'default': props[prop].initializer,
-        // 'validator': new JsFunction.withThis(props[prop].validator),
+        // 'validator': allowInterop(props[prop].validator),
       });
     }
 
@@ -69,8 +68,6 @@ class VueComponentBase {
   }
 
   static void register(VueComponentConstructor constr) {
-    print('Registering component ${constr.name}...');
-
     var props = constr.jsprops();
 
     var args = mapToJs({
@@ -96,7 +93,6 @@ class VueAppBase {
 
   VueAppBase() {
     var constr = this.constructor;
-    print('Registering app ${constr.el}...');
 
     var args = mapToJs({
       'el': constr.el,
