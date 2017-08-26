@@ -1,0 +1,22 @@
+name: vue2
+version: 0.1.0
+description: Vue 2.0 bindings for Dart
+author: Ryan Gonzalez
+dependencies:
+  analyzer: any
+  barback: any
+  browser: any # demo
+  dart_to_js_script_rewriter: any # demo
+  html: any
+  initialize: any
+  js: any # demo
+  source_maps: any
+  source_span: any
+transformers:
+  - vue2
+  - initialize:
+      entry_points: web/index.html
+  - dart_to_js_script_rewriter
+  - $dart2js:
+      $exclude: [web/todo_item.dart]
+      commandLineOptions: [--show-package-warnings]

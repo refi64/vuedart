@@ -1,0 +1,18 @@
+<head>
+  <title>VueDart test</title>
+</head>
+
+<body>
+  <div id="app">
+    <ol>
+      <todo-item
+        v-for="item in groceryList" :todo="item" :key="item.id">
+      </todo-item>
+    </ol>
+  </div>
+
+  <!-- https://unpkg.com/vue@2.4.2/dist/vue.min.js -->
+  <script src="https://unpkg.com/vue@2.4.2"></script>
+  <script type="application/dart" src="index.dart"></script>
+  <script src="packages/browser/dart.js"></script>
+</body>
