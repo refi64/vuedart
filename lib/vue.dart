@@ -4,11 +4,24 @@ library vue;
 
 import 'package:initialize/initialize.dart';
 import 'package:js/js.dart';
-import 'dart:js';
+import 'package:js/js_util.dart';
+
+import 'dart:async';
 
 
-Object _jsify(Object obj) =>
-  obj is Map || obj is Iterable ? new JsObject.jsify(obj) : obj;
+@JS('vuedart_getvue')
+external dynamic _getVue();
+
+@JS('console.log')
+external dynamic _log(dynamic value);
+
+dynamic mapToJs(Map<String, dynamic> map) {
+  var obj = newObject();
+  for (var key in map.keys) {
+    setProperty(obj, key, map[key]);
+  }
+  return obj;
+}
 
 class VueProp {
   final Function validator;
@@ -26,17 +39,18 @@ class VueComponentConstructor {
   VueComponentConstructor({this.name = null, this.template = null, this.props = null,
                            this.data = null, this.creator = null});
 
-  Object jsprops() {
-    Map<String, Object> jsprops = {};
+  dynamic jsprops() {
+    var jsprops = <String, dynamic>{};
 
     for (var prop in props.keys) {
-      jsprops[prop] = {
-        'default': _jsify(props[prop].initializer),
+      jsprops[prop] = mapToJs({
+        // 'default': _jsify(props[prop].initializer),
+        'default': props[prop].initializer,
         // 'validator': new JsFunction.withThis(props[prop].validator),
-      };
+      });
     }
 
-    return jsprops;
+    return mapToJs(jsprops);
   }
 }
 
@@ -48,9 +62,9 @@ class VueAppConstructor {
 }
 
 class VueComponentBase {
-  JsObject vuethis;
+  dynamic vuethis;
 
-  VueComponentBase(JsObject context) {
+  VueComponentBase(dynamic context) {
     vuethis = context;
   }
 
@@ -59,38 +73,38 @@ class VueComponentBase {
 
     var props = constr.jsprops();
 
-    var args = new JsObject.jsify({
+    var args = mapToJs({
       'props': props,
-      'created': new JsFunction.withThis((context) {
-        context['\$dartobj'] = constr.creator(context);
+      'created': allowInteropCaptureThis((context) {
+        setProperty(context, '\$dartobj', constr.creator(context));
       }),
-      'data': () {
-        var data = new JsObject.jsify(constr.data);
-        data['\$dartobj'] = null;
+      'data': allowInterop(() {
+        var data = mapToJs(constr.data);
+        setProperty(data, '\$dartobj', null);
         return data;
-      },
+      }),
       'template': constr.template,
     });
 
-    context['Vue'].callMethod('component', [constr.name, args]);
+    callMethod(_getVue(), 'component', [constr.name, args]);
   }
 }
 
 class VueAppBase {
-  JsObject vuethis;
+  dynamic vuethis;
   VueAppConstructor get constructor => null;
 
   VueAppBase() {
     var constr = this.constructor;
     print('Registering app ${constr.el}...');
 
-    var args = new JsObject.jsify({
+    var args = mapToJs({
       'el': constr.el,
-      'data': constr.data,
+      'data': mapToJs(constr.data),
     });
-    print(context['JSON'].callMethod('stringify', [new JsObject.jsify(constr.data)]));
+    // _log(mapToJs(constr.data));
 
-    vuethis = new JsObject(context['Vue'] as JsFunction, [args]);
+    vuethis = callConstructor(_getVue(), [args]);
   }
 }
 
@@ -109,3 +123,5 @@ class _VueProp { const _VueProp(); }
 
 const data = const _VueData();
 const prop = const _VueProp();
+
+Future initVue() async => run();

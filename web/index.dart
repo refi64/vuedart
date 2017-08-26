@@ -21,6 +21,6 @@ App app;
 
 
 Future main() async {
-  await run();
+  await initVue();
   app = new App();
 }

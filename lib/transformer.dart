@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:html/parser.dart' show parse;
-import 'package:html/dom.dart';
+// import 'package:html/dom.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 import 'package:source_maps/refactor.dart';
 
