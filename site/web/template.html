@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 
-<html>
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="favicon.ico">
-    <script defer src="main.dart" type="application/dart"></script>
-    <script defer src="packages/browser/dart.js"></script>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VueDart: {{title}}</title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet"
+        href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script src="https://unpkg.com/vue"></script>
+
+  <script src="https://unpkg.com/vue-material"></script>
+  <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css">
+
+  <script> Vue.use(VueMaterial); </script>
+
+  <script src="/packages/vue2/vuedart.js"></script>
+  <script type="application/dart" src="docs.dart"></script>
+  <script src="/packages/browser/dart.js"></script>
+
+  <style>
+    #content { padding: 0em 1em; }
+  </style>
 </head>
 
-<body>
+<body vuedart>
+  <div id="app">
+    <site-navbar></site-navbar>
+    <docs-navlist></docs-navlist>
 
-  <div id="output"></div>
-
+    <div id="content">
+      {{content}}
+    </div>
+  </div>
 </body>
-</html>
-

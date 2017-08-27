@@ -18,6 +18,7 @@ transformers:
   - initialize:
       entry_points:
         - web/index.html
+        - web/pages/intro.html
   - dart_to_js_script_rewriter
   - $dart2js:
       commandLineOptions: [--show-package-warnings]
