@@ -10,7 +10,6 @@ class VueTransformerGroup extends TransformerGroup {
   VueTransformerGroup.asPlugin(this._settings):
     super([
       [new DartTransformer.asPlugin(_settings),
-       new HtmlCleanupTransformer.asPlugin(_settings),
-       new HtmlEntryTransformer.asPlugin(_settings)],
+       new HtmlTransformer.asPlugin(_settings)],
     ]);
 }

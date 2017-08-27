@@ -34,6 +34,14 @@ class Data {
 }
 
 
+class Computed {
+  final String name;
+  bool hasSetter;
+
+  Computed(this.name);
+}
+
+
 class DartTransformer extends Transformer {
   final BarbackSettings _settings;
 
@@ -64,13 +72,23 @@ class DartTransformer extends Transformer {
     return new AnnotationArgs(positional, named);
   }
 
-  String _initOrNull(AstNode node) => node?.toSource() ?? 'null';
+  String _computedGet(String name) => 'vuedart_INTERNAL_computed_${name}';
+  String _computedSet(String name) => 'vuedart_INTERNAL_computed_SET_${name}';
+
+  String _sourceOrNull(AstNode node) => node?.toSource() ?? 'null';
 
   String _codegenProp(Prop prop) =>
-    ''' '${prop.name}': new VueProp(() => true, ${_initOrNull(prop.initializer)}), ''';
+    ''' '${prop.name}': new VueProp(() => true, ${_sourceOrNull(prop.initializer)}), ''';
 
   String _codegenData(Data data) =>
-    ''' '${data.name}': ${_initOrNull(data.initializer)}, ''';
+    ''' '${data.name}': ${_sourceOrNull(data.initializer)}, ''';
+
+  String _codegenComputed(Computed computed) =>
+    '''
+  '${computed.name}': new VueComputed(
+    ${_computedGet(computed.name)},
+    ${computed.hasSetter ? _computedSet(computed.name) : 'null'}),
+    ''';
 
   Future apply(Transform transform) async {
     var primary = transform.primaryInput;
@@ -80,8 +98,7 @@ class DartTransformer extends Transformer {
     CompilationUnit unit;
 
     try {
-      unit = parseCompilationUnit(contents, name: primary.id.path,
-                                            parseFunctionBodies: false);
+      unit = parseCompilationUnit(contents, name: primary.id.path);
     } catch (ex) {
       // Just ignore it; it will propagate to the Dart compiler anyway.
       transform.addOutput(primary);
@@ -111,6 +128,7 @@ import 'dart:js';
 
       var props = [];
       var data = [];
+      var computed = {};
 
       for (var member in cls.members) {
         if (member is FieldDeclaration) {
@@ -119,13 +137,13 @@ import 'dart:js';
 
           var fields = member.fields;
           var type = fields.type;
-          var typename = type.toSource();
+          var typestring = type.toSource();
 
           for (var decl in member.fields.variables) {
             var name = decl.name.name;
             rewriter.edit(fields.offset, fields.end+1, '''
-$typename get $name => vuethis['$name'];
-void set $name($typename value) => vuethis['$name'] = value;
+$typestring get $name => vuedart_get('$name');
+void set $name($typestring value) => vuedart_set('$name', value);
               ''');
 
             switch (ann.name.name) {
@@ -142,12 +160,29 @@ void set $name($typename value) => vuethis['$name'] = value;
           var ann = _getAnn(member, ['computed']);
           if (ann == null) continue;
 
-          print("$member");
+          var name = member.name.name;
+          var typestring = member.returnType?.name?.name ?? '';
+
+          if (member.isGetter) {
+            rewriter.edit(member.offset, member.end, '''
+static $typestring ${_computedGet(name)}() ${member.body.toSource()}
+$typestring get $name => vuedart_get('$name');
+            ''');
+            computed[name] = new Computed(name);
+          } else if (member.isSetter) {
+            computed[name].hasSetter = true;
+            rewriter.edit(member.offset, member.end, '''
+static $typestring ${_computedSet(name)}${member.parameters.toSource()}
+  ${member.body.toSource()}
+$typestring set $name($typestring value) => vuedart_set('$name', value);
+            ''');
+          }
         }
       }
 
       var opts = '''
   data: {${data.map(_codegenData).join('\n')}},
+  computed: {${computed.values.map(_codegenComputed).join('\n')}},
       ''';
       var code;
 
@@ -191,7 +226,7 @@ VueAppConstructor get constructor => new VueAppConstructor(
         ''';
       }
 
-      rewriter.edit(cls.end-2, cls.end-2, code);
+      rewriter.edit(cls.end-1, cls.end-1, code);
     }
 
     rewriter.edit(unit.end, unit.end, '''
@@ -211,24 +246,10 @@ ${components.map((comp) =>
   }
 }
 
-class HtmlEntryTransformer extends Transformer {
+class HtmlTransformer extends Transformer {
   final BarbackSettings _settings;
 
-  HtmlEntryTransformer.asPlugin(this._settings);
-
-  String get allowedExtensions => '.html';
-
-  Future apply(Transform transform) async {
-
-
-    return new Future.value();
-  }
-}
-
-class HtmlCleanupTransformer extends Transformer {
-  final BarbackSettings _settings;
-
-  HtmlCleanupTransformer.asPlugin(this._settings);
+  HtmlTransformer.asPlugin(this._settings);
 
   String get allowedExtensions => '.html';
 

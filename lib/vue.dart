@@ -12,6 +12,9 @@ import 'dart:async';
 @JS('vuedart_getvue')
 external dynamic _getVue();
 
+@JS('Vue')
+dynamic _Vue;
+
 // @JS('console.log')
 // external dynamic _log(dynamic value);
 
@@ -30,14 +33,37 @@ class VueProp {
   VueProp(this.validator, this.initializer);
 }
 
+class VueComputed {
+  final Function getter, setter;
+
+  VueComputed(this.getter, this.setter);
+}
+
+dynamic convertComputed(Map<String, VueComputed> computed) {
+  var jscomputed = <String, dynamic>{};
+
+  for (var name in computed.keys) {
+    var comp = computed[name];
+    jscomputed[name] = newObject();
+    setProperty(jscomputed[name], 'get', allowInterop((_) => comp.getter()));
+
+    if (comp.setter != null) {
+      setProperty(jscomputed[name], 'set', allowInterop((v) => comp.setter(v)));
+    }
+  }
+
+  return mapToJs(jscomputed);
+}
+
 class VueComponentConstructor {
   final String name, template;
   final Map<String, VueProp> props;
   final Map<String, Object> data;
+  final Map<String, VueComputed> computed;
   Function creator;
 
   VueComponentConstructor({this.name = null, this.template = null, this.props = null,
-                           this.data = null, this.creator = null});
+                           this.data = null, this.computed = null, this.creator = null});
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
@@ -51,24 +77,35 @@ class VueComponentConstructor {
 
     return mapToJs(jsprops);
   }
+
+  dynamic jscomputed() => convertComputed(computed);
 }
 
 class VueAppConstructor {
   final String el;
   final Map<String, Object> data;
+  final Map<String, VueComputed> computed;
 
-  VueAppConstructor({this.el, this.data});
+  VueAppConstructor({this.el, this.data, this.computed});
+
+  dynamic jscomputed() => convertComputed(computed);
 }
 
-class VueComponentBase {
+class _VueBase {
   dynamic vuethis;
 
+  dynamic vuedart_get(String key) => getProperty(vuethis, key);
+  void vuedart_set(String key, dynamic value) => setProperty(vuethis, key, value);
+}
+
+class VueComponentBase extends _VueBase {
   VueComponentBase(dynamic context) {
     vuethis = context;
   }
 
   static void register(VueComponentConstructor constr) {
     var props = constr.jsprops();
+    var computed = constr.jscomputed();
 
     var args = mapToJs({
       'props': props,
@@ -80,6 +117,7 @@ class VueComponentBase {
         setProperty(data, '\$dartobj', null);
         return data;
       }),
+      'computed': computed,
       'template': constr.template,
     });
 
@@ -87,16 +125,17 @@ class VueComponentBase {
   }
 }
 
-class VueAppBase {
-  dynamic vuethis;
+class VueAppBase extends _VueBase {
   VueAppConstructor get constructor => null;
 
   VueAppBase() {
     var constr = this.constructor;
+    var computed = constr.jscomputed();
 
     var args = mapToJs({
       'el': constr.el,
       'data': mapToJs(constr.data),
+      'computed': computed,
     });
     // _log(mapToJs(constr.data));
 

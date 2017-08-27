@@ -16,8 +16,13 @@ class TodoEntry {
 
 @VueComponent('todo-item', template: '<<')
 class TodoItem extends VueComponentBase {
-  TodoItem(context): super(context) {}
+  TodoItem(context): super(context);
 
   @prop
   TodoEntry todo;
+
+  // @computed
+  // String get test => 'test';
+  // @computed
+  // set test(String value) { print('setter called: $value'); }
 }
