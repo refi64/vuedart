@@ -1,5 +1,19 @@
 <template vuedart>
   <md-list>
     <md-subheader>Navigation</md-subheader>
+
+    <md-list-item v-for="(entry, index) in entries" :key="index">
+      <span>{{entry.title}}</span>
+
+      <md-list-expand>
+        <md-list>
+          <md-list-item style="width: 100%;"
+                        v-for="(content, subindex) in entry.contents"
+                        :key="subindex" :href="content[1]">
+            • {{content[0]}}
+          </md-list-item>
+        </md-list>
+      </md-list-expand>
+    </md-list-item>
   </md-list>
 </template>

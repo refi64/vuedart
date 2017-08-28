@@ -24,7 +24,15 @@ class DocsNavlist extends VueComponentBase {
       title: 'Intro',
       addr: 'intro.html',
       contents: [
-        ['First steps', 'first-steps'],
+        ['First steps', '#first-steps'],
+        ['Declaring data and computed data', '#data'],
+      ],
+    ),
+    new Entry(
+      title: 'Components',
+      addr: 'components.html',
+      contents: [
+        ['Defining a component', '#component'],
       ],
     ),
   ];

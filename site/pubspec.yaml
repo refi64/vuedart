@@ -6,7 +6,8 @@ dependencies:
   browser: any
   dart_to_js_script_rewriter: any
   initialize: any
-  md_to_html: ">=0.1.0 <0.2.0"
+  md_to_html: ^0.1.0
+  pygments: ^0.1.1
   vue2: any
 dependency_overrides:
   vue2:
@@ -14,11 +15,16 @@ dependency_overrides:
 transformers:
   - md_to_html:
       template: web/template.html
+  - pygments:
+      classes:
+        - "pre.bash, pre.dart, pre.html, pre.yaml":
+            re: "(.*)"
   - vue2
   - initialize:
       entry_points:
         - web/index.html
         - web/pages/intro.html
+        - web/pages/components.html
   - dart_to_js_script_rewriter
   - $dart2js:
       commandLineOptions: [--show-package-warnings]
