@@ -1,5 +1,5 @@
 @JS()
-library vue;
+library vue2;
 
 
 import 'package:initialize/initialize.dart';
@@ -9,11 +9,9 @@ import 'package:js/js_util.dart';
 import 'dart:async';
 
 
-@JS('vuedart_getvue')
-external dynamic _getVue();
-
-@JS('Vue')
-dynamic _Vue;
+@JS('eval')
+external dynamic eval(String value);
+dynamic _vue = eval('Vue');
 
 // @JS('console.log')
 // external dynamic _log(dynamic value);
@@ -121,7 +119,7 @@ class VueComponentBase extends _VueBase {
       'template': constr.template,
     });
 
-    callMethod(_getVue(), 'component', [constr.name, args]);
+    callMethod(_vue, 'component', [constr.name, args]);
   }
 }
 
@@ -137,9 +135,8 @@ class VueAppBase extends _VueBase {
       'data': mapToJs(constr.data),
       'computed': computed,
     });
-    // _log(mapToJs(constr.data));
 
-    vuethis = callConstructor(_getVue(), [args]);
+    vuethis = callConstructor(_vue, [args]);
   }
 }
 

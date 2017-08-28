@@ -58,7 +58,6 @@ Also, add this to `web/index.html`:
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script src="packages/vue2/vuedart.js"></script>
   <script type="application/dart" src="index.dart"></script>
   <script src="packages/browser/dart.js"></script>
 </head>
@@ -74,7 +73,6 @@ Again, this should be pretty self-explanatory. Interesting things to note:
 
 - VueDart will automatically change your Vue script imports to `vue.min.js` when you're
   building in release mode.
-- Make sure you remember to load `vuedart.js`!
 - Note the *vuedart* tag on the *body* element. This is pretty important, since that's
   VueDart uses to know if it's working with a Vue application.
 
