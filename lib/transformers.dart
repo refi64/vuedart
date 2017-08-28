@@ -42,6 +42,14 @@ class Computed {
 }
 
 
+class Method {
+  final String name;
+  final List<FormalParameter> params;
+
+  Method(this.name, this.params);
+}
+
+
 class DartTransformer extends Transformer {
   final BarbackSettings _settings;
 
@@ -72,8 +80,12 @@ class DartTransformer extends Transformer {
     return new AnnotationArgs(positional, named);
   }
 
-  String _computedGet(String name) => 'vuedart_INTERNAL_computed_${name}';
-  String _computedSet(String name) => 'vuedart_INTERNAL_computed_SET_${name}';
+  String _computedGet(String name) => 'vuedart_INTERNAL_cg_$name';
+  String _computedSet(String name) => 'vuedart_INTERNAL_cs_$name';
+  String _method(String name) => 'vuedart_INTERAL_m_$name';
+
+  String _methodParams(Method method) =>
+    method.params.map((p) => p.identifier.name).join(', ');
 
   String _sourceOrNull(AstNode node) => node?.toSource() ?? 'null';
 
@@ -86,8 +98,16 @@ class DartTransformer extends Transformer {
   String _codegenComputed(Computed computed) =>
     '''
   '${computed.name}': new VueComputed(
-    ${_computedGet(computed.name)},
-    ${computed.hasSetter ? _computedSet(computed.name) : 'null'}),
+    (_) => vueGetObj(_).${_computedGet(computed.name)}(),
+    ${computed.hasSetter
+      ? '(_,__) => vueGetObj(_).${_computedSet(computed.name)}(__)'
+      : 'null'}),
+    ''';
+
+  String _codegenMethod(Method method) =>
+    '''
+    '${method.name}': (_, ${_methodParams(method)}) =>
+              vueGetObj(_).${_method(method.name)}(${_methodParams(method)}),
     ''';
 
   Future apply(Transform transform) async {
@@ -116,7 +136,6 @@ class DartTransformer extends Transformer {
     var begin = unit.directives.isEmpty ? unit.offset : unit.directives.last.end;
     rewriter.edit(begin, begin, '''
 import 'package:initialize/initialize.dart';
-import 'dart:js';
     ''');
 
     var components = [];
@@ -129,6 +148,7 @@ import 'dart:js';
       var props = [];
       var data = [];
       var computed = {};
+      var methods = [];
 
       for (var member in cls.members) {
         if (member is FieldDeclaration) {
@@ -156,26 +176,36 @@ void set $name($typestring value) => vuedart_set('$name', value);
             }
           }
         } else if (member is MethodDeclaration) {
-          if (!member.isGetter && !member.isSetter) continue;
-          var ann = _getAnn(member, ['computed']);
+          var ann = _getAnn(member, ['computed', 'method']);
           if (ann == null) continue;
+
+          if ((ann.name.name == 'computed' && !member.isGetter && !member.isSetter) ||
+              (ann.name.name == 'method' && (member.isGetter || member.isSetter)))
+            // Invalid annotation; skip for now.
+            continue;
 
           var name = member.name.name;
           var typestring = member.returnType?.name?.name ?? '';
 
           if (member.isGetter) {
             rewriter.edit(member.offset, member.end, '''
-static $typestring ${_computedGet(name)}() ${member.body.toSource()}
+$typestring ${_computedGet(name)}() ${member.body.toSource()}
 $typestring get $name => vuedart_get('$name');
             ''');
             computed[name] = new Computed(name);
           } else if (member.isSetter) {
             computed[name].hasSetter = true;
             rewriter.edit(member.offset, member.end, '''
-static $typestring ${_computedSet(name)}${member.parameters.toSource()}
+$typestring ${_computedSet(name)}${member.parameters.toSource()}
   ${member.body.toSource()}
 $typestring set $name($typestring value) => vuedart_set('$name', value);
             ''');
+          } else {
+            rewriter.edit(member.offset, member.end, '''
+$typestring ${_method(name)}${member.parameters.toSource()}
+  ${member.body.toSource()}
+            ''');
+            methods.add(new Method(name, member.parameters.parameters));
           }
         }
       }
@@ -183,6 +213,7 @@ $typestring set $name($typestring value) => vuedart_set('$name', value);
       var opts = '''
   data: {${data.map(_codegenData).join('\n')}},
   computed: {${computed.values.map(_codegenComputed).join('\n')}},
+  methods: {${methods.map(_codegenMethod).join('\n')}},
       ''';
       var code;
 
@@ -210,7 +241,7 @@ $typestring set $name($typestring value) => vuedart_set('$name', value);
         code = '''
 static VueComponentConstructor constructor = new VueComponentConstructor(
   name: '${(args.positional[0] as StringLiteral).stringValue}',
-  creator: (JsObject context) => new ${cls.name.name}(context),
+  creator: (context) => new ${cls.name.name}(context),
   template: r"""${template.replaceAll('"""', '\\"""')}""",
   props: {${props.map(_codegenProp).join('\n')}},
   $opts
@@ -231,7 +262,7 @@ VueAppConstructor get constructor => new VueAppConstructor(
 
     rewriter.edit(unit.end, unit.end, '''
 @initMethod
-void vuedart_INTERNAL() {
+void vuedart_INTERNAL_init() {
 ${components.map((comp) =>
       "  VueComponentBase.register(${comp.name.name}.constructor);").join('\n')}
 }

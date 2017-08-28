@@ -24,6 +24,12 @@ dynamic mapToJs(Map<String, dynamic> map) {
   return obj;
 }
 
+dynamic _mapMethodsToJs(Map<String, Function> methods) =>
+  mapToJs(new Map.fromIterables(methods.keys,
+                                methods.values.map(allowInteropCaptureThis)));
+
+dynamic vueGetObj(dynamic vuethis) => getProperty(vuethis, '\$dartobj');
+
 class VueProp {
   final Function validator;
   final Object initializer;
@@ -43,10 +49,11 @@ dynamic convertComputed(Map<String, VueComputed> computed) {
   for (var name in computed.keys) {
     var comp = computed[name];
     jscomputed[name] = newObject();
-    setProperty(jscomputed[name], 'get', allowInterop((_) => comp.getter()));
+    setProperty(jscomputed[name], 'get',
+                allowInteropCaptureThis((vuethis, misc) => comp.getter(vuethis)));
 
     if (comp.setter != null) {
-      setProperty(jscomputed[name], 'set', allowInterop((v) => comp.setter(v)));
+      setProperty(jscomputed[name], 'set', allowInteropCaptureThis(comp.setter));
     }
   }
 
@@ -58,10 +65,12 @@ class VueComponentConstructor {
   final Map<String, VueProp> props;
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
+  final Map<String, Function> methods;
   Function creator;
 
   VueComponentConstructor({this.name = null, this.template = null, this.props = null,
-                           this.data = null, this.computed = null, this.creator = null});
+                           this.data = null, this.computed = null, this.methods = null,
+                           this.creator = null});
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
@@ -83,8 +92,9 @@ class VueAppConstructor {
   final String el;
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
+  final Map<String, Function> methods;
 
-  VueAppConstructor({this.el, this.data, this.computed});
+  VueAppConstructor({this.el, this.data, this.computed, this.methods});
 
   dynamic jscomputed() => convertComputed(computed);
 }
@@ -99,6 +109,7 @@ class _VueBase {
 class VueComponentBase extends _VueBase {
   VueComponentBase(dynamic context) {
     vuethis = context;
+    setProperty(vuethis, '\$dartobj', this);
   }
 
   static void register(VueComponentConstructor constr) {
@@ -107,15 +118,14 @@ class VueComponentBase extends _VueBase {
 
     var args = mapToJs({
       'props': props,
-      'created': allowInteropCaptureThis((context) {
-        setProperty(context, '\$dartobj', constr.creator(context));
-      }),
+      'created': allowInteropCaptureThis(constr.creator),
       'data': allowInterop(() {
         var data = mapToJs(constr.data);
         setProperty(data, '\$dartobj', null);
         return data;
       }),
       'computed': computed,
+      'methods': _mapMethodsToJs(constr.methods),
       'template': constr.template,
     });
 
@@ -129,11 +139,14 @@ class VueAppBase extends _VueBase {
   VueAppBase() {
     var constr = this.constructor;
     var computed = constr.jscomputed();
+    var data = mapToJs(constr.data);
+    setProperty(data, '\$dartobj', this);
 
     var args = mapToJs({
       'el': constr.el,
       'data': mapToJs(constr.data),
       'computed': computed,
+      'methods': _mapMethodsToJs(constr.methods),
     });
 
     vuethis = callConstructor(_vue, [args]);
@@ -152,8 +165,12 @@ class VueApp {
 
 class _VueData { const _VueData(); }
 class _VueProp { const _VueProp(); }
+class _VueComputed { const _VueComputed(); }
+class _VueMethod { const _VueMethod(); }
 
 const data = const _VueData();
 const prop = const _VueProp();
+const computed = const _VueComputed();
+const method = const _VueMethod();
 
 Future initVue() async => run();
