@@ -6,21 +6,19 @@
 
 ## Defining a component
 
-This example app isn't too interesting, though. I mean, it's not really *doing* anything.
+Unfortunately, as awesome as our example app is, it's kinda messy. You probably don't want
+this much stuff in one place. Therefore, we're going to move out displaying the name into
+its own component, `show-name`.
 
-But before we get that far, let's try defining a component. Toss this in
-`lib/show_name.dart`:
+Toss this in `lib/show_name.dart`:
 
 ```dart
 import 'package:vue2/vue.dart';
 
 
-@VueComponent('show-name', template: '<p>My name is {{name}}</p>')
+@VueComponent('show-name', template: '<p>My name is Bob</p>')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
-
-  @prop
-  String name;
 }
 ```
 
@@ -35,9 +33,19 @@ and change `index.html` like so:
 ```html
 <body vuedart>
   <div id="app">
-    <show-name name="Bob"></show-name>
+    <input v-model="name">
+    <show-name></show-name>
   </div>
 </body>
+```
+
+You can also take out the *name* field from your *App* class:
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  App(): super();
+}
 ```
 
 Now refresh your browser page. You should see it now say, *Your name is Bob*.
@@ -47,8 +55,6 @@ But let's take a few steps back. What exactly is going on here?
 - New components are defined using the *VueComponent* annotation and the *VueComponentBase*
   base class. You pass your template through the *template:* argument on the annotation
   (there's a better way, but we'll get to that later).
-- Props in VueDart are declared via the *prop* annotation, and the syntax is just like
-  normal Dart. You can also give a default value by doing `String name = "default name"`.
 - As before, it's important to declare your constructor, except now it's taking a single
   argument, though it's still just passing it up a level.
 
@@ -65,7 +71,7 @@ and create `lib/show_name.html` containing the following:
 
 ```html
 <template vuedart>
-  <p>My name is {{name}}</p>
+  <p>My name is Bob</p>
 </template>
 ```
 
@@ -80,3 +86,118 @@ uses that as the default. Therefore, you can abbreviate all this to:
 ```
 
 and VueDart will automatically use the template in `show_name.html`.
+
+<div id="props"></div>
+
+## Declaring properties
+
+Well, this component is a bit of a downgrade. Before, we could display *any* name; now
+we're limited to Bob's. Let's try using some properties:
+
+```dart
+@VueComponent('show-name', template: '<<')
+class ShowName extends VueComponentBase {
+  ShowName(context): super(context);
+
+  @prop
+  String name;
+}
+```
+
+```html
+<template vuedart>
+  <p>My name is {{name}}</p>
+</template>
+```
+
+Props in VueDart are declared via the *prop* annotation, and the syntax is just like normal
+Dart. You can also give a default value by doing `String name = "default name"`.
+
+Now modify `index.html`:
+
+```html
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <show-name :name="name"></show-name>
+  </div>
+</body>
+```
+
+Voila! We're back to the same code, but now it's better organized. Yaaay!!
+
+<div id="final"></div>
+
+## Final code
+
+### `lib/show_name.dart`:
+
+```dart
+import 'package:vue2/vue.dart';
+
+
+@VueComponent('show-name', template: '<<')
+class ShowName extends VueComponentBase {
+  ShowName(context): super(context);
+
+  @prop
+  String name;
+}
+```
+
+### `lib/show_name.html`:
+
+```html
+<template vuedart>
+  <p>My name is {{name}}</p>
+</template>
+```
+
+### `web/index.dart`:
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  App(): super();
+}
+```
+
+### `web/index.html`:
+
+```html
+<!DOCTYPE html>
+
+<head>
+  <title>VueDart first example</title>
+
+  <script src="https://unpkg.com/vue"></script>
+
+  <script type="application/dart" src="index.dart"></script>
+  <script src="packages/browser/dart.js"></script>
+</head>
+
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <show-name :name="name"></show-name>
+  </div>
+</body>
+```
+
+### `pubspec.yaml`:
+
+```yaml
+name: vuedart_example
+version: 0.2.0
+description: VueDart example app
+author: Foo Bar
+dependencies:
+  browser: any
+  initialize: any
+  vue2: any
+transformers:
+  - vue2
+  - initialize:
+      entry_points:
+        - web/index.html
+```

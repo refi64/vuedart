@@ -18,21 +18,26 @@ class Entry {
 class DocsNavlist extends VueComponentBase {
   DocsNavlist(context): super(context);
 
+  @method
+  String getUrl(Entry entry, String ref) => '/pages/${entry.addr}#$ref';
+
   @data
   List<Entry> entries = [
     new Entry(
       title: 'Intro',
       addr: 'intro.html',
       contents: [
-        ['First steps', '#first-steps'],
-        ['Declaring data and computed data', '#data'],
+        ['Welcome', 'welcome'],
+        ['First steps', 'first-steps'],
+        ['Declaring data', 'data'],
       ],
     ),
     new Entry(
       title: 'Components',
       addr: 'components.html',
       contents: [
-        ['Defining a component', '#component'],
+        ['Defining a component', 'component'],
+        ['Declaring properties', 'props'],
       ],
     ),
   ];

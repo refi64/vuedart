@@ -110,6 +110,91 @@ VueDart app!
 
 <div id="data"></div>
 
-## Declaring data and computed data
+## Declaring data
 
-Of course, VueDart also supports normal data and computed data.
+This app is cool and all...but it's not actually *doing* anything. Let's read in a name
+and show it to the screen.
+
+Modify your app class to look like so:
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  App(): super();
+
+  @data
+  String name;
+}
+```
+
+This is how you declare data in VueDart: the *data* annotation. Just put it on an instance
+variable, and VueDart will compile it into Vue data accesses. Now it's time to read in
+a name in our HTML file:
+
+```html
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <p>Your name is: {{name}}</p>
+  </div>
+</body>
+```
+
+Now run your app, enter a name, and watch the fireworks. (Not really, but actual fireworks
+take far too much effort.)
+
+<div id="final"></div>
+
+## Final code
+
+### `web/index.dart`:
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  App(): super();
+
+  @data
+  String name;
+}
+```
+
+### `web/index.html`:
+
+```html
+<!DOCTYPE html>
+
+<head>
+  <title>VueDart first example</title>
+
+  <script src="https://unpkg.com/vue"></script>
+
+  <script type="application/dart" src="index.dart"></script>
+  <script src="packages/browser/dart.js"></script>
+</head>
+
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <p>Your name is: {{name}}</p>
+  </div>
+</body>
+```
+
+### `pubspec.yaml`:
+
+```yaml
+name: vuedart_example
+version: 0.1.0
+description: VueDart example app
+author: Foo Bar
+dependencies:
+  browser: any
+  initialize: any
+  vue2: any
+transformers:
+  - vue2
+  - initialize:
+      entry_points:
+        - web/index.html
+```

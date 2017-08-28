@@ -7,10 +7,13 @@
 
       <md-list-expand>
         <md-list>
-          <md-list-item style="width: 100%;"
-                        v-for="(content, subindex) in entry.contents"
-                        :key="subindex" :href="content[1]">
+          <md-list-item v-for="(content, subindex) in entry.contents"
+                        :key="subindex" :href="getUrl(entry, content[1])">
             • {{content[0]}}
+          </md-list-item>
+
+          <md-list-item :href="getUrl(entry, 'final')">
+            • Final code
           </md-list-item>
         </md-list>
       </md-list-expand>
