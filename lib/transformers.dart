@@ -291,6 +291,7 @@ class CustomInitializeTransformer extends InitializeTransformer {
     var contents = await transform.primaryInput.readAsString();
     // XXX: This is a crappy way of checking for entry points...
     if (contents.contains(' main()') && contents.contains('vuedart_INTERNAL_init')) {
+      // print(contents);
       await super.apply(transform);
     }
   }

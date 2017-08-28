@@ -142,6 +142,7 @@ class VueAppBase extends _VueBase {
     var data = mapToJs(constr.data);
     setProperty(data, '\$dartobj', this);
 
+    // print('init ${constr.el}...');
     var args = mapToJs({
       'el': constr.el,
       'data': mapToJs(constr.data),
@@ -149,6 +150,8 @@ class VueAppBase extends _VueBase {
       'methods': _mapMethodsToJs(constr.methods),
     });
 
+    // _log(args);
+    // _log(_vue);
     vuethis = callConstructor(_vue, [args]);
   }
 }
