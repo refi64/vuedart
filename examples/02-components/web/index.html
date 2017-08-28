@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<head>
+  <title>VueDart first example</title>
+
+  <script src="https://unpkg.com/vue"></script>
+
+  <script type="application/dart" src="index.dart"></script>
+  <script src="packages/browser/dart.js"></script>
+</head>
+
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <show-name :name="name"></show-name>
+  </div>
+</body>

@@ -16,7 +16,7 @@ Toss this in `lib/show_name.dart`:
 import 'package:vue2/vue.dart';
 
 
-@VueComponent('show-name', template: '<p>My name is Bob</p>')
+@VueComponent('show-name', template: '<p>Your name is: Bob</p>')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 }
@@ -37,15 +37,6 @@ and change `index.html` like so:
     <show-name></show-name>
   </div>
 </body>
-```
-
-You can also take out the *name* field from your *App* class:
-
-```dart
-@VueApp(el: '#app')
-class App extends VueAppBase {
-  App(): super();
-}
 ```
 
 Now refresh your browser page. You should see it now say, *Your name is Bob*.
@@ -71,7 +62,7 @@ and create `lib/show_name.html` containing the following:
 
 ```html
 <template vuedart>
-  <p>My name is Bob</p>
+  <p>Your name is: Bob</p>
 </template>
 ```
 
@@ -106,7 +97,7 @@ class ShowName extends VueComponentBase {
 
 ```html
 <template vuedart>
-  <p>My name is {{name}}</p>
+  <p>Your name is: {{name}}</p>
 </template>
 ```
 
@@ -135,7 +126,6 @@ Voila! We're back to the same code, but now it's better organized. Yaaay!!
 ```dart
 import 'package:vue2/vue.dart';
 
-
 @VueComponent('show-name', template: '<<')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
@@ -149,16 +139,30 @@ class ShowName extends VueComponentBase {
 
 ```html
 <template vuedart>
-  <p>My name is {{name}}</p>
+  <p>Your name is: {{name}}</p>
 </template>
 ```
 
 ### `web/index.dart`:
 
 ```dart
+import 'package:vue2/vue.dart';
+import 'package:vuedart_example/show_name.dart';
+import 'dart:async';
+
 @VueApp(el: '#app')
 class App extends VueAppBase {
   App(): super();
+
+  @data
+  String name;
+}
+
+App app;
+
+Future main() async {
+  await initVue();
+  app = new App();
 }
 ```
 

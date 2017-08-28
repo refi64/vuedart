@@ -35,6 +35,8 @@ class App extends VueAppBase {
   App(): super();
 }
 
+App app;
+
 Future main() async {
   await initVue();
   app = new App();
@@ -150,12 +152,22 @@ take far too much effort.)
 ### `web/index.dart`:
 
 ```dart
+import 'package:vue2/vue.dart';
+import 'dart:async';
+
 @VueApp(el: '#app')
 class App extends VueAppBase {
   App(): super();
 
   @data
   String name;
+}
+
+App app;
+
+Future main() async {
+  await initVue();
+  app = new App();
 }
 ```
 

@@ -1,0 +1,16 @@
+name: vuedart_example
+version: 0.2.0
+description: VueDart example app
+author: Foo Bar
+dependencies:
+  browser: any
+  initialize: any
+  vue2: any
+dependency_overrides:
+  vue2:
+    path: ../..
+transformers:
+  - vue2
+  - initialize:
+      entry_points:
+        - web/index.html
