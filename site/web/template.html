@@ -8,8 +8,8 @@
   <link rel="icon" href="favicon.ico">
 
   <link rel="stylesheet"
-        href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
-  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
   <script src="https://unpkg.com/vue"></script>
 
@@ -22,19 +22,20 @@
   <script> Vue.use(VueMaterial); </script>
 
   <script type="application/dart" src="docs.dart"></script>
-  <script src="/packages/browser/dart.js"></script>
+  <script src="../packages/browser/dart.js"></script>
 
   <style>
     #content { padding: 0em 1em; }
     .md-layout { flex-wrap: nowrap !important; }
     .highlight .err { border: 0px !important; }
     pre { overflow-x: auto; }
+    [v-cloak] { display: none; }
   </style>
 </head>
 
 <body vuedart>
-  <div id="app">
-    <site-navbar></site-navbar>
+  <div id="app" v-cloak>
+    <site-navbar nested></site-navbar>
 
     <md-layout md-row md-column-small>
       <docs-navlist></docs-navlist>

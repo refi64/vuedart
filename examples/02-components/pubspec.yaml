@@ -11,6 +11,3 @@ dependency_overrides:
     path: ../..
 transformers:
   - vue2
-  - initialize:
-      entry_points:
-        - web/index.html

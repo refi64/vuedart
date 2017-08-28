@@ -5,7 +5,6 @@ author: Ryan Gonzalez
 dependencies:
   browser: any
   dart_to_js_script_rewriter: any
-  initialize: any
   md_to_html: ^0.1.0
   pygments: ^0.1.1
   vue2: any
@@ -24,11 +23,6 @@ transformers:
         - "pre.bash, pre.dart, pre.html, pre.yaml":
             re: "(.*)"
   - vue2
-  - initialize:
-      entry_points:
-        - web/index.html
-        - web/pages/intro.html
-        - web/pages/components.html
   - dart_to_js_script_rewriter
   - $dart2js:
       commandLineOptions: [--show-package-warnings]

@@ -8,8 +8,8 @@
   <link rel="icon" href="favicon.ico">
 
   <link rel="stylesheet"
-        href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
-  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
   <script src="https://unpkg.com/vue"></script>
 
@@ -22,9 +22,7 @@
   <script src="packages/browser/dart.js"></script>
 
   <style>
-    .card {
-      margin: 1em auto;
-    }
+    .card { margin: 1em auto; }
 
     .card-image {
       padding-top: 1em;
@@ -34,11 +32,13 @@
       max-width: 196px;
       max-height: 170px;
     }
+
+    [v-cloak] { display: none; }
   </style>
 </head>
 
 <body vuedart>
-  <div id="app">
+  <div id="app" v-cloak>
     <site-navbar></site-navbar>
 
     <md-whiteframe style="margin: 1em;">
@@ -65,7 +65,7 @@
           <div class="md-title">Want to learn more? Check out the docs!</div>
 
           <md-card-actions>
-            <md-button href="/pages/intro.html">Docs</md-button>
+            <md-button href="pages/intro.html">Docs</md-button>
           </md-card-actions>
         </md-card-header>
       </md-card>

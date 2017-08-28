@@ -3,11 +3,10 @@ import 'dart:async';
 import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:html/parser.dart' show parse;
+import 'package:initialize/transformer.dart';
 // import 'package:html/dom.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 import 'package:source_maps/refactor.dart';
-
-
 
 class AnnotationArgs {
   final List<Expression> positional;
@@ -273,7 +272,27 @@ ${components.map((comp) =>
     // print(printer.text);
     transform.addOutput(new Asset.fromString(transform.primaryInput.id,
                                              printer.text));
+
     return new Future.value();
+  }
+}
+
+class CustomInitializeTransformer extends InitializeTransformer {
+  CustomInitializeTransformer(): super([]);
+
+  factory CustomInitializeTransformer.asPlugin(BarbackSettings settings) =>
+    new CustomInitializeTransformer();
+
+  bool isPrimary(AssetId id) => id.extension == '.dart';
+
+  Future apply(Transform transform) async {
+    var primary = transform.primaryInput;
+
+    var contents = await transform.primaryInput.readAsString();
+    // XXX: This is a crappy way of checking for entry points...
+    if (contents.contains(' main()') && contents.contains('vuedart_INTERNAL_init')) {
+      await super.apply(transform);
+    }
   }
 }
 
@@ -285,7 +304,8 @@ class HtmlTransformer extends Transformer {
   String get allowedExtensions => '.html';
 
   Future apply(Transform transform) async {
-    var doc = parse(await transform.primaryInput.readAsString());
+    var primary = transform.primaryInput;
+    var doc = parse(await primary.readAsString());
     var children = doc.body.children;
     var isTemplate = !children.isEmpty && children[0].localName == 'template' &&
                      children[0].attributes.containsKey('vuedart');
@@ -303,6 +323,18 @@ class HtmlTransformer extends Transformer {
         var vuescripts = doc.querySelectorAll('script[src="https://unpkg.com/vue"]');
         for (var vuescript in vuescripts) {
           vuescript.attributes['src'] = 'https://unpkg.com/vue/dist/vue.min.js';
+        }
+      }
+
+      var dartscripts = doc.querySelectorAll('script[src\$=".dart"]');
+      for (var dartscript in dartscripts) {
+        var init = dartscript.attributes['src'].replaceAll('.dart', '.initialize.dart');
+        if (init.startsWith('/') || init.contains('://'))
+          continue;
+
+        var asset = new AssetId(primary.id.package, primary.id.path + '/../' + init);
+        if (await transform.hasInput(asset)) {
+          dartscript.attributes['src'] = init;
         }
       }
 

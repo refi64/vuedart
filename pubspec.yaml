@@ -19,8 +19,6 @@ dependency_overrides:
       ref: strong-mode
 transformers:
   - vue2
-  - initialize:
-      entry_points: web/index.html
   - dart_to_js_script_rewriter
   - $dart2js:
       $exclude: [web/todo_item.dart]

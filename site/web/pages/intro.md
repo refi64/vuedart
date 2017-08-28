@@ -91,14 +91,7 @@ dependencies:
   vue2: any
 transformers:
   - vue2
-  - initialize:
-      entry_points:
-        - web/index.html
 ```
-
-Another note of interest: we also added a dependency on the *initialize* package: without
-this, VueDart will flat-out not work! In addition, note the `entry_points` argument: your
-VueDart `.html` files will need to go here.
 
 Now that everything's been put together, run:
 
@@ -202,11 +195,7 @@ description: VueDart example app
 author: Foo Bar
 dependencies:
   browser: any
-  initialize: any
   vue2: any
 transformers:
   - vue2
-  - initialize:
-      entry_points:
-        - web/index.html
 ```

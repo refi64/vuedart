@@ -19,7 +19,7 @@ class DocsNavlist extends VueComponentBase {
   DocsNavlist(context): super(context);
 
   @method
-  String getUrl(Entry entry, String ref) => '/pages/${entry.addr}#$ref';
+  String getUrl(Entry entry, String ref) => '../pages/${entry.addr}#$ref';
 
   @data
   List<Entry> entries = [

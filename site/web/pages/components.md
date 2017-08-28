@@ -201,7 +201,4 @@ dependencies:
   vue2: any
 transformers:
   - vue2
-  - initialize:
-      entry_points:
-        - web/index.html
 ```
