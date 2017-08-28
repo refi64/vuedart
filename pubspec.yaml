@@ -12,6 +12,11 @@ dependencies:
   js: any # demo
   source_maps: any
   source_span: any
+dependency_overrides:
+  initialize:
+    git:
+      url: https://github.com/kirbyfan64/initialize.git
+      ref: strong-mode
 transformers:
   - vue2
   - initialize:
