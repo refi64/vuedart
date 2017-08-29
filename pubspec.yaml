@@ -1,17 +1,20 @@
 name: vue2
 version: 0.1.0
 description: Vue 2.0 bindings for Dart
-author: Ryan Gonzalez
+author: Ryan Gonzalez <rymg19@gmail.com>
+homepage: https://refi64.com/vuedart
+environment:
+  sdk: ">=1.8.0 <2.0.0"
 dependencies:
-  analyzer: any
-  barback: any
-  browser: any # demo
-  dart_to_js_script_rewriter: any # demo
-  html: any
-  initialize: any
-  js: any # demo
-  source_maps: any
-  source_span: any
+  analyzer: ^0.29.11
+  barback: ^0.15.2+11
+  browser: ^0.10.0+2 # demo
+  dart_to_js_script_rewriter: ^1.0.3 # demo
+  html: ^0.13.2
+  initialize: ^0.6.2+6
+  js: ^0.6.1 # demo
+  source_maps: ^0.10.4
+  source_span: ^1.4.0
 dependency_overrides:
   initialize:
     git:
