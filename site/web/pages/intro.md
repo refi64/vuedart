@@ -60,8 +60,8 @@ Also, add this to `web/index.html`:
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script type="application/dart" src="index.dart"></script>
-  <script src="packages/browser/dart.js"></script>
+  <script defer type="application/dart" src="index.dart"></script>
+  <script defer src="packages/browser/dart.js"></script>
 </head>
 
 <body vuedart>
@@ -77,6 +77,8 @@ Again, this should be pretty self-explanatory. Interesting things to note:
   building in release mode.
 - Note the *vuedart* tag on the *body* element. This is pretty important, since that's
   VueDart uses to know if it's working with a Vue application.
+- The `defer` tag is to prevent your Dart code from running before the page has finished
+  loading.
 
 Now's to build it! Make a `pubspec.yml` that looks like this:
 
@@ -174,8 +176,8 @@ Future main() async {
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script type="application/dart" src="index.dart"></script>
-  <script src="packages/browser/dart.js"></script>
+  <script defer type="application/dart" src="index.dart"></script>
+  <script defer src="packages/browser/dart.js"></script>
 </head>
 
 <body vuedart>

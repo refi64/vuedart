@@ -10,8 +10,8 @@ import 'dart:async';
 
 
 @JS('eval')
-external dynamic eval(String value);
-dynamic _vue = eval('Vue');
+external dynamic _eval(String value);
+dynamic _vue = _eval('Vue');
 
 // @JS('console.log')
 // external dynamic _log(dynamic value);
@@ -142,7 +142,6 @@ class VueAppBase extends _VueBase {
     var data = mapToJs(constr.data);
     setProperty(data, '\$dartobj', this);
 
-    // print('init ${constr.el}...');
     var args = mapToJs({
       'el': constr.el,
       'data': mapToJs(constr.data),
@@ -150,8 +149,6 @@ class VueAppBase extends _VueBase {
       'methods': _mapMethodsToJs(constr.methods),
     });
 
-    // _log(args);
-    // _log(_vue);
     vuethis = callConstructor(_vue, [args]);
   }
 }

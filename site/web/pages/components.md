@@ -176,8 +176,8 @@ Future main() async {
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script type="application/dart" src="index.dart"></script>
-  <script src="packages/browser/dart.js"></script>
+  <script defer type="application/dart" src="index.dart"></script>
+  <script defer src="packages/browser/dart.js"></script>
 </head>
 
 <body vuedart>
