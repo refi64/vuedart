@@ -32,6 +32,8 @@ dynamic vueGetObj(dynamic vuethis) => getProperty(vuethis, '\$dartobj');
 dynamic _interopWithObj(Function func) =>
   allowInteropCaptureThis((context) => func(vueGetObj(context)));
 
+typedef dynamic CreateElement(dynamic tag, [dynamic arg1, dynamic arg2]);
+
 class VueProp {
   final Function validator;
   final Object initializer;
@@ -107,6 +109,8 @@ class _VueBase {
   dynamic vuedart_get(String key) => getProperty(vuethis, key);
   void vuedart_set(String key, dynamic value) => setProperty(vuethis, key, value);
 
+  dynamic render(CreateElement createElement) => null;
+
   void mounted() {}
   void beforeUpdate() {}
   void updated() {}
@@ -140,6 +144,19 @@ class VueComponentBase extends _VueBase {
   static void register(VueComponentConstructor constr) {
     var props = constr.jsprops();
     var computed = constr.jscomputed();
+    var renderFunc;
+
+    if (constr.template == null) {
+      renderFunc = allowInteropCaptureThis((context, jsCreateElement) {
+        dynamic createElement(dynamic tag, [dynamic arg1, dynamic arg2]) {
+          return jsCreateElement(tag is Map ? mapToJs(tag) : tag,
+                                 arg1 != null && arg1 is Map ? mapToJs(arg1) : arg1,
+                                 arg2);
+        };
+
+        return vueGetObj(context).render(createElement);
+      });
+    }
 
     var args = mapToJs({
       'props': props,
@@ -152,6 +169,7 @@ class VueComponentBase extends _VueBase {
       'computed': computed,
       'methods': _mapMethodsToJs(constr.methods),
       'template': constr.template,
+      'render': renderFunc,
     }..addAll(_VueBase.lifecycleHooks));
 
     callMethod(_vue, 'component', [constr.name, args]);
@@ -177,7 +195,6 @@ class VueAppBase extends _VueBase {
     }
 
     var computed = constr.jscomputed();
-    var data = mapToJs(constr.data);
     var result;
 
     var args = mapToJs({

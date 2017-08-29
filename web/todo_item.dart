@@ -15,14 +15,20 @@ class TodoEntry {
 }
 
 @VueComponent('todo-item', template: '<<')
+// @VueComponent('todo-item')
 class TodoItem extends VueComponentBase {
   TodoItem(context): super(context) { test = 'abc'; }
+
+  // @override
+  // dynamic render(CreateElement createElement) =>
+  //   createElement('li', {'style': mapToJs({'color': 'red'})},
+  //                       getTodoText(todo) + ' ' + test);
 
   @prop
   TodoEntry todo;
 
   @method
-  String getTodoText(TodoItem item) => todo.text;
+  String getTodoText(TodoEntry todo) => todo.text;
 
   @computed
   String get test => 'test';

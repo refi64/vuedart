@@ -83,8 +83,8 @@ class DartTransformer extends Transformer {
   String _computedSet(String name) => 'vuedart_INTERNAL_cs_$name';
   String _method(String name) => 'vuedart_INTERAL_m_$name';
 
-  String _methodParams(Method method) =>
-    method.params.map((p) => p.identifier.name).join(', ');
+  String _methodParams(List<FormalParameter> params) =>
+    params.map((p) => p.identifier.name).join(', ');
 
   String _sourceOrNull(AstNode node) => node?.toSource() ?? 'null';
 
@@ -105,8 +105,8 @@ class DartTransformer extends Transformer {
 
   String _codegenMethod(Method method) =>
     '''
-    '${method.name}': (_, ${_methodParams(method)}) =>
-              vueGetObj(_).${_method(method.name)}(${_methodParams(method)}),
+    '${method.name}': (_, ${_methodParams(method.params)}) =>
+              vueGetObj(_).${_method(method.name)}(${_methodParams(method.params)}),
     ''';
 
   Future apply(Transform transform) async {
@@ -203,6 +203,8 @@ $typestring set $name($typestring value) => vuedart_set('$name', value);
             rewriter.edit(member.offset, member.end, '''
 $typestring ${_method(name)}${member.parameters.toSource()}
   ${member.body.toSource()}
+$typestring $name${member.parameters.toSource()} =>
+  vuedart_get('$name')(${_methodParams(member.parameters.parameters)});
             ''');
             methods.add(new Method(name, member.parameters.parameters));
           }
@@ -218,30 +220,39 @@ $typestring ${_method(name)}${member.parameters.toSource()}
 
       if (ann.name.name == 'VueComponent') {
         components.add(cls);
-        var template = (args.named['template'] as StringLiteral).stringValue;
+        var template = args.named['template'] as StringLiteral;
+        var templateString;
 
-        if (template.startsWith('<<')) {
-          var relhtmlpath = template.substring(2);
-          var htmlasset;
+        if (template == null) {
+          templateString = 'null';
+        } else {
+          templateString = template.stringValue;
 
-          if (relhtmlpath == '') {
-            htmlasset = primary.id.changeExtension('.html');
-          } else {
-            htmlasset = new AssetId(primary.id.package,
-                                    primary.id.path + '/../' + relhtmlpath);
+          if (templateString.startsWith('<<')) {
+            var relhtmlpath = templateString.substring(2);
+            var htmlasset;
+
+            if (relhtmlpath == '') {
+              htmlasset = primary.id.changeExtension('.html');
+            } else {
+              htmlasset = new AssetId(primary.id.package,
+                                      primary.id.path + '/../' + relhtmlpath);
+            }
+
+            if (await transform.hasInput(htmlasset)) {
+              var doc = parse(await transform.readInputAsString(htmlasset));
+              templateString = doc.body.children[0].innerHtml;
+            }
           }
 
-          if (await transform.hasInput(htmlasset)) {
-            var doc = parse(await transform.readInputAsString(htmlasset));
-            template = doc.body.children[0].innerHtml;
-          }
+          templateString = 'r"""${templateString.replaceAll('"""', '\\"""')}"""';
         }
 
         code = '''
 static VueComponentConstructor constructor = new VueComponentConstructor(
   name: '${(args.positional[0] as StringLiteral).stringValue}',
   creator: (context) => new ${cls.name.name}(context),
-  template: r"""${template.replaceAll('"""', '\\"""')}""",
+  template: $templateString,
   props: {${props.map(_codegenProp).join('\n')}},
   $opts
 );
