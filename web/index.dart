@@ -9,6 +9,9 @@ class App extends VueAppBase {
   factory App() => VueAppBase.create((context) => new App._(context));
   App._(context): super(context);
 
+  @override
+  void mounted() => print('mounted');
+
   @data
   List<TodoEntry> groceryList = <TodoEntry>[
     new TodoEntry(id: 0, text: 'Vegetables'),

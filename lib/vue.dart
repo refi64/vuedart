@@ -29,6 +29,8 @@ dynamic _mapMethodsToJs(Map<String, Function> methods) =>
                                 methods.values.map(allowInteropCaptureThis)));
 
 dynamic vueGetObj(dynamic vuethis) => getProperty(vuethis, '\$dartobj');
+dynamic _interopWithObj(Function func) =>
+  allowInteropCaptureThis((context) => func(vueGetObj(context)));
 
 class VueProp {
   final Function validator;
@@ -78,7 +80,7 @@ class VueComponentConstructor {
     for (var prop in props.keys) {
       jsprops[prop] = mapToJs({
         'default': props[prop].initializer,
-        // 'validator': allowInterop(props[prop].validator),
+        'validator': allowInterop(props[prop].validator),
       });
     }
 
@@ -104,6 +106,24 @@ class _VueBase {
 
   dynamic vuedart_get(String key) => getProperty(vuethis, key);
   void vuedart_set(String key, dynamic value) => setProperty(vuethis, key, value);
+
+  void mounted() {}
+  void beforeUpdate() {}
+  void updated() {}
+  void activated() {}
+  void deactivated() {}
+  void beforeDestroy() { }
+  void destroyed() {}
+
+  static Map<String, dynamic> lifecycleHooks = {
+    'mounted': _interopWithObj((obj) => obj.mounted()),
+    'beforeUpdate': _interopWithObj((obj) => obj.beforeUpdate()),
+    'updated': _interopWithObj((obj) => obj.updated()),
+    'activated': _interopWithObj((obj) => obj.activated()),
+    'deactivated': _interopWithObj((obj) => obj.deactivated()),
+    'beforeDestroy': _interopWithObj((obj) => obj.beforeDestroy()),
+    'destroyed': _interopWithObj((obj) => obj.destroyed()),
+  };
 }
 
 class _FakeException {
@@ -132,7 +152,7 @@ class VueComponentBase extends _VueBase {
       'computed': computed,
       'methods': _mapMethodsToJs(constr.methods),
       'template': constr.template,
-    });
+    }..addAll(_VueBase.lifecycleHooks));
 
     callMethod(_vue, 'component', [constr.name, args]);
   }
@@ -144,6 +164,7 @@ class VueAppBase extends _VueBase {
   VueAppBase(dynamic context) {
     if (context == null) throw new _FakeException(constructor);
     vuethis = context;
+    setProperty(vuethis, '\$dartobj', this);
   }
 
   static create(Function creator) {
@@ -157,18 +178,20 @@ class VueAppBase extends _VueBase {
 
     var computed = constr.jscomputed();
     var data = mapToJs(constr.data);
+    var result;
 
     var args = mapToJs({
       'el': constr.el,
       'created': allowInteropCaptureThis((context) {
-        setProperty(data, '\$dartobj', creator(context));
+        result = creator(context);
       }),
       'data': mapToJs(constr.data),
       'computed': computed,
       'methods': _mapMethodsToJs(constr.methods),
-    });
+    }..addAll(_VueBase.lifecycleHooks));
 
     callConstructor(_vue, [args]);
+    return result;
   }
 }
 

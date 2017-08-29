@@ -89,7 +89,7 @@ class DartTransformer extends Transformer {
   String _sourceOrNull(AstNode node) => node?.toSource() ?? 'null';
 
   String _codegenProp(Prop prop) =>
-    ''' '${prop.name}': new VueProp(() => true, ${_sourceOrNull(prop.initializer)}), ''';
+    ''' '${prop.name}': new VueProp((_) => true, ${_sourceOrNull(prop.initializer)}), ''';
 
   String _codegenData(Data data) =>
     ''' '${data.name}': ${_sourceOrNull(data.initializer)}, ''';
