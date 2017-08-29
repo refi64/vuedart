@@ -12,6 +12,9 @@ First off, note that this documentation assumes you already know how Vue works. 
 don't, then first check out the [official Vue guide](https://vuejs.org/v2/guide/), then
 come back once you're done.
 
+Also, the examples shown in this documentation are available
+[on GitHub](https://github.com/kirbyfan64/vuedart/tree/master/examples).
+
 <div id="first-steps"></div>
 
 ## First steps
@@ -99,11 +102,26 @@ Now that everything's been put together, run:
 
 ```bash
 $ pub get
-$ pub serve
+$ pub serve --web-compiler dartdevc
 ```
 
 and open your browser to `localhost:8080`. Congratulations, you just made your first
 VueDart app!
+
+### Addendum #1: Why dartdevc?
+
+As a quick side note, Dart has two different Dart-to-JavaScript compilers. dart2js, the
+default, is designed for production use; it has powerful, awesome optimizations, but it's
+also really slow. DDC, the Dart Dev Compiler, is designed for development like we're
+doing; it has faster compile times and compiles down to readable ES6 code to make it
+easier to debug.
+
+### Addendum #2: Building for production
+
+If you want to deploy a VueDart app in production, you'll want to run `pub build`; while
+`pub serve` defaults to debug mode builds, `pub build` defaults to release mode. Also note
+that, when doing a release build, your `vue` scripts from unpkg will automatically be
+converted to `vue.min.js`.
 
 <div id="data"></div>
 
@@ -141,6 +159,43 @@ a name in our HTML file:
 Now run your app, enter a name, and watch the fireworks. (Not really, but actual fireworks
 take far too much effort.)
 
+<div id="computed"></div>
+
+## Declaring computed data
+
+What if we want to, for instance, capitalize the name? VueDart lets you use Vue's
+computed properties, too:
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
+
+  @data
+  String name;
+
+  @computed
+  String get capitalizedName => name.toUpperCase();
+}
+```
+
+```html
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <p>Your name is: {{capitalizedName}}</p>
+  </div>
+</body>
+```
+
+You can also define setters on computed properties using the normal Dart setter syntax:
+
+```dart
+@computed
+void set capitalizedName(String newValue) { /* ... */ }
+```
+
 <div id="final"></div>
 
 ## Final code
@@ -158,6 +213,9 @@ class App extends VueAppBase {
 
   @data
   String name;
+
+  @computed
+  String get capitalizedName => name.toUpperCase();
 }
 
 App app;
@@ -185,7 +243,7 @@ Future main() async {
 <body vuedart>
   <div id="app">
     <input v-model="name">
-    <p>Your name is: {{name}}</p>
+    <p>Your name is: {{capitalizedName}}</p>
   </div>
 </body>
 ```

@@ -30,6 +30,8 @@ class DocsNavlist extends VueComponentBase {
         ['Welcome', 'welcome'],
         ['First steps', 'first-steps'],
         ['Declaring data', 'data'],
+        ['Declaring computed data', 'computed'],
+        ['Final code', 'final'],
       ],
     ),
     new Entry(
@@ -38,6 +40,18 @@ class DocsNavlist extends VueComponentBase {
       contents: [
         ['Defining a component', 'component'],
         ['Declaring properties', 'props'],
+        ['Declaring methods', 'methods'],
+        ['Final code', 'final'],
+      ],
+    ),
+    new Entry(
+      title: 'Advanced topics',
+      addr: 'advanced.html',
+      contents: [
+        ['Crossing the JavaScript and Dart boundary', 'boundary'],
+        ['Lifecycle callbacks', 'lifecycle'],
+        ['Accessing refs', 'refs'],
+        ['Render functions', 'render'],
       ],
     ),
   ];

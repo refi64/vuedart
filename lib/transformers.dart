@@ -151,7 +151,7 @@ import 'package:initialize/initialize.dart';
 
       for (var member in cls.members) {
         if (member is FieldDeclaration) {
-          var ann = _getAnn(member, ['prop', 'data']);
+          var ann = _getAnn(member, ['prop', 'data', 'ref']);
           if (ann == null) continue;
 
           var fields = member.fields;
@@ -160,18 +160,25 @@ import 'package:initialize/initialize.dart';
 
           for (var decl in member.fields.variables) {
             var name = decl.name.name;
-            rewriter.edit(fields.offset, fields.end+1, '''
+
+            if (ann.name.name == 'ref') {
+              rewriter.edit(fields.offset, fields.end+1, '''
+$typestring get $name => \$ref('$name');
+              ''');
+            } else {
+              rewriter.edit(fields.offset, fields.end+1, '''
 $typestring get $name => vuedart_get('$name');
 void set $name($typestring value) => vuedart_set('$name', value);
-              ''');
+                ''');
 
-            switch (ann.name.name) {
-            case 'prop':
-              props.add(new Prop(name, type, decl.initializer));
-              break;
-            case 'data':
-              data.add(new Data(name, decl.initializer));
-              break;
+              switch (ann.name.name) {
+              case 'prop':
+                props.add(new Prop(name, type, decl.initializer));
+                break;
+              case 'data':
+                data.add(new Data(name, decl.initializer));
+                break;
+              }
             }
           }
         } else if (member is MethodDeclaration) {

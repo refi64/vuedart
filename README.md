@@ -2,12 +2,33 @@
 
 ![Logo](/logo/logo.png)
 
-VueDart is a WIP project to let you create Vue web apps using Dart.
+VueDart lets you create Vue web apps using Dart.
+
+## Website and documentation
+
+https://refi64.com/vuedart
 
 ## Status
 
-- Basic apps and component definitions work.
-- A lot of stuff still doesn't!
+What works:
+
+- App and component definitions.
+- Templates.
+- Data.
+- Properties.
+- Computed data.
+- Methods.
+- Refs.
+- Lifecycle callbacks.
+
+What doesn't work:
+
+- Render functions (or at least, they don't work *well*).
+- Most of the [instance properties](https://vuejs.org/v2/api/#Instance-Properties).
+- Server-side rendering.
+- Mixins.
+- Hardcoded support for the Vuex and vue-router plugins.
+- Generic plugin support (this is going to take a while though).
 
 ## Logo
 

@@ -9,6 +9,9 @@ class App extends VueAppBase {
 
   @data
   String name;
+
+  @computed
+  String get capitalizedName => name.toUpperCase();
 }
 
 App app;

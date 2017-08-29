@@ -117,6 +117,31 @@ Now modify `index.html`:
 
 Voila! We're back to the same code, but now it's better organized. Yaaay!!
 
+(Yes, I left out the capitalization; that's an exercise for the reader!)
+
+<div id="methods"></div>
+
+## Declaring methods
+
+Last but not least, I want to touch on methods. You know what these are already; the
+question is, how do you define them in VueDart? Try this in `show_name.dart`:
+
+```dart
+@VueComponent('show-name', template: '<<')
+class ShowName extends VueComponentBase {
+  ShowName(context): super(context);
+
+  @prop
+  String name;
+
+  @method
+  String capitalize(String thing) => thing.toUpperCase();
+}
+```
+
+As you can see, declaring Vue methods is the same as declaring a normal method, except
+for the `@method` decorator.
+
 <div id="final"></div>
 
 ## Final code

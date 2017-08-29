@@ -4,6 +4,8 @@ library todo_item;
 import 'package:js/js.dart';
 import 'package:vue2/vue.dart';
 
+import 'dart:html';
+
 
 @anonymous
 @JS()
@@ -26,14 +28,19 @@ class TodoItem extends VueComponentBase {
 
   @override
   void mounted() {
-    print($ref('li').runtimeType);
-    print($ref('test').runtimeType);
+    print(li.runtimeType);
+    print(tstcomp.runtimeType);
   }
 
   // @override
   // dynamic render(CreateElement createElement) =>
   //   createElement('li', {'style': mapToJs({'color': 'red'})},
   //                       getTodoText(todo) + ' ' + test);
+
+  @ref
+  LIElement li;
+  @ref
+  TestComponent tstcomp;
 
   @prop
   TodoEntry todo;

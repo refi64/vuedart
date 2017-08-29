@@ -234,10 +234,12 @@ class _VueData { const _VueData(); }
 class _VueProp { const _VueProp(); }
 class _VueComputed { const _VueComputed(); }
 class _VueMethod { const _VueMethod(); }
+class _VueRef { const _VueRef(); }
 
 const data = const _VueData();
 const prop = const _VueProp();
 const computed = const _VueComputed();
 const method = const _VueMethod();
+const ref = const _VueRef();
 
 Future initVue() async => run();
