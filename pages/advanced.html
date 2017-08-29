@@ -1,0 +1,245 @@
+<!DOCTYPE html><html><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VueDart: Advanced topics</title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+
+  <script src="https://unpkg.com/vue-material"></script>
+  <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css">
+
+  <link rel="stylesheet" href="https://cdn.rawgit.com/richleland/pygments-css/c39da1d9/default.css">
+
+  <script> Vue.use(VueMaterial); </script>
+
+  <script defer="" src="docs.initialize.dart.js"></script>
+  
+
+  <style>
+    #content { padding: 0em 1em; }
+    .md-layout { flex-wrap: nowrap !important; }
+    .highlight .err { border: 0px !important; }
+    pre { overflow-x: auto; }
+    [v-cloak] { display: none; }
+    a:visited:not(.md-button) { color: blue; }
+  </style>
+</head>
+
+<body>
+  <div id="app" v-cloak="">
+    <site-navbar nested=""></site-navbar>
+
+    <md-layout md-row="" md-column-small="">
+      <docs-navlist></docs-navlist>
+
+      <div id="content" v-pre="">
+        <h1>Advanced topics</h1><div id="boundary"></div>
+<h2>Crossing the JavaScript and Dart boundary</h2>
+<p>This is one of the trickier things you'll need to know to use VueDart efficiently. Going
+back to the <code>show-name</code> component from the last section, what if you wanted a property
+value to be an object? For instance:</p>
+<div class="highlight"><pre><span></span><span class="c1">// DO NOT DO THIS; IT DOESN'T WORK</span>
+
+<span class="kd">class</span> <span class="nc">Person</span> <span class="p">{</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">age</span><span class="p">;</span>
+
+  <span class="n">Person</span><span class="p">({</span><span class="k">this</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="n">age</span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;p&gt;{{person.name}} is {{person.age}}&lt;/p&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">ShowName</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">ShowName</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">prop</span>
+  <span class="n">Person</span> <span class="n">person</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>If you couldn't tell by the giant warning comment...this won't work. The problem here is
+that the JavaScript world doesn't see objects like the Dart world does. The answer to this
+dilemma is <a href="https://pub.dartlang.org/packages/js">the js package</a>.</p>
+<p>Before you continue, look through the package documentation (especially the <em>JavaScript
+object literals</em> section) and the Chart.js example.</p>
+<p>Now, with that in mind, here's how you'd do the above <em>properly</em>:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">anonymous</span>
+<span class="err">@</span><span class="n">JS</span><span class="p">()</span>
+<span class="kd">class</span> <span class="nc">Person</span> <span class="p">{</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">age</span><span class="p">;</span>
+
+  <span class="n">external</span> <span class="n">Person</span><span class="p">({</span><span class="kt">String</span> <span class="n">name</span><span class="p">,</span> <span class="kt">int</span> <span class="n">age</span><span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Since <code>@anonymous</code> is declaring a normal JavaScript anonymous object, this version of
+<code>Person</code> will survive being passed over the JS-and-Dart boundary. You can use basic types,
+like <code>String</code>, <code>int</code>, and <code>List</code>.</p>
+<p>Another thing to note: <em>you cannot put maps in your objects if you plan to use them from the
+JS side</em>. For instance, this won't work:</p>
+<div class="highlight"><pre><span></span><span class="c1">// DON'T DO THIS</span>
+
+<span class="err">@</span><span class="n">anonymous</span>
+<span class="err">@</span><span class="n">JS</span><span class="p">()</span>
+<span class="kd">class</span> <span class="nc">Things</span> <span class="p">{</span>
+  <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">String</span><span class="o">&gt;</span> <span class="n">things</span><span class="p">;</span>
+
+  <span class="n">external</span> <span class="n">Person</span><span class="p">({</span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">String</span><span class="o">&gt;</span> <span class="n">things</span><span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Instead, you need to use <code>package:js/js_util.dart</code>, whose documentation is (confusingly!)
+available under the name
+<a href="https://api.dartlang.org/stable/dart-js_util/dart-js_util-library.html"><code>dart:js_util</code></a>,
+and the <code>mapToJs</code> helper function. Here's a concrete example:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">anonymous</span>
+<span class="err">@</span><span class="n">JS</span><span class="p">()</span>
+<span class="kd">class</span> <span class="nc">Things</span> <span class="p">{</span>
+  <span class="c1">// Use 'dynamic' to reference JavaScript objects.</span>
+  <span class="n">dynamic</span> <span class="n">things</span><span class="p">;</span>
+
+  <span class="n">external</span> <span class="n">Person</span><span class="p">({</span><span class="n">dynamic</span> <span class="n">things</span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="c1">// ...</span>
+
+<span class="c1">// Now we want to create a new instance of Things</span>
+<span class="k">new</span> <span class="n">Things</span><span class="p">(</span>
+  <span class="nl">things:</span> <span class="n">mapToJs</span><span class="p">({</span>
+    <span class="s1">'thing1'</span><span class="o">:</span> <span class="s1">'value'</span><span class="p">,</span>
+    <span class="s1">'thing2'</span><span class="o">:</span> <span class="s1">'value'</span><span class="p">,</span>
+  <span class="p">}),</span>
+<span class="p">)</span>
+</pre></div>
+
+<p><code>mapToJs</code> converts a Dart map to a standard JavaScript object. After this, use the <code>js_util</code>
+functions to access the properties on the object (such as <code>getProperty</code> and <code>setProperty</code>).</p>
+<p>All this seems rather complex, but once you've got it down, you'll be passing objects around
+in no time!!</p><div id="lifecycle"></div>
+<h2>Lifecycle callbacks</h2>
+<p>Luckily, lifecycle callbacks are much simpler! For starters, the <code>created</code> lifecycle
+callback is just your constructor. For example:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;pHello!&lt;/p&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// This is the VueDart equivalent of the 'created' lifecycle callback</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="err">@</span><span class="n">VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
+  <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+  <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Same here.</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>The others are just method overrides:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;pHello!&lt;/p&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s2">"mounted!"</span><span class="p">);</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">destroyed</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s2">"destroyed!"</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>and so forth for all the other lifecycle callbacks.</p><div id="refs"></div>
+<h2>Accessing refs</h2>
+<p>Take the following component:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;div ref="text"&gt;Hello!&lt;/div&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// How to access the div element?</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>For this, you can use the <code>@ref</code> annotation:</p>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'dart:html'</span><span class="p">;</span> <span class="c1">// to get DivElement</span>
+
+<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;div ref="text"&gt;Hello!&lt;/div&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">ref</span>
+  <span class="n">DivElement</span> <span class="n">text</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">text</span><span class="p">.</span><span class="n">text</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Piece of cake, right? It's like declaring a normal attribute.</p>
+<p>Accessing component refs is just as simple:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'first-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;div&gt;Hello!&lt;/div&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">FirstComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">FirstComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">computed</span>
+  <span class="kt">String</span> <span class="kd">get</span> <span class="n">stuff</span> <span class="o">=&gt;</span> <span class="s1">'Hello!'</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'second-component'</span><span class="p">,</span>
+              <span class="nl">template:</span> <span class="s1">'&lt;first-component ref="first"&gt;&lt;/first-component&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">SecondComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">SecondComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">ref</span>
+  <span class="n">FirstComponent</span> <span class="n">first</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">first</span><span class="p">.</span><span class="n">stuff</span><span class="p">);</span> <span class="c1">// Hello!</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>If you need to get a ref by name instead of declaring it ahead-of-type, use the <code>$ref</code>
+function:</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">print</span><span class="p">(</span><span class="n">$ref</span><span class="p">(</span><span class="s1">'first'</span><span class="p">)</span> <span class="o">as</span> <span class="n">FirstComponent</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<div id="render"></div>
+<h2>Render functions</h2>
+<p><strong>Note that render functions in VueDart right now are rather suboptimal from a Dart-ish-ness
+perspective; they will eventually be improved, and this section will be rewritten.</strong></p>
+<p>To declare a custom render function, you just leave out the <code>template:</code> value and override
+the <code>render</code> method:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">)</span> <span class="c1">// &lt;-- no template!</span>
+<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">render</span><span class="p">(</span><span class="n">CreateElement</span> <span class="n">createElement</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="c1">// function body goes here</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>The hard part isn't <em>declaring</em> it though: it's <em>writing</em> it. Here's an example:</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">render</span><span class="p">(</span><span class="n">CreateElement</span> <span class="n">createElement</span><span class="p">)</span> <span class="o">=&gt;</span>
+  <span class="n">createElement</span><span class="p">(</span><span class="s1">'div'</span><span class="p">,</span> <span class="p">{</span><span class="s1">'style'</span><span class="o">:</span> <span class="n">mapToJs</span><span class="p">({</span><span class="s1">'color'</span><span class="o">:</span> <span class="s1">'red'</span><span class="p">})},</span>
+                <span class="s1">'div contents here'</span><span class="p">);</span>
+</pre></div>
+
+<p>The main difference here in comparison to vanilla Vue is the <code>mapToJs</code> function: although
+the outer maps are converted automatically, the inner maps aren't. In this case, the
+<code>{'style': ...}</code> map is automatically converted, but the <code>{'color': 'red'}</code> map isn't.</p>
+<p>Other than that, just note that all the return values here are <code>dynamic</code>, and if
+you make a mistake, Dart's type system isn't going to be there to save you when it fails.
+Beware!</p>
+      </div>
+    </md-layout>
+  </div>
+
+</body></html>

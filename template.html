@@ -1,0 +1,46 @@
+<!DOCTYPE html><html><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VueDart: {{title}}</title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+
+  <script src="https://unpkg.com/vue-material"></script>
+  <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css">
+
+  <link rel="stylesheet" href="https://cdn.rawgit.com/richleland/pygments-css/c39da1d9/default.css">
+
+  <script> Vue.use(VueMaterial); </script>
+
+  <script defer="" src="docs.dart.js"></script>
+  
+
+  <style>
+    #content { padding: 0em 1em; }
+    .md-layout { flex-wrap: nowrap !important; }
+    .highlight .err { border: 0px !important; }
+    pre { overflow-x: auto; }
+    [v-cloak] { display: none; }
+    a:visited:not(.md-button) { color: blue; }
+  </style>
+</head>
+
+<body>
+  <div id="app" v-cloak="">
+    <site-navbar nested=""></site-navbar>
+
+    <md-layout md-row="" md-column-small="">
+      <docs-navlist></docs-navlist>
+
+      <div id="content" v-pre="">
+        {{content}}
+      </div>
+    </md-layout>
+  </div>
+
+</body></html>

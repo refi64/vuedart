@@ -1,0 +1,222 @@
+<!DOCTYPE html><html><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VueDart: Components</title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+
+  <script src="https://unpkg.com/vue-material"></script>
+  <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css">
+
+  <link rel="stylesheet" href="https://cdn.rawgit.com/richleland/pygments-css/c39da1d9/default.css">
+
+  <script> Vue.use(VueMaterial); </script>
+
+  <script defer="" src="docs.initialize.dart.js"></script>
+  
+
+  <style>
+    #content { padding: 0em 1em; }
+    .md-layout { flex-wrap: nowrap !important; }
+    .highlight .err { border: 0px !important; }
+    pre { overflow-x: auto; }
+    [v-cloak] { display: none; }
+    a:visited:not(.md-button) { color: blue; }
+  </style>
+</head>
+
+<body>
+  <div id="app" v-cloak="">
+    <site-navbar nested=""></site-navbar>
+
+    <md-layout md-row="" md-column-small="">
+      <docs-navlist></docs-navlist>
+
+      <div id="content" v-pre="">
+        <h1>Components</h1><div id="component"></div>
+<h2>Defining a component</h2>
+<p>Unfortunately, as awesome as our example app is, it's kinda messy. You probably don't want
+this much stuff in one place. Therefore, we're going to move out displaying the name into
+its own component, <code>show-name</code>.</p>
+<p>Toss this in <code>lib/show_name.dart</code>:</p>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'package:vue2/vue.dart'</span><span class="p">;</span>
+
+
+<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;p&gt;Your name is: Bob&lt;/p&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">ShowName</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">ShowName</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Also, add the following import to <code>index.dart</code>:</p>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'package:vuedart_example/show_name.dart'</span><span class="p">;</span> <span class="c1">// &lt;-- Component import goes here</span>
+</pre></div>
+
+<p>and change <code>index.html</code> like so:</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">body</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"app"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">v-model</span><span class="o">=</span><span class="s">"name"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">show-name</span><span class="p">&gt;&lt;/</span><span class="nt">show-name</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</pre></div>
+
+<p>Now refresh your browser page. You should see it now say, <em>Your name is Bob</em>.</p>
+<p>But let's take a few steps back. What exactly is going on here?</p><ul><li>
+<p>New components are defined using the <em>VueComponent</em> annotation and the <em>VueComponentBase</em>
+  base class. You pass your template through the <em>template:</em> argument on the annotation
+  (there's a better way, but we'll get to that later).</p></li><li>
+<p>As before, it's important to declare your constructor, except now it's taking a single
+  argument, though it's still just passing it up a level.</p></li></ul>
+<p>That being said, putting templates in the annotation string is just nasty. In vanilla Vue,
+you can use webpack for stuff like this. Does VueDart have an alternative? <em>Yup!</em></p>
+<p>Change the <em>VueComponent</em> annotation in <code>show_name.dart</code> to read:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;&lt;show_name.html'</span><span class="p">)</span>
+</pre></div>
+
+<p>and create <code>lib/show_name.html</code> containing the following:</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">template</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Your name is: Bob<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">template</span><span class="p">&gt;</span>
+</pre></div>
+
+<p>The <code>&lt;&lt;show_name.html</code> syntax means <em>read show_name.html and use the template inside here</em>.
+VueDart will read the file, extract the contents of the template element, and use that
+for your template. However, this gets even better! Since your template is almost always
+the same name as your Dart code (e.g. <code>show_name.dart</code> and <code>show_name.html</code>), VueDart
+uses that as the default. Therefore, you can abbreviate all this to:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;&lt;'</span><span class="p">)</span>
+</pre></div>
+
+<p>and VueDart will automatically use the template in <code>show_name.html</code>.</p><div id="props"></div>
+<h2>Declaring properties</h2>
+<p>Well, this component is a bit of a downgrade. Before, we could display <em>any</em> name; now
+we're limited to Bob's. Let's try using some properties:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;&lt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">ShowName</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">ShowName</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">prop</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">template</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Your name is: {{name}}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">template</span><span class="p">&gt;</span>
+</pre></div>
+
+<p>Props in VueDart are declared via the <em>prop</em> annotation, and the syntax is just like normal
+Dart. You can also give a default value by doing <code>String name = "default name"</code>.</p>
+<p>Now modify <code>index.html</code>:</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">body</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"app"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">v-model</span><span class="o">=</span><span class="s">"name"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">show-name</span> <span class="na">:name</span><span class="o">=</span><span class="s">"name"</span><span class="p">&gt;&lt;/</span><span class="nt">show-name</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</pre></div>
+
+<p>Voila! We're back to the same code, but now it's better organized. Yaaay!!</p>
+<p>(Yes, I left out the capitalization; that's an exercise for the reader!)</p><div id="methods"></div>
+<h2>Declaring methods</h2>
+<p>Last but not least, I want to touch on methods. You know what these are already; the
+question is, how do you define them in VueDart? Try this in <code>show_name.dart</code>:</p>
+<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;&lt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">ShowName</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">ShowName</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">prop</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">method</span>
+  <span class="kt">String</span> <span class="n">capitalize</span><span class="p">(</span><span class="kt">String</span> <span class="n">thing</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">thing</span><span class="p">.</span><span class="n">toUpperCase</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>As you can see, declaring Vue methods is the same as declaring a normal method, except
+for the <code>@method</code> decorator.</p><div id="final"></div>
+<h2>Final code</h2>
+<h3><code>lib/show_name.dart</code>:</h3>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'package:vue2/vue.dart'</span><span class="p">;</span>
+
+<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;&lt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">ShowName</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">ShowName</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">prop</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3><code>lib/show_name.html</code>:</h3>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">template</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Your name is: {{name}}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">template</span><span class="p">&gt;</span>
+</pre></div>
+
+<h3><code>web/index.dart</code>:</h3>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'package:vue2/vue.dart'</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">'package:vuedart_example/show_name.dart'</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">'dart:async'</span><span class="p">;</span>
+
+<span class="err">@</span><span class="n">VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
+  <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+  <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">data</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">App</span> <span class="n">app</span><span class="p">;</span>
+
+<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="n">async</span> <span class="p">{</span>
+  <span class="n">await</span> <span class="n">initVue</span><span class="p">();</span>
+  <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">App</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3><code>web/index.html</code>:</h3>
+<div class="highlight"><pre><span></span><span class="cp">&lt;!DOCTYPE html&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>VueDart first example<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+
+  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">"https://unpkg.com/vue"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+
+  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">defer</span> <span class="na">type</span><span class="o">=</span><span class="s">"application/dart"</span> <span class="na">src</span><span class="o">=</span><span class="s">"index.dart"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">defer</span> <span class="na">src</span><span class="o">=</span><span class="s">"packages/browser/dart.js"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">body</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"app"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">v-model</span><span class="o">=</span><span class="s">"name"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">show-name</span> <span class="na">:name</span><span class="o">=</span><span class="s">"name"</span><span class="p">&gt;&lt;/</span><span class="nt">show-name</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</pre></div>
+
+<h3><code>pubspec.yaml</code>:</h3>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">vuedart_example</span>
+<span class="l l-Scalar l-Scalar-Plain">version</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0.2.0</span>
+<span class="l l-Scalar l-Scalar-Plain">description</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">VueDart example app</span>
+<span class="l l-Scalar l-Scalar-Plain">author</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Foo Bar</span>
+<span class="l l-Scalar l-Scalar-Plain">dependencies</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">browser</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
+  <span class="l l-Scalar l-Scalar-Plain">initialize</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
+  <span class="l l-Scalar l-Scalar-Plain">vue2</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
+<span class="l l-Scalar l-Scalar-Plain">transformers</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">vue2</span>
+</pre></div>
+
+      </div>
+    </md-layout>
+  </div>
+
+</body></html>
