@@ -7,6 +7,7 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 import 'dart:async';
+import 'dart:html';
 
 
 @JS('eval')
@@ -128,6 +129,13 @@ class _VueBase {
     'beforeDestroy': _interopWithObj((obj) => obj.beforeDestroy()),
     'destroyed': _interopWithObj((obj) => obj.destroyed()),
   };
+
+  dynamic $ref(String name) {
+    var refs = getProperty(vuethis, '\$refs');
+    var ref = getProperty(refs, name);
+    if (ref == null) return null;
+    return vueGetObj(ref) ?? ref;
+  }
 }
 
 class _FakeException {

@@ -14,10 +14,21 @@ class TodoEntry {
   external factory TodoEntry({int id, String text});
 }
 
+@VueComponent('test-component', template: '<p><slot></slot></p>')
+class TestComponent extends VueComponentBase {
+  TestComponent(context): super(context);
+}
+
 @VueComponent('todo-item', template: '<<')
 // @VueComponent('todo-item')
 class TodoItem extends VueComponentBase {
   TodoItem(context): super(context) { test = 'abc'; }
+
+  @override
+  void mounted() {
+    print($ref('li').runtimeType);
+    print($ref('test').runtimeType);
+  }
 
   // @override
   // dynamic render(CreateElement createElement) =>

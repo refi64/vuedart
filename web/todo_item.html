@@ -1,3 +1,6 @@
 <template vuedart>
-  <li>{{getTodoText(todo)}} {{test}}</li>
+  <li ref="li">
+    {{getTodoText(todo)}} {{test}}
+    <test-component ref="test">ref test</test-component>
+  </li>
 </template>
