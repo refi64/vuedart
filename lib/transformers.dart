@@ -286,11 +286,10 @@ class CustomInitializeTransformer extends InitializeTransformer {
   bool isPrimary(AssetId id) => id.extension == '.dart';
 
   Future apply(Transform transform) async {
-    var primary = transform.primaryInput;
-
     var contents = await transform.primaryInput.readAsString();
     // XXX: This is a crappy way of checking for entry points...
-    if (contents.contains(' main()') && contents.contains('vuedart_INTERNAL_init')) {
+    if (contents.contains(' main()') && contents.contains('vuedart_INTERNAL_init') &&
+        !contents.contains('VUEDART_THIS_IS_THE_MAIN_FILE_WHY_ARE_YOU_READING_THIS')) {
       // print(contents);
       await super.apply(transform);
     }

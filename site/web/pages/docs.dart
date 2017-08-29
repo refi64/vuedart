@@ -10,7 +10,8 @@ import 'dart:async';
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  App(): super();
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
 
   // @computed
   // bool get isMobile => window.innerWidth <= 480;

@@ -8,7 +8,8 @@ import 'package:vuedart_site/common.dart';
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  App(): super();
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
 }
 
 

@@ -6,10 +6,7 @@ class SiteNavbar extends VueComponentBase {
   SiteNavbar(context): super(context);
 
   @method
-  String relUrl(String url) {
-    print("$this ${nested != null ? '../$url' : url}");
-    return nested != null ? '../$url' : url;
-  }
+  String relUrl(String url) => nested != null ? '../$url' : url;
 
   @prop
   dynamic nested;

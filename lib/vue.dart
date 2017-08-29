@@ -106,6 +106,11 @@ class _VueBase {
   void vuedart_set(String key, dynamic value) => setProperty(vuethis, key, value);
 }
 
+class _FakeException {
+  VueAppConstructor constr;
+  _FakeException(this.constr);
+}
+
 class VueComponentBase extends _VueBase {
   VueComponentBase(dynamic context) {
     vuethis = context;
@@ -136,20 +141,34 @@ class VueComponentBase extends _VueBase {
 class VueAppBase extends _VueBase {
   VueAppConstructor get constructor => null;
 
-  VueAppBase() {
-    var constr = this.constructor;
+  VueAppBase(dynamic context) {
+    if (context == null) throw new _FakeException(constructor);
+    vuethis = context;
+  }
+
+  static create(Function creator) {
+    var constr;
+
+    try {
+      creator(null);
+    } on _FakeException catch (ex) {
+      constr = ex.constr;
+    }
+
     var computed = constr.jscomputed();
     var data = mapToJs(constr.data);
-    setProperty(data, '\$dartobj', this);
 
     var args = mapToJs({
       'el': constr.el,
+      'created': allowInteropCaptureThis((context) {
+        setProperty(data, '\$dartobj', creator(context));
+      }),
       'data': mapToJs(constr.data),
       'computed': computed,
       'methods': _mapMethodsToJs(constr.methods),
     });
 
-    vuethis = callConstructor(_vue, [args]);
+    callConstructor(_vue, [args]);
   }
 }
 

@@ -32,7 +32,8 @@ import 'dart:async';
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  App(): super();
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
 }
 
 App app;
@@ -43,12 +44,11 @@ Future main() async {
 }
 ```
 
-For those familiar with Vue, this should be rather self-explanatory. Here, *App* is the
-equivalent of a global *Vue* instance. The *VueApp* annotation is where you declare which
-element is your root. *initVue* does what you think it does.
-
-Note that you need to override the *App* constructor and delegate to the superclass as
-shown above: `App(): super()`.
+For those familiar with Vue, this should be rather self-explanatory. Only point of
+interest is the whole factory+constructor dance; that's just boilerplate that will
+hopefully be removed in the future version of VueDart. Here, *App* is the equivalent of
+a global *Vue* instance. The *VueApp* annotation is where you declare which element is
+your root. *initVue* does what you think it does: it initializes VueDart.
 
 Also, add this to `web/index.html`:
 
@@ -117,7 +117,8 @@ Modify your app class to look like so:
 ```dart
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  App(): super();
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
 
   @data
   String name;
@@ -152,7 +153,8 @@ import 'dart:async';
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  App(): super();
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
 
   @data
   String name;
