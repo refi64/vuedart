@@ -13,7 +13,7 @@ don't, then first check out the [official Vue guide](https://vuejs.org/v2/guide/
 come back once you're done.
 
 Also, the examples shown in this documentation are available
-[on GitHub](https://github.com/kirbyfan64/vuedart/tree/master/examples).
+[on GitHub](https://github.com/kirbyfan64/vuedart/tree/master/example).
 
 <div id="first-steps"></div>
 
