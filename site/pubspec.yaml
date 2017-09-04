@@ -11,10 +11,6 @@ dependencies:
 dependency_overrides:
   vue2:
     path: ..
-  initialize:
-    git:
-      url: https://github.com/kirbyfan64/initialize.git
-      ref: strong-mode
 transformers:
   - md_to_html:
       template: web/template.html
