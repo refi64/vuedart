@@ -11,15 +11,10 @@ dependencies:
   browser: ^0.10.0+2 # demo
   dart_to_js_script_rewriter: ^1.0.3 # demo
   html: ^0.13.2
-  initialize: ^0.6.2+6
+  initialize: ^0.6.2+7
   js: ^0.6.1 # demo
   source_maps: ^0.10.4
   source_span: ^1.4.0
-dependency_overrides:
-  initialize:
-    git:
-      url: https://github.com/kirbyfan64/initialize.git
-      ref: strong-mode
 transformers:
   - vue2
   - dart_to_js_script_rewriter
