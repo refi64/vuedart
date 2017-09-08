@@ -296,21 +296,32 @@ ${components.map((comp) =>
 }
 
 class CustomInitializeTransformer extends InitializeTransformer {
-  CustomInitializeTransformer(): super([]);
+  BarbackSettings _settings;
+
+  CustomInitializeTransformer(this._settings): super([]);
 
   factory CustomInitializeTransformer.asPlugin(BarbackSettings settings) =>
-    new CustomInitializeTransformer();
+    new CustomInitializeTransformer(settings);
 
   bool isPrimary(AssetId id) => id.extension == '.dart';
 
   Future apply(Transform transform) async {
-    var contents = await transform.primaryInput.readAsString();
-    // XXX: This is a crappy way of checking for entry points...
-    if (contents.contains(' main()') && contents.contains('vuedart_INTERNAL_init') &&
-        !contents.contains('VUEDART_THIS_IS_THE_MAIN_FILE_WHY_ARE_YOU_READING_THIS')) {
-      // print(contents);
+    if (!_settings.configuration.containsKey('entry_points')) {
+      transform.logger.error('An entry_points setting is required for VueDart');
+      return new Future.value();
+    }
+
+    var entryPoints = _settings.configuration['entry_points'];
+
+    if (!(entryPoints is List)) {
+      transform.logger.error('entry_points setting must be a list');
+    }
+
+    if (entryPoints.contains(transform.primaryInput.id.path)) {
       await super.apply(transform);
     }
+
+    return new Future.value();
   }
 }
 

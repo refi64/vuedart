@@ -7,7 +7,6 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 import 'dart:async';
-import 'dart:html';
 
 
 @JS('eval')

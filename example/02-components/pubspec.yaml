@@ -10,4 +10,6 @@ dependency_overrides:
   vue2:
     path: ../..
 transformers:
-  - vue2
+  - vue2:
+      entry_points:
+        - web/index.dart

@@ -16,7 +16,9 @@ dependencies:
   source_maps: ^0.10.4
   source_span: ^1.4.0
 transformers:
-  - vue2
+  - vue2:
+      entry_points:
+        - web/index.dart
   - dart_to_js_script_rewriter
   - $dart2js:
       $exclude: [web/todo_item.dart]

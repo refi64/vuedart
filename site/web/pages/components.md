@@ -226,5 +226,7 @@ dependencies:
   initialize: any
   vue2: any
 transformers:
-  - vue2
+  - vue2:
+      entry_points:
+        - web/index.dart
 ```

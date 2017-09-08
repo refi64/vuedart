@@ -95,8 +95,14 @@ dependencies:
   initialize: any
   vue2: any
 transformers:
-  - vue2
+  - vue2:
+      entry_points:
+        - web/index.dart
 ```
+
+Note that the `entry_points` argument should only contain your Vue-using web entry
+points, not all your Dart files. **TL;DR:** all your Dart files that define `main` and
+also setup a Vue app should be in `entry_points`.
 
 Now that everything's been put together, run:
 
@@ -259,5 +265,7 @@ dependencies:
   browser: any
   vue2: any
 transformers:
-  - vue2
+  - vue2:
+      entry_points:
+        - web/index.dart
 ```
