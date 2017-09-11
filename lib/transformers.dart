@@ -112,14 +112,21 @@ class DartTransformer extends Transformer {
   Future apply(Transform transform) async {
     var primary = transform.primaryInput;
     var contents = await primary.readAsString();
-    var rewriter = new TextEditTransaction(contents,
-                                           new SourceFile.fromString(contents));
+    var source = new SourceFile.fromString(contents);
+    var rewriter = new TextEditTransaction(contents, source);
     CompilationUnit unit;
+
+
+    void error(AstNode node, String error) {
+      var span = source.span(node.offset, node.end);
+      transform.logger.error(span.message(error), asset: transform.primaryInput.id);
+    }
 
     try {
       unit = parseCompilationUnit(contents, name: primary.id.path);
     } catch (ex) {
       // Just ignore it; it will propagate to the Dart compiler anyway.
+      transform.logger.warning('Error parsing ${primary.id.path}', asset: primary.id);
       transform.addOutput(primary);
       return new Future.value();
     }
@@ -140,7 +147,6 @@ import 'package:initialize/initialize.dart';
     var components = [];
 
     for (var cls in classes) {
-      // rewriter.edit(cls.offset, cls.offset, '@anonymous\n@JS()\n');
       var ann = _getVueAnn(cls);
       var args = _getAnnArgs(ann);
 
@@ -186,9 +192,10 @@ void set $name($typestring value) => vuedart_set('$name', value);
           if (ann == null) continue;
 
           if ((ann.name.name == 'computed' && !member.isGetter && !member.isSetter) ||
-              (ann.name.name == 'method' && (member.isGetter || member.isSetter)))
-            // Invalid annotation; skip for now.
+              (ann.name.name == 'method' && (member.isGetter || member.isSetter))) {
+            error(member, 'annotation on invalid member');
             continue;
+          }
 
           var name = member.name.name;
           var typestring = member.returnType?.name?.name ?? '';
@@ -200,6 +207,11 @@ $typestring get $name => vuedart_get('$name');
             ''');
             computed[name] = new Computed(name);
           } else if (member.isSetter) {
+            if (!computed.containsKey(name)) {
+              error(member, 'computed setters must follow getters');
+              continue;
+            }
+
             computed[name].hasSetter = true;
             rewriter.edit(member.offset, member.end, '''
 $typestring ${_computedSet(name)}${member.parameters.toSource()}
@@ -226,6 +238,11 @@ $typestring $name${member.parameters.toSource()} =>
       var code;
 
       if (ann.name.name == 'VueComponent') {
+        if (args.positional.length != 1) {
+          error(ann, 'invalid number of arguments to VueComponent');
+          continue;
+        }
+
         components.add(cls);
         var template = args.named['template'] as StringLiteral;
         var templateString;
@@ -249,6 +266,9 @@ $typestring $name${member.parameters.toSource()} =>
             if (await transform.hasInput(htmlasset)) {
               var doc = parse(await transform.readInputAsString(htmlasset));
               templateString = doc.body.children[0].innerHtml;
+            } else {
+              error(ann, 'template file $relhtmlpath does not exist');
+              continue;
             }
           }
 
@@ -265,6 +285,11 @@ static VueComponentConstructor constructor = new VueComponentConstructor(
 );
         ''';
       } else {
+        if (!args.named.containsKey('el')) {
+          error(ann, 'VueApp annotations need el key');
+          continue;
+        }
+
         code = '''
 @override
 VueAppConstructor get constructor => new VueAppConstructor(
