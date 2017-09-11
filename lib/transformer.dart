@@ -1,7 +1,8 @@
 import 'package:barback/barback.dart';
 
-
-import 'transformers.dart';
+import 'transformers/vue_transformer.dart';
+import 'transformers/initialize_transformer.dart';
+import 'transformers/html_transformer.dart';
 
 
 class VueTransformerGroup extends TransformerGroup {

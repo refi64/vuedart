@@ -8,6 +8,8 @@ import 'package:js/js_util.dart';
 
 import 'dart:async';
 
+export 'package:initialize/initialize.dart' show initMethod;
+
 
 @JS('eval')
 external dynamic _eval(String value);
@@ -72,9 +74,9 @@ class VueComponentConstructor {
   final Map<String, Function> methods;
   Function creator;
 
-  VueComponentConstructor({this.name = null, this.template = null, this.props = null,
-                           this.data = null, this.computed = null, this.methods = null,
-                           this.creator = null});
+  VueComponentConstructor({this.name: null, this.template: null, this.props: null,
+                           this.data: null, this.computed: null, this.methods: null,
+                           this.creator: null});
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
