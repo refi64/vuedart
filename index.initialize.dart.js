@@ -1,3 +1,12 @@
+console.log(VueMaterial);
+Vue.use(VueMaterial);
+Vue.material.registerTheme('default', {
+  primary: { color: 'blue-grey', hue: 900 },
+  accent: { color: 'light-blue', hue: 800 },
+  warn: 'red',
+  background: 'white',
+});
+
 (function(){var supportsDirectProtoAccess=function(){var z=function(){}
 z.prototype={p:{}}
 var y=new z()
