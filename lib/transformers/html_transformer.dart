@@ -35,15 +35,22 @@ class HtmlTransformer extends Transformer {
       doc.body.attributes.remove('vuedart');
 
       if (isRelease) {
-        var vuescripts = doc.querySelectorAll('script[src="https://unpkg.com/vue"]');
+        var vuescripts = doc.querySelectorAll(
+                          r'script[src$="//unpkg.com/vue"], script[src$="vue.js"]');
         for (var vuescript in vuescripts) {
+          var src = vuescript.attributes['src'];
           var pos = vuescript.attributeValueSpans['src'];
+
+          if (src.endsWith('//unpkg.com/vue')) {
+            src = 'https://unpkg.com/vue/dist/vue.js';
+          }
+
           rewriter.edit(pos.start.offset, pos.end.offset,
-                        'https://unpkg.com/vue/dist/vue.min.js');
+                        src.replaceAll(new RegExp(r'vue\.js$'), 'vue.min.js'));
         }
       }
 
-      var dartscripts = doc.querySelectorAll('script[src\$=".dart"]');
+      var dartscripts = doc.querySelectorAll(r'script[src$=".dart"]');
       for (var dartscript in dartscripts) {
         var init = dartscript.attributes['src'].replaceAll('.dart', '.initialize.dart');
         if (init.startsWith('/') || init.contains('://'))

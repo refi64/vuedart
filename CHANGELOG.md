@@ -5,6 +5,8 @@
 - Add VueMaterial support.
 - Avoid needlessly rewriting HTML source files by switching from html package's DOM
   manipulation to using Dart's refactoring libraries.
+- Change *all* `vue.js` script tags to `vue.min.js` when in release mode, not just unpkg
+  ones.
 
 ## 0.1.1
 
