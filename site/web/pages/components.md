@@ -123,8 +123,8 @@ Voila! We're back to the same code, but now it's better organized. Yaaay!!
 
 ## Declaring methods
 
-Last but not least, I want to touch on methods. You know what these are already; the
-question is, how do you define them in VueDart? Try this in `show_name.dart`:
+There are two more things I want to touch: methods and mixins. You know what methods are
+already; the question is, how do you define them in VueDart? Try this in `show_name.dart`:
 
 ```dart
 @VueComponent('show-name', template: '<<')
@@ -141,6 +141,39 @@ class ShowName extends VueComponentBase {
 
 As you can see, declaring Vue methods is the same as declaring a normal method, except
 for the `@method` decorator.
+
+<div id="mixins"></div>
+
+## Mixins
+
+Mixins are easy to declare in VueDart. Take this example:
+
+```dart
+@VueMixin()
+abstract class TodoMixin {
+  @method
+  String capitalize(String thing) => thing.toUpperCase();
+}
+```
+
+There are three important things about this:
+
+- The `@VueMixin()` annotation should go on *any* VueDart mixin, otherwise you'll get
+  incredibly bizarre analyzer errors.
+- Mixins must not use other mixins!
+- Mixins must be `abstract`.
+
+Now you can use your mixin:
+
+```dart
+@VueComponent('show-name', template: '<<', mixins: const [TodoMixin])
+class ShowName extends VueComponentBase with TodoMixin {
+  // ...
+}
+```
+
+Note that the only difference between using a standard Dart mixin and a VueDart mixin is
+the extra `mixins:` argument to `@VueComponent`.
 
 <div id="final"></div>
 

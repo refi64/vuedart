@@ -260,8 +260,7 @@ class VueApp {
 }
 
 class VueMixin {
-  final List mixins;
-  const VueMixin({this.mixins});
+  const VueMixin();
 }
 
 class _VueData { const _VueData(); }

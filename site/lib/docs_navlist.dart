@@ -41,6 +41,7 @@ class DocsNavlist extends VueComponentBase {
         ['Defining a component', 'component'],
         ['Declaring properties', 'props'],
         ['Declaring methods', 'methods'],
+        ['Mixins', 'mixins'],
         ['Final code', 'final'],
       ],
     ),

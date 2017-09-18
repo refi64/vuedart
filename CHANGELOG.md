@@ -7,6 +7,7 @@
   manipulation to using Dart's refactoring libraries.
 - Change *all* `vue.js` script tags to `vue.min.js` when in release mode, not just unpkg
   ones.
+- Implement support for mixins.
 
 ## 0.1.1
 
