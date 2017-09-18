@@ -21,9 +21,15 @@ class TestComponent extends VueComponentBase {
   TestComponent(context): super(context);
 }
 
-@VueComponent('todo-item', template: '<<')
+@VueMixin()
+abstract class TodoMixin {
+  @method
+  String getTodoText(TodoEntry todo) => todo.text;
+}
+
+@VueComponent('todo-item', template: '<<', mixins: const [TodoMixin])
 // @VueComponent('todo-item')
-class TodoItem extends VueComponentBase {
+class TodoItem extends VueComponentBase with TodoMixin {
   TodoItem(context): super(context) { test = 'abc'; }
 
   @override
@@ -45,8 +51,8 @@ class TodoItem extends VueComponentBase {
   @prop
   TodoEntry todo;
 
-  @method
-  String getTodoText(TodoEntry todo) => todo.text;
+  // @method
+  // String getTodoText(TodoEntry todo) => todo.text;
 
   @computed
   String get test => 'test';

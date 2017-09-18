@@ -82,7 +82,8 @@ class VuedartApplyTransform {
     return it.isNotEmpty ? it.first : null;
   }
 
-  Annotation getVueAnn(ClassDeclaration cls) => getAnn(cls, ['VueApp', 'VueComponent']);
+  Annotation getVueAnn(ClassDeclaration cls) =>
+    getAnn(cls, ['VueApp', 'VueComponent', 'VueMixin']);
   bool containsVueAnn(ClassDeclaration cls) => getVueAnn(cls) != null;
 
   AnnotationArgs getAnnArgs(Annotation ann) {
@@ -245,13 +246,20 @@ $typestring $name${member.parameters.toSource()} =>
     ''';
     var code;
 
-    if (ann.name.name == 'VueComponent') {
-      if (args.positional.length != 1) {
-        error(ann, 'invalid number of arguments to VueComponent');
-        return new Future.value();
+    if (ann.name.name == 'VueComponent' || ann.name.name == 'VueMixin') {
+      var name = null, creator = null;
+
+      if (ann.name.name == 'VueComponent') {
+        if (args.positional.length != 1) {
+          error(ann, 'invalid number of arguments to VueComponent');
+          return new Future.value();
+        }
+
+        name = "'${(args.positional[0] as StringLiteral).stringValue}'";
+        creator = '(context) => new ${cls.name.name}(context)';
+        components.add(cls);
       }
 
-      components.add(cls);
       var template = args.named['template'] as StringLiteral;
       var templateString;
 
@@ -267,15 +275,26 @@ $typestring $name${member.parameters.toSource()} =>
         templateString = 'r"""${templateString.replaceAll('"""', '\\"""')}"""';
       }
 
+      var mixins = (args.named['mixins'] as ListLiteral)?.elements ?? [];
+
       code = '''
 static VueComponentConstructor constructor = new VueComponentConstructor(
-  name: '${(args.positional[0] as StringLiteral).stringValue}',
-  creator: (context) => new ${cls.name.name}(context),
+  name: $name,
+  creator: $creator,
   template: $templateString,
   props: {${info.props.map(codegenProp).join('\n')}},
+  mixins: [${mixins.map((mixin) => '${mixin.name}.constructor').join(', ')}],
 $opts
 );
       ''';
+
+      if (ann.name.name == 'VueMixin') {
+        rewriter.edit(cls.end-1, cls.end-1, r'''
+  dynamic vuedart_get(String key);
+  void vuedart_set(String key, dynamic value);
+  dynamic $ref(String name);
+        ''');
+      }
     } else {
       if (!args.named.containsKey('el')) {
         error(ann, 'VueApp annotations need el key');
