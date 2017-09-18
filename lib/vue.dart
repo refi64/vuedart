@@ -13,7 +13,13 @@ export 'package:initialize/initialize.dart' show initMethod;
 
 @JS('eval')
 external dynamic _eval(String value);
-dynamic _vue = _eval('Vue');
+dynamic _window = _eval('window');
+
+dynamic getWindowProperty(String name) {
+  return getProperty(_window, name);
+}
+
+dynamic _vue = getWindowProperty('Vue');
 
 // @JS('console.log')
 // external dynamic _log(dynamic value);
@@ -150,7 +156,7 @@ class VueComponentBase extends _VueBase {
     setProperty(vuethis, '\$dartobj', this);
   }
 
-  static void register(VueComponentConstructor constr) {
+  static void componentArgs(VueComponentConstructor constr) {
     var props = constr.jsprops();
     var computed = constr.jscomputed();
     var renderFunc;
@@ -167,7 +173,7 @@ class VueComponentBase extends _VueBase {
       });
     }
 
-    var args = mapToJs({
+    return mapToJs({
       'props': props,
       'created': allowInteropCaptureThis(constr.creator),
       'data': allowInterop(() {
@@ -180,8 +186,10 @@ class VueComponentBase extends _VueBase {
       'template': constr.template,
       'render': renderFunc,
     }..addAll(_VueBase.lifecycleHooks));
+  }
 
-    callMethod(_vue, 'component', [constr.name, args]);
+  static void register(VueComponentConstructor constr) {
+    callMethod(_vue, 'component', [constr.name, componentArgs(constr)]);
   }
 }
 
@@ -218,6 +226,20 @@ class VueAppBase extends _VueBase {
 
     callConstructor(_vue, [args]);
     return result;
+  }
+}
+
+class VuePlugin {
+  static Set<String> _plugins = new Set<String>();
+
+  static void use(String pluginName) {
+    if (_plugins.contains(pluginName)) {
+      return;
+    }
+
+    var plugin = getWindowProperty(pluginName);
+    callMethod(_vue, 'use', [plugin]);
+    _plugins.add(pluginName);
   }
 }
 

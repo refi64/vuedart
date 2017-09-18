@@ -1,5 +1,5 @@
 @JS()
-library docs_navlist;
+library vuedart_site.docs_navlist;
 
 
 import 'package:vue2/vue.dart';
@@ -52,6 +52,14 @@ class DocsNavlist extends VueComponentBase {
         ['Lifecycle callbacks', 'lifecycle'],
         ['Accessing refs', 'refs'],
         ['Render functions', 'render'],
+      ],
+    ),
+    new Entry(
+      title: 'Working with plugins',
+      addr: 'plugins.html',
+      contents: [
+        ['How do plugins work in VueDart?', 'work'],
+        ['VueMaterial', 'vuematerial'],
       ],
     ),
   ];

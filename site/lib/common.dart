@@ -1,39 +1,13 @@
-@JS()
-library vuedart_site;
-
-import 'package:vue2/vue.dart';
-import 'package:js/js.dart';
+import 'package:vue2/plugins/vuematerial.dart';
 
 
-@anonymous
-@JS()
-class Color {
-  String color;
-  dynamic hue;
-  String textColor;
-
-  external factory Color({String color, dynamic hue, String textColor});
-}
-
-
-@anonymous
-@JS()
-class ThemeSpec {
-  dynamic primary, accent, warn, background;
-  external factory ThemeSpec({dynamic primary, dynamic accent, dynamic warn,
-                              dynamic background});
-}
-
-
-@JS('Vue.material.registerTheme')
-external void registerTheme(String name, ThemeSpec spec);
-
-
-void setupTheme() {
-  registerTheme('default', new ThemeSpec(
+void setup() {
+  VueMaterial.use();
+  VueMaterial.registerTheme('main', new ThemeSpec(
     primary: new Color(color: 'blue-grey', hue: 900),
-    accent: new Color(color: 'light-blue', hue: 800),
+    accent: new Color(color: 'blue', hue: 800),
     warn: 'red',
     background: 'white',
   ));
+  VueMaterial.setCurrentTheme('main');
 }

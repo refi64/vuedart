@@ -18,6 +18,6 @@ App app;
 
 Future main() async {
   await initVue();
-  setupTheme();
+  setup();
   app = new App();
 }
