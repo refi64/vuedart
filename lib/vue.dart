@@ -78,11 +78,12 @@ class VueComponentConstructor {
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
+  final List<VueComponentConstructor> mixins;
   Function creator;
 
   VueComponentConstructor({this.name: null, this.template: null, this.props: null,
                            this.data: null, this.computed: null, this.methods: null,
-                           this.creator: null});
+                           this.creator: null, this.mixins: null});
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
@@ -156,7 +157,7 @@ class VueComponentBase extends _VueBase {
     setProperty(vuethis, '\$dartobj', this);
   }
 
-  static void componentArgs(VueComponentConstructor constr) {
+  static dynamic componentArgs(VueComponentConstructor constr, {bool isMixin: false}) {
     var props = constr.jsprops();
     var computed = constr.jscomputed();
     var renderFunc;
@@ -175,7 +176,7 @@ class VueComponentBase extends _VueBase {
 
     return mapToJs({
       'props': props,
-      'created': allowInteropCaptureThis(constr.creator),
+      'created': !isMixin ? allowInteropCaptureThis(constr.creator) : null,
       'data': allowInterop(() {
         var data = mapToJs(constr.data);
         setProperty(data, '\$dartobj', null);
@@ -185,11 +186,15 @@ class VueComponentBase extends _VueBase {
       'methods': _mapMethodsToJs(constr.methods),
       'template': constr.template,
       'render': renderFunc,
+      'mixins': constr.mixins
+                  .map((mx) => VueComponentBase.componentArgs(mx, isMixin: true))
+                  .toList(),
     }..addAll(_VueBase.lifecycleHooks));
   }
 
   static void register(VueComponentConstructor constr) {
-    callMethod(_vue, 'component', [constr.name, componentArgs(constr)]);
+    callMethod(_vue, 'component', [constr.name,
+                                   VueComponentBase.componentArgs(constr)]);
   }
 }
 
@@ -245,12 +250,18 @@ class VuePlugin {
 
 class VueComponent {
   final String name, template;
-  const VueComponent(this.name, {this.template});
+  final List mixins;
+  const VueComponent(this.name, {this.template, this.mixins});
 }
 
 class VueApp {
   final String el;
   const VueApp({this.el});
+}
+
+class VueMixin {
+  final List mixins;
+  const VueMixin({this.mixins});
 }
 
 class _VueData { const _VueData(); }
