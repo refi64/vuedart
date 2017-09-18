@@ -2,6 +2,9 @@
 
 - **BREAKING CHANGE** Require explicit declaration of entry points.
 - Proper error messages.
+- Add VueMaterial support.
+- Avoid needlessly rewriting HTML source files by switching from html package's DOM
+  manipulation to using Dart's refactoring libraries.
 
 ## 0.1.1
 

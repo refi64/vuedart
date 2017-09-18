@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 import 'package:html/parser.dart' show parse;
 // import 'package:html/dom.dart';
-// import 'package:source_span/source_span.dart' show SourceFile;
-// import 'package:source_maps/refactor.dart';
+import 'package:source_span/source_span.dart' show SourceFile;
+import 'package:source_maps/refactor.dart';
 
 
 class HtmlTransformer extends Transformer {
@@ -16,7 +16,11 @@ class HtmlTransformer extends Transformer {
 
   Future apply(Transform transform) async {
     var primary = transform.primaryInput;
-    var doc = parse(await primary.readAsString());
+    var contents = await primary.readAsString();
+    var rewriter = new TextEditTransaction(contents,
+                                           new SourceFile.fromString(contents));
+
+    var doc = parse(await primary.readAsString(), generateSpans: true);
     var children = doc.body.children;
     var isTemplate = !children.isEmpty && children[0].localName == 'template' &&
                      children[0].attributes.containsKey('vuedart');
@@ -33,7 +37,9 @@ class HtmlTransformer extends Transformer {
       if (isRelease) {
         var vuescripts = doc.querySelectorAll('script[src="https://unpkg.com/vue"]');
         for (var vuescript in vuescripts) {
-          vuescript.attributes['src'] = 'https://unpkg.com/vue/dist/vue.min.js';
+          var pos = vuescript.attributeValueSpans['src'];
+          rewriter.edit(pos.start.offset, pos.end.offset,
+                        'https://unpkg.com/vue/dist/vue.min.js');
         }
       }
 
@@ -45,14 +51,17 @@ class HtmlTransformer extends Transformer {
 
         var asset = new AssetId(primary.id.package, primary.id.path + '/../' + init);
         if (await transform.hasInput(asset)) {
-          dartscript.attributes['src'] = init;
+          var pos = dartscript.attributeValueSpans['src'];
+          rewriter.edit(pos.start.offset, pos.end.offset, init);
         }
       }
 
-      transform.addOutput(new Asset.fromString(transform.primaryInput.id,
-                                               doc.outerHtml));
+      var printer = rewriter.commit();
+      printer.build(null);
+
+      transform.addOutput(new Asset.fromString(primary.id, printer.text));
     } else {
-      transform.addOutput(transform.primaryInput);
+      transform.addOutput(primary);
     }
   }
 }
