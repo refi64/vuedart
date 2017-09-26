@@ -7,6 +7,7 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 import 'dart:async';
+import 'dart:html';
 
 export 'package:initialize/initialize.dart' show initMethod;
 
@@ -73,7 +74,7 @@ dynamic convertComputed(Map<String, VueComputed> computed) {
 }
 
 class VueComponentConstructor {
-  final String name, template;
+  final String name, template, styleInject;
   final Map<String, VueProp> props;
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
@@ -81,9 +82,9 @@ class VueComponentConstructor {
   final List<VueComponentConstructor> mixins;
   Function creator;
 
-  VueComponentConstructor({this.name: null, this.template: null, this.props: null,
-                           this.data: null, this.computed: null, this.methods: null,
-                           this.creator: null, this.mixins: null});
+  VueComponentConstructor({this.name: null, this.template: null, this.styleInject: null,
+                           this.props: null, this.data: null, this.computed: null,
+                           this.methods: null, this.creator: null, this.mixins: null});
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
@@ -161,6 +162,12 @@ class VueComponentBase extends _VueBase {
     var props = constr.jsprops();
     var computed = constr.jscomputed();
     var renderFunc;
+
+    if (constr.styleInject.isNotEmpty) {
+      var el = new StyleElement();
+      el.appendText(constr.styleInject);
+      document.head.append(el);
+    }
 
     if (constr.template == null) {
       renderFunc = allowInteropCaptureThis((context, jsCreateElement) {

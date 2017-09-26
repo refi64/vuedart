@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
-import 'package:html/parser.dart' show parse;
+import 'package:csslib/parser.dart' as css;
+import 'package:csslib/visitor.dart' show CssPrinter;
+import 'package:html/parser.dart' as html;
+import 'package:scopify/scopify.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 import 'package:source_maps/refactor.dart';
 
@@ -131,6 +134,8 @@ class VuedartApplyTransform {
               vueGetObj(_).${method(meth.name)}(${methodParams(meth.params)}),
     ''';
 
+  String codegenString(String str) => 'r"""${str.replaceAll('"""', '\\"""')}"""';
+
   void processField(FieldDeclaration member, VueClassInfo info) {
     var ann = getAnn(member, ['prop', 'data', 'ref']);
     if (ann == null) return;
@@ -206,7 +211,7 @@ $typestring $name${member.parameters.toSource()} =>
     }
   }
 
-  Future readTemplateString(Annotation ann, String path) async {
+  Future readTemplate(Annotation ann, String path) async {
     var relhtmlpath = path.substring(2);
     var htmlasset;
 
@@ -218,8 +223,55 @@ $typestring $name${member.parameters.toSource()} =>
     }
 
     if (await transform.hasInput(htmlasset)) {
-      var doc = parse(await transform.readInputAsString(htmlasset));
-      return new Future.value(doc.body.children[0].innerHtml);
+      var doc = html.parse(await transform.readInputAsString(htmlasset));
+
+      if (doc.querySelector('template') == null) {
+        error(ann, 'template file does not have a template');
+        return new Future.value();
+      }
+
+      var templates = doc.querySelectorAll('template[vuedart]');
+      if (templates.isEmpty) {
+        error(ann, 'no VueDart templates; did you forget the vuedart attribute?');
+        return new Future.value();
+      } else if (templates.length != 1) {
+        error(ann, 'only one vuedart template is allowed');
+        return new Future.value();
+      }
+
+      var template = templates[0];
+
+      var styleInject = '';
+      var styles = doc.querySelectorAll('style[scoped]');
+      if (styles.isNotEmpty) {
+        var parsedStyles = [];
+
+        for (var style in styles) {
+          var errors = [];
+          var parsed = css.parse(style.innerHtml, errors: errors);
+
+          if (errors.isNotEmpty) {
+            error(ann, 'errors parsing CSS style');
+            for (var error in errors) {
+              transform.logger.error(error.toString());
+            }
+            continue;
+          }
+
+          parsedStyles.add(parsed);
+        }
+
+        scopify(html: [template], css: parsedStyles);
+
+        var printer = new CssPrinter();
+        for (var style in parsedStyles) {
+          style.visit(printer);
+        }
+
+        styleInject = printer.toString();
+      }
+
+      return new Future.value([template.innerHtml, styleInject]);
     } else {
       error(ann, 'template file $relhtmlpath does not exist');
       return new Future.value();
@@ -261,7 +313,8 @@ $typestring $name${member.parameters.toSource()} =>
       }
 
       var template = args.named['template'] as StringLiteral;
-      var templateString;
+      var templateString = '';
+      var styleInject = '';
 
       if (template == null) {
         templateString = 'null';
@@ -269,11 +322,17 @@ $typestring $name${member.parameters.toSource()} =>
         templateString = template.stringValue;
 
         if (templateString.startsWith('<<')) {
-          templateString = await readTemplateString(ann, templateString) ?? '';
+          var result = await readTemplate(ann, templateString);
+          if (result != null) {
+            templateString = result[0];
+            styleInject = result[1];
+          }
         }
 
-        templateString = 'r"""${templateString.replaceAll('"""', '\\"""')}"""';
+        templateString = codegenString(templateString);
       }
+
+      styleInject = codegenString(styleInject);
 
       var mixins = (args.named['mixins'] as ListLiteral)?.elements ?? [];
 
@@ -282,6 +341,7 @@ static VueComponentConstructor constructor = new VueComponentConstructor(
   name: $name,
   creator: $creator,
   template: $templateString,
+  styleInject: $styleInject,
   props: {${info.props.map(codegenProp).join('\n')}},
   mixins: [${mixins.map((mixin) => '${mixin.name}.constructor').join(', ')}],
 $opts

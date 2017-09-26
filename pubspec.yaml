@@ -13,6 +13,7 @@ dependencies:
   html: ^0.13.2
   initialize: ^0.6.2+7
   js: ^0.6.1 # demo
+  scopify: ^0.1.0
   source_maps: ^0.10.4
   source_span: ^1.4.0
 transformers:

@@ -21,10 +21,11 @@ class HtmlTransformer extends Transformer {
                                            new SourceFile.fromString(contents));
 
     var doc = parse(await primary.readAsString(), generateSpans: true);
-    var children = doc.body.children;
-    var isTemplate = !children.isEmpty && children[0].localName == 'template' &&
-                     children[0].attributes.containsKey('vuedart');
-    var isEntry = doc.body.attributes.containsKey('vuedart');
+    var body = doc.body;
+
+    var isTemplate = !body.children.isEmpty &&
+                     body.querySelector('template[vuedart]') != null;
+    var isEntry = body.attributes.containsKey('vuedart');
     var isRelease = _settings.mode == BarbackMode.RELEASE;
 
     if (isTemplate) {
@@ -32,8 +33,6 @@ class HtmlTransformer extends Transformer {
         transform.consumePrimary();
       }
     } else if (isEntry) {
-      doc.body.attributes.remove('vuedart');
-
       if (isRelease) {
         var vuescripts = doc.querySelectorAll(
                           r'script[src$="//unpkg.com/vue"], script[src$="vue.js"]');
