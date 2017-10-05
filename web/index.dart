@@ -10,7 +10,12 @@ class App extends VueAppBase {
   App._(context): super(context);
 
   @override
-  void mounted() => print('mounted');
+  void mounted() {
+    print('mounted!');
+    $nextTick().then((_) {
+      print('nextTick called');
+    });
+  }
 
   @data
   List<TodoEntry> groceryList = <TodoEntry>[

@@ -145,6 +145,44 @@ class _VueBase {
     if (ref == null) return null;
     return vueGetObj(ref) ?? ref;
   }
+
+  dynamic get $data => vuedart_get('\$data');
+  dynamic get $props => vuedart_get('\$props');
+  Element get $el => vuedart_get('\$el');
+  dynamic get $options => vuedart_get('\$options');
+
+  dynamic get $parent {
+    var parent = vuedart_get('\$parent');
+    if (parent == null) return null;
+
+    return vueGetObj(parent) ?? parent;
+  }
+
+  dynamic get $root {
+    var root = vuedart_get('\$root');
+    return vueGetObj(root) ?? root;
+  }
+
+  void $on(dynamic event, Function callback) =>
+    callMethod(vuethis, '\$on', [event, allowInterop(callback)]);
+
+  void $once(dynamic event, Function callback) =>
+    callMethod(vuethis, '\$once', [event, allowInterop(callback)]);
+
+  void $off(dynamic event, Function callback) =>
+    callMethod(vuethis, '\$off', [event, allowInterop(callback)]);
+
+  void $emit(String event, [List args]) =>
+    callMethod(vuethis, '\$emit', [event]..addAll(args ?? []));
+
+  Future<Null> $nextTick() {
+    var compl = new Completer();
+    callMethod(vuethis, '\$nextTick', [allowInterop(() => compl.complete(null))]);
+    return compl.future;
+  }
+
+  void $forceUpdate() => callMethod(vuethis, '\$forceUpdate', []);
+  void $destroy() => callMethod(vuethis, '\$destroy', []);
 }
 
 class _FakeException {
