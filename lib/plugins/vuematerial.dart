@@ -10,20 +10,55 @@ import 'package:js/js_util.dart';
 
 @anonymous
 @JS()
-class Color {
+class MdColor {
   String color;
   dynamic hue;
   String textColor;
 
-  external factory Color({String color, dynamic hue, String textColor});
+  external factory MdColor({String color, dynamic hue, String textColor});
 }
+
 
 @anonymous
 @JS()
-class ThemeSpec {
+class MdTheme {
   dynamic primary, accent, warn, background;
-  external factory ThemeSpec({dynamic primary, dynamic accent, dynamic warn,
-                              dynamic background});
+  external factory MdTheme({dynamic primary, dynamic accent, dynamic warn,
+                            dynamic background});
+}
+
+
+@anonymous
+@JS()
+class MdDialog {
+  external void open();
+  external void close();
+}
+
+
+@anonymous
+@JS()
+class MdMenu {
+  external void open();
+  external void close();
+}
+
+
+@anonymous
+@JS()
+class MdSidenav {
+  external void open();
+  external void close();
+  external void toggle();
+}
+
+
+@anonymous
+@JS()
+class MdSnackbar {
+  external void open();
+  external void close();
+  external void toggle();
 }
 
 
@@ -32,8 +67,8 @@ class VueMaterial extends VuePlugin {
 
   static void registerPalette(String name, dynamic palette) =>
     VueMaterial._call('registerPalette', [name, palette]);
-  static void registerTheme(String name, ThemeSpec spec) =>
-    VueMaterial._call('registerTheme', [name, spec]);
+  static void registerTheme(String name, MdTheme theme) =>
+    VueMaterial._call('registerTheme', [name, theme]);
   static void setCurrentTheme(String name) =>
     VueMaterial._call('setCurrentTheme', [name]);
 

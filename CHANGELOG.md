@@ -8,8 +8,13 @@
 - Change *all* `vue.js` script tags to `vue.min.js` when in release mode, not just unpkg
   ones.
 - Implement support for mixins.
+- Implement scoped styles.
+- Add support for more instance methods: `$data`, `$props`, `$el`, `$options`, `$parent`,
+  `$root`, `$on`, `$once`, `$off`, `$emit`, `$nextTick`, `$forceUpdate`, and `$destroy`.
 
-## 0.1.1
+## 0.2.0
+
+*Yes this should have been a minor release, but I was tired.*
 
 - Upgrade initialize dependency for strong mode/DDC support.
 

@@ -22,6 +22,8 @@ corresponding assets, e.g.:
 
 ## VueMaterial
 
+Here's a pretty thorough example:
+
 ```dart
 import 'vue2/vue.dart';
 import 'vue2/plugins/vuematerial.dart';
@@ -44,11 +46,11 @@ Future main() async {
   VueMaterial.use();
 
   // Equivalent to Vue.material.registerTheme
-  VueMaterial.registerTheme('main', new ThemeSpec(
+  VueMaterial.registerTheme('main', new MdTheme(
     // Simple color names.
     primary: 'indigo',
     // You can give hues, too.
-    accent: new Color(color: 'blue', hue: 800),
+    accent: new MdColor(color: 'blue', hue: 800),
     warn: 'red',
     background: 'white',
   ));
@@ -57,5 +59,30 @@ Future main() async {
   VueMaterial.setCurrentTheme('main');
 
   app = new App();
+}
+```
+
+For menus, dialogs, sidenavs, and snackbars, you can use the `Md*` types:
+
+```dart
+@VueComponent('my-component', template: '<<')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context);
+
+  // Dialog ref.
+  @ref
+  MdDialog dialog;
+  // Sidenav ref.
+  @ref
+  MdSidenav sidenav;
+
+  // and so forth...
+
+  // example usage:
+
+  void mounted() {
+    dialog.open();
+    sidenav.toggle();
+  }
 }
 ```
