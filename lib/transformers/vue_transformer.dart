@@ -450,7 +450,7 @@ ${components.map((comp) =>
 
     var printer = rewriter.commit();
     printer.build(null);
-    print(printer.text);
+    // print(printer.text);
     transform.addOutput(new Asset.fromString(primary.id, printer.text));
 
     return new Future.value();
