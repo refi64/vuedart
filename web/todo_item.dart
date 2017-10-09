@@ -48,14 +48,21 @@ class TodoItem extends VueComponentBase with TodoMixin {
   @ref
   TestComponent tstcomp;
 
+  @watch('test')
+  void watchTest(String val) {
+    print('watch $val');
+  }
+
   @prop
   TodoEntry todo;
 
   // @method
   // String getTodoText(TodoEntry todo) => todo.text;
 
-  @computed
-  String get test => 'test';
-  @computed
-  set test(String value) { print('setter called: $value'); }
+  @data
+  String test = 'test';
+  // @computed
+  // String get test => 'test';
+  // @computed
+  // set test(String value) { print('setter called: $value'); }
 }

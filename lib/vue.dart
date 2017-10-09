@@ -56,7 +56,14 @@ class VueComputed {
   VueComputed(this.getter, this.setter);
 }
 
-dynamic convertComputed(Map<String, VueComputed> computed) {
+class VueWatcher {
+  final Function watcher;
+  final bool deep;
+
+  VueWatcher(this.watcher, this.deep);
+}
+
+dynamic _convertComputed(Map<String, VueComputed> computed) {
   var jscomputed = <String, dynamic>{};
 
   for (var name in computed.keys) {
@@ -73,18 +80,33 @@ dynamic convertComputed(Map<String, VueComputed> computed) {
   return mapToJs(jscomputed);
 }
 
+dynamic _convertWatchers(Map<String, VueWatcher> watchers) {
+  var jswatch = <String, dynamic>{};
+
+  for (var name in watchers.keys) {
+    var watcher = watchers[name];
+    jswatch[name] = newObject();
+    setProperty(jswatch[name], 'handler', allowInteropCaptureThis(watcher.watcher));
+    setProperty(jswatch[name], 'deep', watcher.deep);
+  }
+
+  return mapToJs(jswatch);
+}
+
 class VueComponentConstructor {
   final String name, template, styleInject;
   final Map<String, VueProp> props;
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
+  final Map<String, VueWatcher> watchers;
   final List<VueComponentConstructor> mixins;
   Function creator;
 
   VueComponentConstructor({this.name: null, this.template: null, this.styleInject: null,
                            this.props: null, this.data: null, this.computed: null,
-                           this.methods: null, this.creator: null, this.mixins: null});
+                           this.methods: null, this.watchers: null, this.creator: null,
+                           this.mixins: null});
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
@@ -99,7 +121,8 @@ class VueComponentConstructor {
     return mapToJs(jsprops);
   }
 
-  dynamic jscomputed() => convertComputed(computed);
+  dynamic jscomputed() => _convertComputed(computed);
+  dynamic jswatch() => _convertWatchers(watchers);
 }
 
 class VueAppConstructor {
@@ -107,10 +130,12 @@ class VueAppConstructor {
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
+  final Map<String, VueWatcher> watchers;
 
-  VueAppConstructor({this.el, this.data, this.computed, this.methods});
+  VueAppConstructor({this.el, this.data, this.computed, this.methods, this.watchers});
 
-  dynamic jscomputed() => convertComputed(computed);
+  dynamic jscomputed() => _convertComputed(computed);
+  dynamic jswatch() => _convertWatchers(watchers);
 }
 
 class _VueBase {
@@ -199,6 +224,7 @@ class VueComponentBase extends _VueBase {
   static dynamic componentArgs(VueComponentConstructor constr, {bool isMixin: false}) {
     var props = constr.jsprops();
     var computed = constr.jscomputed();
+    var watch = constr.jswatch();
     var renderFunc;
 
     if (constr.styleInject.isNotEmpty) {
@@ -229,6 +255,7 @@ class VueComponentBase extends _VueBase {
       }),
       'computed': computed,
       'methods': _mapMethodsToJs(constr.methods),
+      'watch': watch,
       'template': constr.template,
       'render': renderFunc,
       'mixins': constr.mixins
@@ -262,6 +289,7 @@ class VueAppBase extends _VueBase {
     }
 
     var computed = constr.jscomputed();
+    var watch = constr.jswatch();
     var result;
 
     var args = mapToJs({
@@ -272,6 +300,7 @@ class VueAppBase extends _VueBase {
       'data': mapToJs(constr.data),
       'computed': computed,
       'methods': _mapMethodsToJs(constr.methods),
+      'watch': watch,
     }..addAll(_VueBase.lifecycleHooks));
 
     callConstructor(_vue, [args]);
@@ -319,5 +348,11 @@ const prop = const _VueProp();
 const computed = const _VueComputed();
 const method = const _VueMethod();
 const ref = const _VueRef();
+
+class watch {
+  final String name;
+  final bool deep;
+  const watch(this.name, {this.deep});
+}
 
 Future initVue() async => run();

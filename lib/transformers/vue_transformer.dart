@@ -51,11 +51,21 @@ class Method {
 }
 
 
+class Watcher {
+  final String funcName, propName;
+  final int nparams;
+  final bool deep;
+
+  Watcher(this.funcName, this.propName, this.nparams, this.deep);
+}
+
+
 class VueClassInfo {
   List<Prop> props = [];
   List<Data> data = [];
   Map<String, Computed> computed = {};
   List<Method> methods = [];
+  List<Watcher> watchers = [];
 
   VueClassInfo();
 }
@@ -128,6 +138,16 @@ class VuedartApplyTransform {
       : 'null'}),
     ''';
 
+  String codegenWatch(Watcher watcher) =>
+    '''
+  '${watcher.propName}': new VueWatcher(
+    (_, _nv, _ov) => vueGetObj(_).${watcher.funcName}(
+        ${['_nv', '_ov'].getRange(0, watcher.nparams).join(', ')}
+      ),
+    ${watcher.deep},
+  ),
+    ''';
+
   String codegenMethod(Method meth) =>
     '''
     '${meth.name}': (_, ${methodParams(meth.params)}) =>
@@ -170,11 +190,11 @@ void set $name($typestring value) => vuedart_set('$name', value);
   }
 
   void processMethod(MethodDeclaration member, VueClassInfo info) {
-    var ann = getAnn(member, ['computed', 'method']);
+    var ann = getAnn(member, ['computed', 'method', 'watch']);
     if (ann == null) return;
 
     if ((ann.name.name == 'computed' && !member.isGetter && !member.isSetter) ||
-        (ann.name.name == 'method' && (member.isGetter || member.isSetter))) {
+        (ann.name.name != 'computed' && (member.isGetter || member.isSetter))) {
       error(member, 'annotation on invalid member');
       return;
     }
@@ -200,7 +220,27 @@ $typestring ${computedSet(name)}${member.parameters.toSource()}
   ${member.body.toSource()}
 $typestring set $name($typestring value) => vuedart_set('$name', value);
       ''');
-    } else {
+    } else if (ann.name.name == 'watch') {
+      if (member.parameters.parameters.length > 2) {
+        error(member.parameters, 'watchers can only take up to 2 parameters');
+        return;
+      }
+
+      var args = getAnnArgs(ann);
+      var propName = (args.positional[0] as StringLiteral).stringValue;
+      var deep = false;
+
+      if (args.named.containsKey('deep') && args.named['deep'] is BooleanLiteral) {
+        deep = (args.named['deep'] as BooleanLiteral).value;
+      }
+
+      rewriter.edit(member.offset, member.end, '''
+$typestring $name${member.parameters.toSource()}
+  ${member.body.toSource()}
+        ''');
+      info.watchers.add(new Watcher(name, propName, member.parameters.parameters.length,
+                                    deep));
+    } else if (ann.name.name == 'method') {
       rewriter.edit(member.offset, member.end, '''
 $typestring ${method(name)}${member.parameters.toSource()}
   ${member.body.toSource()}
@@ -294,6 +334,7 @@ $typestring $name${member.parameters.toSource()} =>
     var opts = '''
   data: {${info.data.map(codegenData).join('\n')}},
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},
+  watchers: {${info.watchers.map(codegenWatch).join('\n')}},
   methods: {${info.methods.map(codegenMethod).join('\n')}},
     ''';
     var code;
@@ -409,7 +450,7 @@ ${components.map((comp) =>
 
     var printer = rewriter.commit();
     printer.build(null);
-    // print(printer.text);
+    print(printer.text);
     transform.addOutput(new Asset.fromString(primary.id, printer.text));
 
     return new Future.value();
