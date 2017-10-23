@@ -33,6 +33,9 @@ class HtmlTransformer extends Transformer {
         transform.consumePrimary();
       }
     } else if (isEntry) {
+      var vuedartTag = body.attributeSpans['vuedart'];
+      rewriter.edit(vuedartTag.start.offset, vuedartTag.end.offset, '');
+
       if (isRelease) {
         var vuescripts = doc.querySelectorAll(
                           r'script[src$="//unpkg.com/vue"], script[src$="vue.js"]');
