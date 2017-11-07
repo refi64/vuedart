@@ -164,15 +164,18 @@ class VuedartApplyTransform {
     var type = fields.type;
     var typestring = type.toSource();
 
-    for (var decl in member.fields.variables) {
+    // Remove the type portion of the declaration, since it will be added for each element.
+    rewriter.edit(type.offset, type.end+1, '');
+
+    for (var decl in fields.variables) {
       var name = decl.name.name;
 
       if (ann.name.name == 'ref') {
-        rewriter.edit(fields.offset, fields.end+1, '''
+        rewriter.edit(decl.offset, decl.end+1, '''
 $typestring get $name => \$ref('$name');
         ''');
       } else {
-        rewriter.edit(fields.offset, fields.end+1, '''
+        rewriter.edit(decl.offset, decl.end+1, '''
 $typestring get $name => vuedart_get('$name');
 void set $name($typestring value) => vuedart_set('$name', value);
         ''');

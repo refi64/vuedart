@@ -60,7 +60,7 @@ class TodoItem extends VueComponentBase with TodoMixin {
   // String getTodoText(TodoEntry todo) => todo.text;
 
   @data
-  String test = 'test';
+  String test = 'test', test2 = 'test2';
   // @computed
   // String get test => 'test';
   // @computed
