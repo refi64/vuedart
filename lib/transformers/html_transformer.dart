@@ -69,7 +69,7 @@ class HtmlTransformer extends Transformer {
           if (src.startsWith('/') && !src.startsWith('//')) {
             // Relativize the path.
             var prefix = '../' * primary.id.path.allMatches('/').length;
-            rewriter.edit(pos.start.offset, pos.end.offset, src.substring(1));
+            rewriter.edit(pos.start.offset, pos.end.offset, prefix + src.substring(1));
           }
           continue;
         }
