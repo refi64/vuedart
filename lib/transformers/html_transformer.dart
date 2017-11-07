@@ -9,8 +9,9 @@ import 'package:source_maps/refactor.dart';
 
 class HtmlTransformer extends Transformer {
   final BarbackSettings _settings;
+  final bool justRelativizePaths;
 
-  HtmlTransformer.asPlugin(this._settings);
+  HtmlTransformer.asPlugin(this._settings, {this.justRelativizePaths});
 
   String get allowedExtensions => '.html';
 
@@ -33,34 +34,52 @@ class HtmlTransformer extends Transformer {
         transform.consumePrimary();
       }
     } else if (isEntry) {
-      var vuedartTag = body.attributeSpans['vuedart'];
-      rewriter.edit(vuedartTag.start.offset, vuedartTag.end.offset, '');
+      if (!justRelativizePaths) {
+        var vuedartTag = body.attributeSpans['vuedart'];
+        rewriter.edit(vuedartTag.start.offset, vuedartTag.end.offset, '');
 
-      if (isRelease) {
-        var vuescripts = doc.querySelectorAll(
-                          r'script[src$="//unpkg.com/vue"], script[src$="vue.js"]');
-        for (var vuescript in vuescripts) {
-          var src = vuescript.attributes['src'];
-          var pos = vuescript.attributeValueSpans['src'];
+        if (isRelease) {
+          var vuescripts = doc.querySelectorAll(
+                            r'script[src$="//unpkg.com/vue"], script[src$="vue.js"]');
+          for (var vuescript in vuescripts) {
+            var src = vuescript.attributes['src'];
+            var pos = vuescript.attributeValueSpans['src'];
 
-          if (src.endsWith('//unpkg.com/vue')) {
-            src = 'https://unpkg.com/vue/dist/vue.js';
+            if (src.endsWith('//unpkg.com/vue')) {
+              src = 'https://unpkg.com/vue/dist/vue.js';
+            }
+
+            rewriter.edit(pos.start.offset, pos.end.offset,
+                          src.replaceAll(new RegExp(r'vue\.js$'), 'vue.min.js'));
           }
-
-          rewriter.edit(pos.start.offset, pos.end.offset,
-                        src.replaceAll(new RegExp(r'vue\.js$'), 'vue.min.js'));
         }
       }
 
       var dartscripts = doc.querySelectorAll(r'script[src$=".dart"]');
       for (var dartscript in dartscripts) {
-        var init = dartscript.attributes['src'].replaceAll('.dart', '.initialize.dart');
-        if (init.startsWith('/') || init.contains('://'))
-          continue;
+        var src = dartscript.attributes['src'];
+        var pos = dartscript.attributeValueSpans['src'];
 
-        var asset = new AssetId(primary.id.package, primary.id.path + '/../' + init);
+        if (src.startsWith('//') || src.contains('://')) {
+          // URI, e.g. http://, //unpkg.src.
+          continue;
+        }
+
+        if (justRelativizePaths) {
+          if (src.startsWith('/') && !src.startsWith('//')) {
+            // Relativize the path.
+            var prefix = '../' * primary.id.path.allMatches('/').length;
+            rewriter.edit(pos.start.offset, pos.end.offset, src.substring(1));
+          }
+          continue;
+        }
+
+        assert(!src.startsWith('/'),
+               'absolute path should have already been relativized');
+
+        var init = src.replaceAll('.dart', '.initialize.dart');
+        var asset = new AssetId(primary.id.package, '${primary.id.path}/../$init');
         if (await transform.hasInput(asset)) {
-          var pos = dartscript.attributeValueSpans['src'];
           rewriter.edit(pos.start.offset, pos.end.offset, init);
         }
       }
