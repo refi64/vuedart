@@ -12,9 +12,8 @@ import 'dart:html';
 export 'package:initialize/initialize.dart' show initMethod;
 
 
-@JS('eval')
-external dynamic _eval(String value);
-dynamic _window = _eval('window');
+@JS('window')
+external dynamic get _window;
 
 dynamic getWindowProperty(String name) {
   return getProperty(_window, name);
@@ -221,6 +220,8 @@ class VueComponentBase extends _VueBase {
     setProperty(vuethis, '\$dartobj', this);
   }
 
+  static Map<Symbol, dynamic> componentArgStore = {};
+
   static dynamic componentArgs(VueComponentConstructor constr, {bool isMixin: false}) {
     var props = constr.jsprops();
     var computed = constr.jscomputed();
@@ -248,7 +249,7 @@ class VueComponentBase extends _VueBase {
     return mapToJs({
       'props': props,
       'created': !isMixin ? allowInteropCaptureThis(constr.creator) : null,
-      'data': allowInterop(() {
+      'data': allowInterop(([dynamic _=null]) {
         var data = mapToJs(constr.data);
         setProperty(data, '\$dartobj', null);
         return data;
@@ -264,9 +265,10 @@ class VueComponentBase extends _VueBase {
     }..addAll(_VueBase.lifecycleHooks));
   }
 
-  static void register(VueComponentConstructor constr) {
-    callMethod(_vue, 'component', [constr.name,
-                                   VueComponentBase.componentArgs(constr)]);
+  static void register(Symbol name, VueComponentConstructor constr) {
+    var args = VueComponentBase.componentArgs(constr);
+    callMethod(_vue, 'component', [constr.name, args]);
+    VueComponentBase.componentArgStore[name] = args;
   }
 }
 
@@ -279,7 +281,7 @@ class VueAppBase extends _VueBase {
     setProperty(vuethis, '\$dartobj', this);
   }
 
-  static create(Function creator) {
+  static create(Function creator, {dynamic router: null}) {
     var constr;
 
     try {
@@ -302,6 +304,10 @@ class VueAppBase extends _VueBase {
       'methods': _mapMethodsToJs(constr.methods),
       'watch': watch,
     }..addAll(_VueBase.lifecycleHooks));
+
+    if (router != null) {
+      setProperty(args, 'router', router.js);
+    }
 
     callConstructor(_vue, [args]);
     return result;

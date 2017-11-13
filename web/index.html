@@ -4,6 +4,12 @@
 
 <body vuedart>
   <div id="app">
+    <p>default:</p> <router-view></router-view>
+    <p>single:</p> <router-view name="single"></router-view>
+    <router-link to="/item/10">goto item</router-link>
+    <router-link to="/item/10/info">goto item info</router-link>
+    <router-link to="/singleitem/10">goto single</router-link>
+
     <ol>
       <todo-item
         v-for="item in groceryList" :todo="item" :key="item.id">
@@ -12,6 +18,7 @@
   </div>
 
   <script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/vue-router"></script>
   <script type="application/dart" src="/index.dart"></script>
   <script src="packages/browser/dart.js"></script>
 </body>

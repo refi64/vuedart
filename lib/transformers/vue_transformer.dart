@@ -447,7 +447,8 @@ $opts
 @initMethod
 void vuedart_INTERNAL_init() {
 ${components.map((comp) =>
-      "  VueComponentBase.register(${comp.name.name}.constructor);").join('\n')}
+    "  VueComponentBase.register(#${comp.name.name}, ${comp.name.name}.constructor);")
+            .join('\n')}
 }
     ''');
 
