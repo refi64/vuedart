@@ -6,3 +6,5 @@ dependencies:
   ansicolor: ^0.0.9
   args: any
   path: ^1.5.0
+  source_maps: any
+  source_span: any

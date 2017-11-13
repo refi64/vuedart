@@ -1,8 +1,12 @@
 import 'package:args/command_runner.dart';
 import 'package:ansicolor/ansicolor.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as pathmod;
+import 'package:source_span/source_span.dart' show SourceFile;
+import 'package:source_maps/refactor.dart';
 
+import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 final TEMPLATE_README_MD = '''
 # {{project}}
@@ -110,10 +114,15 @@ final TEMPLATES = {
 };
 
 AnsiPen errorPen = new AnsiPen()..red(),
+        warnPen = new AnsiPen()..magenta(),
         notePen = new AnsiPen()..cyan();
 
 void note(String message) {
   print(notePen(message));
+}
+
+void warn(String message) {
+  print(warnPen(message));
 }
 
 void error(String message) {
@@ -139,7 +148,7 @@ class CreateCommand extends Command {
 
     var outdirPath = argResults.rest[0];
     var outdir = new Directory(outdirPath);
-    var name = argResults['name'] ?? path.basename(outdirPath);
+    var name = argResults['name'] ?? pathmod.basename(outdirPath);
     var author = argResults['author'];
 
     var replacements = {'project': name, 'author': author};
@@ -157,7 +166,7 @@ class CreateCommand extends Command {
       note('Writing $templatePath...');
 
       var templateText = TEMPLATES[templatePath];
-      var rootPath = path.dirname(templatePath);
+      var rootPath = pathmod.dirname(templatePath);
       var root = new Directory(rootPath);
 
       if (!root.existsSync()) {
@@ -177,8 +186,161 @@ class CreateCommand extends Command {
   }
 }
 
-void main(List<String> args) {
-  new CommandRunner('vuedart', 'The VueDart CLI')
-      ..addCommand(new CreateCommand())
-      ..run(args);
+class MigrateCommand extends Command {
+  final name = 'migrate';
+  final description = 'Migrate your code between VueDart releases';
+
+  MigrateCommand() {
+    argParser.addOption('source', help: 'The source version', defaultsTo: '0.2');
+    argParser.addOption('target', help: 'The target version', defaultsTo: '0.3');
+  }
+
+  void explicitEntryPoints(Map<String, String> sources,
+                           Map<String, TextEditTransaction> rewriters) {
+    var entryPoints = [];
+
+    var pubspec = sources['pubspec.yaml'];
+    if (pubspec == null) {
+      warn('    No pubspec.yaml found; skipping.');
+      return;
+    } else if (pubspec.contains('entry_points:')) {
+      warn('  pubspec.yaml already contains entry_points; skipping.');
+      return;
+    }
+
+    for (var path in sources.keys) {
+      if (!path.endsWith('.dart')) continue;
+      var source = sources[path];
+
+      if (source.contains('main()') &&
+          (source.contains('initVue') || source.contains('vue2/vue') ||
+           source.contains('@VueApp'))) {
+        entryPoints.add(path);
+      }
+    }
+
+    var insertPoint = pubspec.indexOf('- vue2');
+    if (insertPoint == -1) {
+      warn('  pubspec.yaml does not contain vue2 transformer; skipping.');
+      return;
+    }
+
+    var indent = 0, indentPoint = insertPoint - 1;
+    while (indentPoint > 0 && pubspec[indentPoint] == ' ') {
+      indent++;
+      indentPoint--;
+    }
+
+    var builder = new StringBuffer();
+    builder.writeln("${' ' * (indent + 4)}entry_points:");
+    for (var entryPoint in entryPoints) {
+      builder.writeln("${' ' * (indent + 6)}- $entryPoint");
+    }
+
+    rewriters['pubspec.yaml'].edit(insertPoint + 7, insertPoint + 7, builder.toString());
+  }
+
+  void rewriteComponentAnnotations(Map<String, String> sources,
+                                   Map<String, TextEditTransaction> rewriters) {
+    var re = new RegExp('@VueComponent\\s*\\(\\s*([\'"])');
+
+    for (var path in sources.keys) {
+      if (!path.endsWith('.dart')) continue;
+      var source = sources[path];
+      var rewriter = rewriters[path];
+
+      for (var match in re.allMatches(source)) {
+        var beginOffset = match[0].indexOf(match[1]);
+        var offset = match.start + beginOffset;
+        rewriter.edit(offset, offset, 'name: ');
+      }
+    }
+  }
+
+  void run() {
+    final VERSIONS = ['0.2', '0.3'];
+
+    final TRANSFORMS = {
+      '0.2': [explicitEntryPoints, rewriteComponentAnnotations],
+    };
+
+    if (argResults.rest.length < 1) {
+      error('A root directory is required!');
+    }
+
+    var root = argResults.rest[0];
+    var state = <String, String>{};
+    for (var path in argResults.rest.sublist(1)) {
+      note('Loading $path...');
+      var fullpath = pathmod.join(root, path);
+
+      var file = new File(fullpath);
+      if (!file.existsSync()) {
+        error('$path does not exist!');
+      }
+
+      state[path] = new File(fullpath).readAsStringSync();
+    }
+
+    var source = argResults['source'];
+    var target = argResults['target'];
+
+    var sourceIndex = VERSIONS.indexOf(source);
+    var targetIndex = VERSIONS.indexOf(target);
+
+    if (sourceIndex == -1) {
+      error('Invalid version $source');
+    } else if (targetIndex == -1) {
+      error('Invalid version $target');
+    } else if (sourceIndex >= targetIndex) {
+      error('Source version $source does not come before target version $target');
+    }
+
+    for (var versionIndex = sourceIndex; versionIndex < targetIndex; versionIndex++) {
+      var version = VERSIONS[versionIndex];
+      var nextVersion = VERSIONS[versionIndex + 1];
+      var transforms = TRANSFORMS[version];
+
+      note('Migrating from $version to $nextVersion...');
+
+      for (var transform in transforms) {
+        var name = MirrorSystem.getName(reflect(transform).function.simpleName);
+        note('  - Running transform $name...');
+
+        var rewriters = {};
+
+        for (var path in state.keys) {
+          var original = state[path];
+          var source = new SourceFile.fromString(original);
+          rewriters[path] = new TextEditTransaction(original, source);
+        }
+
+        transform(state, rewriters);
+
+        for (var path in state.keys) {
+          var printer = rewriters[path].commit();
+          printer.build(null);
+          state[path] = printer.text;
+        }
+      }
+    }
+
+    for (var path in state.keys) {
+      note('Writing $path...');
+      new File(pathmod.join(root, path)).writeAsStringSync(state[path]);
+    }
+  }
+}
+
+Future main(List<String> args) async {
+  try {
+    await new CommandRunner('vuedart_cli', 'The VueDart CLI')
+        ..addCommand(new CreateCommand())
+        ..addCommand(new MigrateCommand())
+        ..run(args);
+  } on UsageException catch (ex) {
+    print(ex);
+  }
+
+  return new Future.value();
 }
