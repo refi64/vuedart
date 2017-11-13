@@ -1,0 +1,8 @@
+name: vuedart_cli
+version: 0.1.0
+description: A CLI helper for VueDart, featuring project template and easy migrations
+author: Ryan Gonzalez
+dependencies:
+  ansicolor: ^0.0.9
+  args: any
+  path: ^1.5.0
