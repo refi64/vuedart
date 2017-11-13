@@ -346,12 +346,10 @@ $typestring $name${member.parameters.toSource()} =>
       var name = null, creator = null;
 
       if (ann.name.name == 'VueComponent') {
-        if (args.positional.length != 1) {
-          error(ann, 'invalid number of arguments to VueComponent');
-          return new Future.value();
+        if (args.named.containsKey('name')) {
+          name = args.named['name'].toSource();
         }
 
-        name = "'${(args.positional[0] as StringLiteral).stringValue}'";
         creator = '(context) => new ${cls.name.name}(context)';
         components.add(cls);
       }

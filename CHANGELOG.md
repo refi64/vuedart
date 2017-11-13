@@ -1,8 +1,12 @@
 ## development
 
 - **BREAKING CHANGE** Require explicit declaration of entry points.
+- **BREAKING CHANGE** The `VueComponent` annotation now requires the name to be in
+  a named argument (e.g. `@VueComponent(name: 'foo')`, instead of
+    `@VueComponent('foo')`). This was necessary to support unnamed components.
 - Proper error messages.
 - Add VueMaterial support.
+- Add vue-router support.
 - Avoid needlessly rewriting HTML source files by switching from html package's DOM
   manipulation to using Dart's refactoring libraries.
 - Change *all* `vue.js` script tags to `vue.min.js` when in release mode, not just unpkg

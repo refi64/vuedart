@@ -5,7 +5,7 @@ import 'todo_item.dart';
 import 'dart:async';
 
 
-@VueComponent('single-item', template: '<p>todo item #{{id}} <router-view></router-view></p>')
+@VueComponent(template: '<p>todo item #{{id}} <router-view></router-view></p>')
 class SingleItem extends VueComponentBase with VueRouterMixin {
   SingleItem(context): super(context);
 
@@ -14,7 +14,7 @@ class SingleItem extends VueComponentBase with VueRouterMixin {
 }
 
 
-@VueComponent('single-item-info', template: '<p>todo item #{{id}} INFO</p>')
+@VueComponent(template: '<p>todo item #{{id}} INFO</p>')
 class SingleItemInfo extends VueComponentBase with VueRouterMixin {
   SingleItemInfo(context): super(context);
 

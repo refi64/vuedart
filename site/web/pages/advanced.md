@@ -20,7 +20,7 @@ class Person {
   Person({this.name, this.age});
 }
 
-@VueComponent('show-name', template: '<p>{{person.name}} is {{person.age}}</p>')
+@VueComponent(name: 'show-name', template: '<p>{{person.name}} is {{person.age}}</p>')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 
@@ -108,7 +108,7 @@ Luckily, lifecycle callbacks are much simpler! For starters, the `created` lifec
 callback is just your constructor. For example:
 
 ```dart
-@VueComponent('my-component', template: '<pHello!</p>')
+@VueComponent(name: 'my-component', template: '<pHello!</p>')
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context) {
     // This is the VueDart equivalent of the 'created' lifecycle callback
@@ -127,7 +127,7 @@ class App extends VueAppBase {
 The others are just method overrides:
 
 ```dart
-@VueComponent('my-component', template: '<pHello!</p>')
+@VueComponent(name: 'my-component', template: '<pHello!</p>')
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 
@@ -147,7 +147,7 @@ and so forth for all the other lifecycle callbacks.
 Take the following component:
 
 ```dart
-@VueComponent('my-component', template: '<div ref="text">Hello!</div>')
+@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 
@@ -163,7 +163,7 @@ For this, you can use the `@ref` annotation:
 ```dart
 import 'dart:html'; // to get DivElement
 
-@VueComponent('my-component', template: '<div ref="text">Hello!</div>')
+@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 
@@ -221,7 +221,7 @@ To declare a custom render function, you just leave out the `template:` value an
 the `render` method:
 
 ```dart
-@VueComponent('my-component') // <-- no template!
+@VueComponent(name: 'my-component') // <-- no template!
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 

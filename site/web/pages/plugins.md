@@ -65,7 +65,7 @@ Future main() async {
 For menus, dialogs, sidenavs, and snackbars, you can use the `Md*` types:
 
 ```dart
-@VueComponent('my-component', template: '<<')
+@VueComponent(name: 'my-component', template: '<<')
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 

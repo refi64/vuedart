@@ -16,7 +16,7 @@ Toss this in `lib/show_name.dart`:
 import 'package:vue2/vue.dart';
 
 
-@VueComponent('show-name', template: '<p>Your name is: Bob</p>')
+@VueComponent(name: 'show-name', template: '<p>Your name is: Bob</p>')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 }
@@ -86,7 +86,7 @@ Well, this component is a bit of a downgrade. Before, we could display *any* nam
 we're limited to Bob's. Let's try using some properties:
 
 ```dart
-@VueComponent('show-name', template: '<<')
+@VueComponent(name: 'show-name', template: '<<')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 
@@ -127,7 +127,7 @@ There are two more things I want to touch: methods and mixins. You know what met
 already; the question is, how do you define them in VueDart? Try this in `show_name.dart`:
 
 ```dart
-@VueComponent('show-name', template: '<<')
+@VueComponent(name: 'show-name', template: '<<')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 
@@ -166,7 +166,7 @@ There are three important things about this:
 Now you can use your mixin:
 
 ```dart
-@VueComponent('show-name', template: '<<', mixins: const [TodoMixin])
+@VueComponent(name: 'show-name', template: '<<', mixins: const [TodoMixin])
 class ShowName extends VueComponentBase with TodoMixin {
   // ...
 }

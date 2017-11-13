@@ -14,7 +14,7 @@ class Entry {
   external factory Entry({String title, String addr, List<List<String>> contents});
 }
 
-@VueComponent('docs-navlist', template: '<<')
+@VueComponent(name: 'docs-navlist', template: '<<')
 class DocsNavlist extends VueComponentBase {
   DocsNavlist(context): super(context);
 

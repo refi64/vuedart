@@ -267,8 +267,10 @@ class VueComponentBase extends _VueBase {
 
   static void register(Symbol name, VueComponentConstructor constr) {
     var args = VueComponentBase.componentArgs(constr);
-    callMethod(_vue, 'component', [constr.name, args]);
     VueComponentBase.componentArgStore[name] = args;
+    if (constr.name != null) {
+      callMethod(_vue, 'component', [constr.name, args]);
+    }
   }
 }
 
@@ -331,7 +333,7 @@ class VuePlugin {
 class VueComponent {
   final String name, template;
   final List mixins;
-  const VueComponent(this.name, {this.template, this.mixins});
+  const VueComponent({this.name, this.template, this.mixins});
 }
 
 class VueApp {
