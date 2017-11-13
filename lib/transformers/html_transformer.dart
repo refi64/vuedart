@@ -46,7 +46,7 @@ class HtmlTransformer extends Transformer {
             var pos = vuescript.attributeValueSpans['src'];
 
             if (src.endsWith('//unpkg.com/vue')) {
-              src = 'https://unpkg.com/vue/dist/vue.js';
+              src = 'https://unpkg.com/vue/dist/vue.min.js';
             }
 
             rewriter.edit(pos.start.offset, pos.end.offset,
