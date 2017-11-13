@@ -2,3 +2,7 @@ build/
 .packages
 .pub/
 pubspec.lock
+
+site/web/dist/
+site/node_modules/
+site/yarn.lock
