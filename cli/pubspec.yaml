@@ -8,3 +8,5 @@ dependencies:
   path: ^1.5.0
   source_maps: any
   source_span: any
+executables:
+  vuedart:
