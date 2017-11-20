@@ -363,11 +363,15 @@ class watch {
   const watch(this.name, {this.deep});
 }
 
+
+@JS('Vue.config.ignoredElements')
+external get _ignoredElements;
+@JS('Vue.config.ignoredElements')
+external set _ignoredElements(elements);
+
 class VueConfig {
-  @JS('Vue.config.ignoredElements')
-  external static get ignoredElements;
-  @JS('Vue.config.ignoredElements')
-  external static set ignoredElements(elements);
+  static get ignoredElements => _ignoredElements;
+  static set ignoredElements(elements) => _ignoredElements = elements;
 }
 
 Future initVue() async => run();
