@@ -55,8 +55,9 @@ class DocsNavlist extends VueComponentBase {
         ['Bundling your assets via Aspen', 'assets'],
         ['Crossing the JavaScript and Dart boundary', 'boundary'],
         ['Events via \$emit, and other instance methods', 'instance'],
-        ['Using the VueDart CLI to perform migrations', 'migrate'],
         ['Render functions', 'render'],
+        ['Using the VueDart CLI to perform migrations', 'migrate'],
+        ['Ignoring elements', 'ignore'],
       ],
     ),
     new Entry(

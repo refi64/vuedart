@@ -314,3 +314,17 @@ just do something like this:
 ```
 $ find * -not -path '*/\.*' -type f | xargs vuedart migrate .
 ```
+
+<div id="ignore"></div>
+
+## Ignoring elements
+
+The VueDart equivalent of `Vue.config.ignoredElements` is `VueConfig.ignoredElements`:
+
+```dart
+void main() async {
+  VueConfig.ignoredElements = ['my-element'];
+  await initVue();
+  // ...
+}
+```

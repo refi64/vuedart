@@ -17,6 +17,7 @@
 - Implement watchers.
 - Add support for more instance methods: `$data`, `$props`, `$el`, `$options`, `$parent`,
   `$root`, `$on`, `$once`, `$off`, `$emit`, `$nextTick`, `$forceUpdate`, and `$destroy`.
+- Add `VueConfig` and `VueConfig.ignoredElements`.
 
 ## 0.2.0
 
