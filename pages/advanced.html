@@ -8,14 +8,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
-  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
-
-  <script src="https://unpkg.com/vue-material"></script>
-  <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css">
-
-  <link rel="stylesheet" href="https://cdn.rawgit.com/richleland/pygments-css/c39da1d9/default.css">
-
-  <script> Vue.use(VueMaterial); </script>
+  <script src="../dist/vendor.js"></script>
 
   <script defer="" src="docs.initialize.dart.js"></script>
   
@@ -38,7 +31,95 @@
       <docs-navlist></docs-navlist>
 
       <div id="content" v-pre="">
-        <h1>Advanced topics</h1><div id="boundary"></div>
+        <h1>Advanced topics</h1><div id="assets"></div>
+<h2>Bundling your assets via Aspen</h2>
+<p>All the examples thus far have manually loaded Vue:</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>VueDart first example<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+  <span class="c">&lt;!-- Here --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">"https://unpkg.com/vue"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">defer</span> <span class="na">type</span><span class="o">=</span><span class="s">"application/dart"</span> <span class="na">src</span><span class="o">=</span><span class="s">"index.dart"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+</pre></div>
+
+<p>Obviously, once you start to throw in plugins and UI libraries, this doesn't scale
+well:</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">"https://unpkg.com/vue"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">"https://unpkg.com/vue-router"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">"https://unpkg.com/vue-material"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">"stylesheet"</span> <span class="na">href</span><span class="o">=</span><span class="s">"https://unpkg.com/vue-material/dist/vue-material.css"</span><span class="p">&gt;</span>
+</pre></div>
+
+<p>The preferred way to bundle these assets together is via
+<a href="https://pub.dartlang.org/packages/aspen">Aspen</a> + yarn/npm. Install Aspen via:</p>
+<pre><code>$ pub global activate aspen
+</code></pre>
+<p>and add <code>aspen_assets</code> to your <code>pubspec.yaml</code>:</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">dependencies</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">aspen_assets</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
+  <span class="l l-Scalar l-Scalar-Plain">vue2</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
+</pre></div>
+
+<p>Now run <code>yarn init</code> to set up your <code>package.json</code>, and <code>yarn add</code> your dependencies:</p>
+<pre><code>$ yarn init
+# Follow the prompts
+$ yarn add vue
+$ yarn add vue-router
+# and so forth...
+</code></pre>
+<p>Now create a file named <code>aspen.yml</code> containing something like the following:</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">targets</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">default</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">outputs</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">default</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">web/vendor.js</span>
+
+    <span class="l l-Scalar l-Scalar-Plain">assets</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">dev</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">node_modules/vue/dist/vue.js</span>
+      <span class="l l-Scalar l-Scalar-Plain">prod</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">node_modules/vue/dist/vue.min.js</span>
+</pre></div>
+
+<p>This says that when bundling in development mode, <code>vue.js</code> will be used, else
+<code>vue.min.js</code> will be used. This and any others assets will be bundled into
+<code>web/vendor.js</code>.</p>
+<p>Other assets can be added too:</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">targets</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">default</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">outputs</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">default</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">web/vendor.js</span>
+
+    <span class="l l-Scalar l-Scalar-Plain">assets</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">dev</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">node_modules/vue/dist/vue.js</span>
+      <span class="l l-Scalar l-Scalar-Plain">prod</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">node_modules/vue/dist/vue.min.js</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">dev</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">node_modules/vue-material/dist/vue-material.debug.js</span>
+      <span class="l l-Scalar l-Scalar-Plain">prod</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">node_modules/vue-material/dist/vue-material.js</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">vue-material-css</span>
+      <span class="c1"># 'default' is used to declare the same file for both dev and prod</span>
+      <span class="l l-Scalar l-Scalar-Plain">default</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">node_modules/vue-material/dist/vue-material.css</span>
+</pre></div>
+
+<p>Notice that <code>vue-material-css</code> is named; this is because CSS assets are not
+automatically applied to the document (similar to Webpack). In order to do so,
+you need to use <code>aspen_assets</code>:</p>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'package:vue2/vue.dart'</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">'package:aspen_assets/aspen_assets.dart'</span> <span class="k">as</span> <span class="n">aspen</span><span class="p">;</span>
+
+<span class="c1">// ..</span>
+
+<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="c1">// This will apply the style to the document.</span>
+  <span class="n">aspen</span><span class="p">.</span><span class="n">loadGlobal</span><span class="p">(</span><span class="s1">'vue-material-css'</span><span class="p">);</span>
+
+  <span class="kd">await</span> <span class="n">initVue</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>In order to bundle the assets, run <code>aspen</code>, or <code>aspen -m prod</code> to bundle in production
+mode. Now only <code>vendor.js</code> needs to be included:</p>
+<pre><code>&lt;script src="vendor.js"&gt;&lt;/script&gt;
+</code></pre>
+<p>If you're using the VueDart CLI, you can use <code>vuedart create my-project --aspen</code> to
+create a new project that uses Aspen and npm/Yarn instead of the default that uses
+the unpkg CDN.</p><div id="boundary"></div>
 <h2>Crossing the JavaScript and Dart boundary</h2>
 <p>This is one of the trickier things you'll need to know to use VueDart efficiently. Going
 back to the <code>show-name</code> component from the last section, what if you wanted a property
@@ -52,11 +133,11 @@ value to be an object? For instance:</p>
   <span class="n">Person</span><span class="p">({</span><span class="k">this</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="n">age</span><span class="p">});</span>
 <span class="p">}</span>
 
-<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;p&gt;{{person.name}} is {{person.age}}&lt;/p&gt;'</span><span class="p">)</span>
+<span class="nd">@VueComponent</span><span class="p">(</span><span class="nl">name:</span> <span class="s1">'show-name'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;p&gt;{{person.name}} is {{person.age}}&lt;/p&gt;'</span><span class="p">)</span>
 <span class="kd">class</span> <span class="nc">ShowName</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
   <span class="n">ShowName</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-  <span class="err">@</span><span class="n">prop</span>
+  <span class="nd">@prop</span>
   <span class="n">Person</span> <span class="n">person</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -67,8 +148,8 @@ dilemma is <a href="https://pub.dartlang.org/packages/js">the js package</a>.</p
 <p>Before you continue, look through the package documentation (especially the <em>JavaScript
 object literals</em> section) and the Chart.js example.</p>
 <p>Now, with that in mind, here's how you'd do the above <em>properly</em>:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">anonymous</span>
-<span class="err">@</span><span class="n">JS</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><span class="nd">@anonymous</span>
+<span class="nd">@JS</span><span class="p">()</span>
 <span class="kd">class</span> <span class="nc">Person</span> <span class="p">{</span>
   <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">age</span><span class="p">;</span>
@@ -84,8 +165,8 @@ like <code>String</code>, <code>int</code>, and <code>List</code>.</p>
 JS side</em>. For instance, this won't work:</p>
 <div class="highlight"><pre><span></span><span class="c1">// DON'T DO THIS</span>
 
-<span class="err">@</span><span class="n">anonymous</span>
-<span class="err">@</span><span class="n">JS</span><span class="p">()</span>
+<span class="nd">@anonymous</span>
+<span class="nd">@JS</span><span class="p">()</span>
 <span class="kd">class</span> <span class="nc">Things</span> <span class="p">{</span>
   <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">String</span><span class="o">&gt;</span> <span class="n">things</span><span class="p">;</span>
 
@@ -97,13 +178,13 @@ JS side</em>. For instance, this won't work:</p>
 available under the name
 <a href="https://api.dartlang.org/stable/dart-js_util/dart-js_util-library.html"><code>dart:js_util</code></a>,
 and the <code>mapToJs</code> helper function. Here's a concrete example:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">anonymous</span>
-<span class="err">@</span><span class="n">JS</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><span class="nd">@anonymous</span>
+<span class="nd">@JS</span><span class="p">()</span>
 <span class="kd">class</span> <span class="nc">Things</span> <span class="p">{</span>
   <span class="c1">// Use 'dynamic' to reference JavaScript objects.</span>
-  <span class="n">dynamic</span> <span class="n">things</span><span class="p">;</span>
+  <span class="kt">dynamic</span> <span class="n">things</span><span class="p">;</span>
 
-  <span class="n">external</span> <span class="n">Person</span><span class="p">({</span><span class="n">dynamic</span> <span class="n">things</span><span class="p">});</span>
+  <span class="n">external</span> <span class="n">Person</span><span class="p">({</span><span class="kt">dynamic</span> <span class="n">things</span><span class="p">});</span>
 <span class="p">}</span>
 
 <span class="c1">// ...</span>
@@ -120,94 +201,42 @@ and the <code>mapToJs</code> helper function. Here's a concrete example:</p>
 <p><code>mapToJs</code> converts a Dart map to a standard JavaScript object. After this, use the <code>js_util</code>
 functions to access the properties on the object (such as <code>getProperty</code> and <code>setProperty</code>).</p>
 <p>All this seems rather complex, but once you've got it down, you'll be passing objects around
-in no time!!</p><div id="lifecycle"></div>
-<h2>Lifecycle callbacks</h2>
-<p>Luckily, lifecycle callbacks are much simpler! For starters, the <code>created</code> lifecycle
-callback is just your constructor. For example:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;pHello!&lt;/p&gt;'</span><span class="p">)</span>
-<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
-  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// This is the VueDart equivalent of the 'created' lifecycle callback</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="err">@</span><span class="n">VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
-<span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
-  <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
-  <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// Same here.</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>The others are just method overrides:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;pHello!&lt;/p&gt;'</span><span class="p">)</span>
+in no time!!</p><div id="instance"></div>
+<h2>Events via $emit, and other instance methods</h2>
+<p>VueDart supports the <code>$emit</code>, <code>$on</code>, <code>$off</code>, and <code>$once</code> functions:</p>
+<div class="highlight"><pre><span></span><span class="nd">@VueComponent</span><span class="p">(</span><span class="nl">name:</span> <span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;button @click="click"&gt;Click me!&lt;/button&gt;'</span><span class="p">)</span>
 <span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
   <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s2">"mounted!"</span><span class="p">);</span>
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">destroyed</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s2">"destroyed!"</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
+  <span class="nd">@method</span>
+  <span class="kt">void</span> <span class="n">click</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">$emit</span><span class="p">(</span><span class="s1">'my-custom-event'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'some arg'</span><span class="p">,</span> <span class="s1">'some other arg'</span><span class="p">]);</span>
 
-<p>and so forth for all the other lifecycle callbacks.</p><div id="refs"></div>
-<h2>Accessing refs</h2>
-<p>Take the following component:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;div ref="text"&gt;Hello!&lt;/div&gt;'</span><span class="p">)</span>
-<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
-  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
-
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// How to access the div element?</span>
+    <span class="n">$on</span><span class="p">(</span><span class="s1">'something'</span><span class="p">,</span> <span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">print</span><span class="p">(</span><span class="m">123</span><span class="p">);</span>
+    <span class="p">});</span>
+    <span class="c1">// Same for $off and $once</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
-<p>For this, you can use the <code>@ref</code> annotation:</p>
-<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'dart:html'</span><span class="p">;</span> <span class="c1">// to get DivElement</span>
-
-<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;div ref="text"&gt;Hello!&lt;/div&gt;'</span><span class="p">)</span>
+<p>In addition, <code>$nextTick</code>, <code>$forceUpdate</code>, and <code>$destroy</code> are also supported:</p>
+<div class="highlight"><pre><span></span><span class="nd">@VueComponent</span><span class="p">(</span><span class="nl">name:</span> <span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;&lt;'</span><span class="p">)</span>
 <span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
   <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-  <span class="err">@</span><span class="n">ref</span>
-  <span class="n">DivElement</span> <span class="n">text</span><span class="p">;</span>
+  <span class="nd">@method</span>
+  <span class="kt">void</span> <span class="n">click</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// $nextTick returns a Future</span>
+    <span class="n">$nextTick</span><span class="p">().</span><span class="n">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="n">print</span><span class="p">(</span><span class="s1">'In </span><span class="se">\$</span><span class="s1">nextTick callback!'</span><span class="p">);</span>
+    <span class="p">});</span>
 
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">text</span><span class="p">.</span><span class="n">text</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>Piece of cake, right? It's like declaring a normal attribute.</p>
-<p>Accessing component refs is just as simple:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'first-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;div&gt;Hello!&lt;/div&gt;'</span><span class="p">)</span>
-<span class="kd">class</span> <span class="nc">FirstComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
-  <span class="n">FirstComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
-
-  <span class="err">@</span><span class="n">computed</span>
-  <span class="kt">String</span> <span class="kd">get</span> <span class="n">stuff</span> <span class="o">=&gt;</span> <span class="s1">'Hello!'</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'second-component'</span><span class="p">,</span>
-              <span class="nl">template:</span> <span class="s1">'&lt;first-component ref="first"&gt;&lt;/first-component&gt;'</span><span class="p">)</span>
-<span class="kd">class</span> <span class="nc">SecondComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
-  <span class="n">SecondComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
-
-  <span class="err">@</span><span class="n">ref</span>
-  <span class="n">FirstComponent</span> <span class="n">first</span><span class="p">;</span>
-
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">first</span><span class="p">.</span><span class="n">stuff</span><span class="p">);</span> <span class="c1">// Hello!</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>If you need to get a ref by name instead of declaring it ahead-of-type, use the <code>$ref</code>
-function:</p>
-<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="n">$ref</span><span class="p">(</span><span class="s1">'first'</span><span class="p">)</span> <span class="o">as</span> <span class="n">FirstComponent</span><span class="p">);</span>
+    <span class="c1">// $forceUpdate is simple</span>
+    <span class="n">$forceUpdate</span><span class="p">();</span>
+    <span class="c1">// same for $destroy</span>
+    <span class="n">$destroy</span><span class="p">();</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 <div id="render"></div>
@@ -216,11 +245,11 @@ function:</p>
 perspective; they will eventually be improved, and this section will be rewritten.</strong></p>
 <p>To declare a custom render function, you just leave out the <code>template:</code> value and override
 the <code>render</code> method:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueComponent</span><span class="p">(</span><span class="s1">'my-component'</span><span class="p">)</span> <span class="c1">// &lt;-- no template!</span>
+<div class="highlight"><pre><span></span><span class="nd">@VueComponent</span><span class="p">(</span><span class="nl">name:</span> <span class="s1">'my-component'</span><span class="p">)</span> <span class="c1">// &lt;-- no template!</span>
 <span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
   <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-  <span class="err">@</span><span class="n">override</span>
+  <span class="nd">@override</span>
   <span class="kt">void</span> <span class="n">render</span><span class="p">(</span><span class="n">CreateElement</span> <span class="n">createElement</span><span class="p">)</span> <span class="o">=&gt;</span>
     <span class="c1">// function body goes here</span>
 <span class="p">}</span>
@@ -237,7 +266,26 @@ the outer maps are converted automatically, the inner maps aren't. In this case,
 <code>{'style': ...}</code> map is automatically converted, but the <code>{'color': 'red'}</code> map isn't.</p>
 <p>Other than that, just note that all the return values here are <code>dynamic</code>, and if
 you make a mistake, Dart's type system isn't going to be there to save you when it fails.
-Beware!</p>
+Beware!</p><div id="migrate"></div>
+<h2>Using the VueDart CLI to perform migrations</h2>
+<p>VueDart's CLI also comes with a simple tool to help with version migrations. Just run
+<code>vuedart migrate</code> like so:</p>
+<pre><code>$ vuedart migrate . pubspec.yaml web/* lib/*
+</code></pre>
+<p>The first argument is the root directory of your project; the rest of the arguments
+are the source files that should be included in the migration. To include everything,
+just do something like this:</p>
+<pre><code>$ find * -not -path '*/\.*' -type f | xargs vuedart migrate .
+</code></pre><div id="ignore"></div>
+<h2>Ignoring elements</h2>
+<p>The VueDart equivalent of <code>Vue.config.ignoredElements</code> is <code>VueConfig.ignoredElements</code>:</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">VueConfig</span><span class="p">.</span><span class="n">ignoredElements</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'my-element'</span><span class="p">];</span>
+  <span class="kd">await</span> <span class="n">initVue</span><span class="p">();</span>
+  <span class="c1">// ...</span>
+<span class="p">}</span>
+</pre></div>
+
       </div>
     </md-layout>
   </div>

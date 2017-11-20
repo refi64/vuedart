@@ -92,11 +92,16 @@ description: VueDart example app
 author: Foo Bar
 dependencies:
   browser: any
-  initialize: any
   vue2: any
 transformers:
-  - vue2
+  - vue2:
+      entry_points:
+        - web/index.dart
 ```
+
+Note that the `entry_points` argument should only contain your Vue-using web entry
+points, not all your Dart files. **TL;DR:** all your Dart files that define `main` and
+also setup a Vue app should be in `entry_points`.
 
 Now that everything's been put together, run:
 
@@ -159,12 +164,12 @@ a name in our HTML file:
 Now run your app, enter a name, and watch the fireworks. (Not really, but actual fireworks
 take far too much effort.)
 
-<div id="computed"></div>
+<div id="methods"></div>
 
-## Declaring computed data
+## Declaring methods
 
-What if we want to, for instance, capitalize the name? VueDart lets you use Vue's
-computed properties, too:
+What if we want to, for instance, capitalize the name? One approach to this is to
+use methods:
 
 ```dart
 @VueApp(el: '#app')
@@ -175,6 +180,41 @@ class App extends VueAppBase {
   @data
   String name;
 
+  @method
+  void capitalize(String str) => str.toUpperCase();
+}
+```
+
+```html
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <p>Your name is: {{capitalize(name)}}</p>
+  </div>
+</body>
+```
+
+As you can see, declaring Vue methods is the same as declaring a normal method, except
+for the `@method` decorator.
+
+
+<div id="computed"></div>
+
+## Declaring computed data
+
+Of course, a better approach in this case would be to use computed data. Here's how
+that's done in VueDart:
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
+
+  @data
+  String name;
+
+  // The computed data
   @computed
   String get capitalizedName => name.toUpperCase();
 }
@@ -196,68 +236,47 @@ You can also define setters on computed properties using the normal Dart setter 
 void set capitalizedName(String newValue) { /* ... */ }
 ```
 
-<div id="final"></div>
+<div id="watchers"></div>
 
-## Final code
+## Watchers
 
-### `web/index.dart`:
+Just like everything else here, watchers work in similar manner to Vue, except with
+a more Dart-ified syntax.
 
 ```dart
-import 'package:vue2/vue.dart';
-import 'dart:async';
-
 @VueApp(el: '#app')
 class App extends VueAppBase {
   factory App() => VueAppBase.create((context) => new App._(context));
   App._(context): super(context);
 
   @data
-  String name;
+  int value1 = 0, value2 = 0, value3 = 0;
 
-  @computed
-  String get capitalizedName => name.toUpperCase();
-}
-
-App app;
-
-Future main() async {
-  await initVue();
-  app = new App();
+  @watch('value1')
+  void watchValue1() => print('Watching value1');
+  @watch('value2')
+  void watchValue2(int newValue) => print('Watching value2');
+  @watch('value3', deep: true)
+  void watchValue3(int newValue, int oldValue) => print('Watching value3');
 }
 ```
 
-### `web/index.html`:
+<div id="cli"></div>
 
-```html
-<!DOCTYPE html>
+## Using the VueDart CLI to create your projects
 
-<head>
-  <title>VueDart first example</title>
+VueDart also as a CLI you can use to generate projects from templates. To get started,
+install it:
 
-  <script src="https://unpkg.com/vue"></script>
-
-  <script defer type="application/dart" src="index.dart"></script>
-  <script defer src="packages/browser/dart.js"></script>
-</head>
-
-<body vuedart>
-  <div id="app">
-    <input v-model="name">
-    <p>Your name is: {{capitalizedName}}</p>
-  </div>
-</body>
+```
+$ pub global activate vue2_cli
 ```
 
-### `pubspec.yaml`:
+and then create your project:
 
-```yaml
-name: vuedart_example
-version: 0.1.0
-description: VueDart example app
-author: Foo Bar
-dependencies:
-  browser: any
-  vue2: any
-transformers:
-  - vue2
 ```
+$ vuedart create my-project
+```
+
+This will create a directory `my-project` with everything you need for a basic VueDart
+project.

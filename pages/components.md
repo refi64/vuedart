@@ -16,7 +16,7 @@ Toss this in `lib/show_name.dart`:
 import 'package:vue2/vue.dart';
 
 
-@VueComponent('show-name', template: '<p>Your name is: Bob</p>')
+@VueComponent(name: 'show-name', template: '<p>Your name is: Bob</p>')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 }
@@ -86,7 +86,7 @@ Well, this component is a bit of a downgrade. Before, we could display *any* nam
 we're limited to Bob's. Let's try using some properties:
 
 ```dart
-@VueComponent('show-name', template: '<<')
+@VueComponent(name: 'show-name', template: '<<')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 
@@ -119,39 +119,15 @@ Voila! We're back to the same code, but now it's better organized. Yaaay!!
 
 (Yes, I left out the capitalization; that's an exercise for the reader!)
 
-<div id="methods"></div>
+<div id="scoped"></div>
 
-## Declaring methods
+## Scoped styles
 
-Last but not least, I want to touch on methods. You know what these are already; the
-question is, how do you define them in VueDart? Try this in `show_name.dart`:
-
-```dart
-@VueComponent('show-name', template: '<<')
-class ShowName extends VueComponentBase {
-  ShowName(context): super(context);
-
-  @prop
-  String name;
-
-  @method
-  String capitalize(String thing) => thing.toUpperCase();
-}
-```
-
-As you can see, declaring Vue methods is the same as declaring a normal method, except
-for the `@method` decorator.
-
-<div id="final"></div>
-
-## Final code
-
-### `lib/show_name.dart`:
+VueDart also supports scoped styles via
+[scopify](https://pub.dartlang.org/packages/scopify). Here's how they work:
 
 ```dart
-import 'package:vue2/vue.dart';
-
-@VueComponent('show-name', template: '<<')
+@VueComponent(name: 'show-name', template: '<<')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 
@@ -159,72 +135,158 @@ class ShowName extends VueComponentBase {
   String name;
 }
 ```
-
-### `lib/show_name.html`:
 
 ```html
 <template vuedart>
   <p>Your name is: {{name}}</p>
 </template>
+
+<style scoped>
+p { color: purple; }
+</style>
 ```
 
-### `web/index.dart`:
+The syntax for scoped styles closely resembles Vue's own single-file components.
+
+<div id="mixins"></div>
+
+## Mixins
+
+Mixins are easy to declare in VueDart. Take this example:
 
 ```dart
-import 'package:vue2/vue.dart';
-import 'package:vuedart_example/show_name.dart';
-import 'dart:async';
+@VueMixin()
+abstract class TodoMixin {
+  @method
+  String capitalize(String thing) => thing.toUpperCase();
+}
+```
+
+There are three important things about this:
+
+- The `@VueMixin()` annotation should go on *any* VueDart mixin, otherwise you'll get
+  incredibly bizarre analyzer errors.
+- Mixins must not use other mixins!
+- Mixins must be `abstract`.
+
+Now you can use your mixin:
+
+```dart
+@VueComponent(name: 'show-name', template: '<<', mixins: const [TodoMixin])
+class ShowName extends VueComponentBase with TodoMixin {
+  // ...
+}
+```
+
+Note that the only difference between using a standard Dart mixin and a VueDart mixin is
+the extra `mixins:` argument to `@VueComponent`.
+
+<div id="lifecycle"></div>
+
+## Lifecycle callbacks
+
+Lifecycle callbacks are dead simple in VueDart! For starters, the `created` lifecycle
+callback is just your constructor. For example:
+
+```dart
+@VueComponent(name: 'my-component', template: '<pHello!</p>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context) {
+    // This is the VueDart equivalent of the 'created' lifecycle callback
+  }
+}
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
   factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
-
-  @data
-  String name;
-}
-
-App app;
-
-Future main() async {
-  await initVue();
-  app = new App();
+  App._(context): super(context) {
+    // Same here.
+  }
 }
 ```
 
-### `web/index.html`:
+The others are just method overrides:
 
-```html
-<!DOCTYPE html>
+```dart
+@VueComponent(name: 'my-component', template: '<pHello!</p>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context);
 
-<head>
-  <title>VueDart first example</title>
-
-  <script src="https://unpkg.com/vue"></script>
-
-  <script defer type="application/dart" src="index.dart"></script>
-  <script defer src="packages/browser/dart.js"></script>
-</head>
-
-<body vuedart>
-  <div id="app">
-    <input v-model="name">
-    <show-name :name="name"></show-name>
-  </div>
-</body>
+  @override
+  void mounted() => print("mounted!");
+  @override
+  void destroyed() => print("destroyed!");
+}
 ```
 
-### `pubspec.yaml`:
+and so forth for all the other lifecycle callbacks.
 
-```yaml
-name: vuedart_example
-version: 0.2.0
-description: VueDart example app
-author: Foo Bar
-dependencies:
-  browser: any
-  initialize: any
-  vue2: any
-transformers:
-  - vue2
+<div id="refs"></div>
+
+## Accessing refs
+
+Take the following component:
+
+```dart
+@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context);
+
+  @override
+  void mounted() {
+    // How to access the div element?
+  }
+}
+```
+
+For this, you can use the `@ref` annotation:
+
+```dart
+import 'dart:html'; // to get DivElement
+
+@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context);
+
+  @ref
+  DivElement text;
+
+  @override
+  void mounted() => print(text.text);
+}
+```
+
+Piece of cake, right? It's like declaring a normal attribute.
+
+Accessing component refs is just as simple:
+
+```dart
+@VueComponent('first-component', template: '<div>Hello!</div>')
+class FirstComponent extends VueComponentBase {
+  FirstComponent(context): super(context);
+
+  @computed
+  String get stuff => 'Hello!';
+}
+
+@VueComponent('second-component',
+              template: '<first-component ref="first"></first-component>')
+class SecondComponent extends VueComponentBase {
+  SecondComponent(context): super(context);
+
+  @ref
+  FirstComponent first;
+
+  @override
+  void mounted() => print(first.stuff); // Hello!
+}
+```
+
+If you need to get a ref by name instead of declaring it ahead-of-type, use the `$ref`
+function:
+
+```dart
+void mounted() {
+  print($ref('first') as FirstComponent);
+}
 ```

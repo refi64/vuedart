@@ -2,6 +2,120 @@
 
 # Advanced topics
 
+<div id="assets"></div>
+
+## Bundling your assets via Aspen
+
+All the examples thus far have manually loaded Vue:
+
+```html
+<head>
+  <title>VueDart first example</title>
+  <!-- Here -->
+  <script src="https://unpkg.com/vue"></script>
+  <script defer type="application/dart" src="index.dart"></script>
+</head>
+```
+
+Obviously, once you start to throw in plugins and UI libraries, this doesn't scale
+well:
+
+```html
+<script src="https://unpkg.com/vue"></script>
+<script src="https://unpkg.com/vue-router"></script>
+<script src="https://unpkg.com/vue-material"></script>
+<link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css">
+```
+
+The preferred way to bundle these assets together is via
+[Aspen](https://pub.dartlang.org/packages/aspen) + yarn/npm. Install Aspen via:
+
+```
+$ pub global activate aspen
+```
+
+and add `aspen_assets` to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  aspen_assets: any
+  vue2: any
+```
+
+Now run `yarn init` to set up your `package.json`, and `yarn add` your dependencies:
+
+```
+$ yarn init
+# Follow the prompts
+$ yarn add vue
+$ yarn add vue-router
+# and so forth...
+```
+
+Now create a file named `aspen.yml` containing something like the following:
+
+```yaml
+targets:
+  default:
+    outputs:
+      default: web/vendor.js
+
+    assets:
+    - dev: node_modules/vue/dist/vue.js
+      prod: node_modules/vue/dist/vue.min.js
+```
+
+This says that when bundling in development mode, `vue.js` will be used, else
+`vue.min.js` will be used. This and any others assets will be bundled into
+`web/vendor.js`.
+
+Other assets can be added too:
+
+```yaml
+targets:
+  default:
+    outputs:
+      default: web/vendor.js
+
+    assets:
+    - dev: node_modules/vue/dist/vue.js
+      prod: node_modules/vue/dist/vue.min.js
+    - dev: node_modules/vue-material/dist/vue-material.debug.js
+      prod: node_modules/vue-material/dist/vue-material.js
+    - name: vue-material-css
+      # 'default' is used to declare the same file for both dev and prod
+      default: node_modules/vue-material/dist/vue-material.css
+```
+
+Notice that `vue-material-css` is named; this is because CSS assets are not
+automatically applied to the document (similar to Webpack). In order to do so,
+you need to use `aspen_assets`:
+
+```dart
+import 'package:vue2/vue.dart';
+import 'package:aspen_assets/aspen_assets.dart' as aspen;
+
+// ..
+
+Future main() async {
+  // This will apply the style to the document.
+  aspen.loadGlobal('vue-material-css');
+
+  await initVue();
+}
+```
+
+In order to bundle the assets, run `aspen`, or `aspen -m prod` to bundle in production
+mode. Now only `vendor.js` needs to be included:
+
+```
+<script src="vendor.js"></script>
+```
+
+If you're using the VueDart CLI, you can use `vuedart create my-project --aspen` to
+create a new project that uses Aspen and npm/Yarn instead of the default that uses
+the unpkg CDN.
+
 <div id="boundary"></div>
 
 ## Crossing the JavaScript and Dart boundary
@@ -20,7 +134,7 @@ class Person {
   Person({this.name, this.age});
 }
 
-@VueComponent('show-name', template: '<p>{{person.name}} is {{person.age}}</p>')
+@VueComponent(name: 'show-name', template: '<p>{{person.name}} is {{person.age}}</p>')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 
@@ -100,113 +214,48 @@ functions to access the properties on the object (such as `getProperty` and `set
 All this seems rather complex, but once you've got it down, you'll be passing objects around
 in no time!!
 
-<div id="lifecycle"></div>
+<div id="instance"></div>
 
-## Lifecycle callbacks
+## Events via $emit, and other instance methods
 
-Luckily, lifecycle callbacks are much simpler! For starters, the `created` lifecycle
-callback is just your constructor. For example:
-
-```dart
-@VueComponent('my-component', template: '<pHello!</p>')
-class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context) {
-    // This is the VueDart equivalent of the 'created' lifecycle callback
-  }
-}
-
-@VueApp(el: '#app')
-class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context) {
-    // Same here.
-  }
-}
-```
-
-The others are just method overrides:
+VueDart supports the `$emit`, `$on`, `$off`, and `$once` functions:
 
 ```dart
-@VueComponent('my-component', template: '<pHello!</p>')
+@VueComponent(name: 'my-component', template: '<button @click="click">Click me!</button>')
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 
-  @override
-  void mounted() => print("mounted!");
-  @override
-  void destroyed() => print("destroyed!");
-}
-```
+  @method
+  void click(event) {
+    $emit('my-custom-event', ['some arg', 'some other arg']);
 
-and so forth for all the other lifecycle callbacks.
-
-<div id="refs"></div>
-
-## Accessing refs
-
-Take the following component:
-
-```dart
-@VueComponent('my-component', template: '<div ref="text">Hello!</div>')
-class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
-
-  @override
-  void mounted() {
-    // How to access the div element?
+    $on('something', (event) {
+      print(123);
+    });
+    // Same for $off and $once
   }
 }
 ```
 
-For this, you can use the `@ref` annotation:
+In addition, `$nextTick`, `$forceUpdate`, and `$destroy` are also supported:
 
 ```dart
-import 'dart:html'; // to get DivElement
-
-@VueComponent('my-component', template: '<div ref="text">Hello!</div>')
+@VueComponent(name: 'my-component', template: '<<')
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 
-  @ref
-  DivElement text;
+  @method
+  void click(event) {
+    // $nextTick returns a Future
+    $nextTick().then(() => {
+      print('In \$nextTick callback!');
+    });
 
-  @override
-  void mounted() => print(text.text);
-}
-```
-
-Piece of cake, right? It's like declaring a normal attribute.
-
-Accessing component refs is just as simple:
-
-```dart
-@VueComponent('first-component', template: '<div>Hello!</div>')
-class FirstComponent extends VueComponentBase {
-  FirstComponent(context): super(context);
-
-  @computed
-  String get stuff => 'Hello!';
-}
-
-@VueComponent('second-component',
-              template: '<first-component ref="first"></first-component>')
-class SecondComponent extends VueComponentBase {
-  SecondComponent(context): super(context);
-
-  @ref
-  FirstComponent first;
-
-  @override
-  void mounted() => print(first.stuff); // Hello!
-}
-```
-
-If you need to get a ref by name instead of declaring it ahead-of-type, use the `$ref`
-function:
-
-```dart
-void mounted() {
-  print($ref('first') as FirstComponent);
+    // $forceUpdate is simple
+    $forceUpdate();
+    // same for $destroy
+    $destroy();
+  }
 }
 ```
 
@@ -221,7 +270,7 @@ To declare a custom render function, you just leave out the `template:` value an
 the `render` method:
 
 ```dart
-@VueComponent('my-component') // <-- no template!
+@VueComponent(name: 'my-component') // <-- no template!
 class MyComponent extends VueComponentBase {
   MyComponent(context): super(context);
 
@@ -246,3 +295,36 @@ the outer maps are converted automatically, the inner maps aren't. In this case,
 Other than that, just note that all the return values here are `dynamic`, and if
 you make a mistake, Dart's type system isn't going to be there to save you when it fails.
 Beware!
+
+<div id="migrate"></div>
+
+## Using the VueDart CLI to perform migrations
+
+VueDart's CLI also comes with a simple tool to help with version migrations. Just run
+`vuedart migrate` like so:
+
+```
+$ vuedart migrate . pubspec.yaml web/* lib/*
+```
+
+The first argument is the root directory of your project; the rest of the arguments
+are the source files that should be included in the migration. To include everything,
+just do something like this:
+
+```
+$ find * -not -path '*/\.*' -type f | xargs vuedart migrate .
+```
+
+<div id="ignore"></div>
+
+## Ignoring elements
+
+The VueDart equivalent of `Vue.config.ignoredElements` is `VueConfig.ignoredElements`:
+
+```dart
+void main() async {
+  VueConfig.ignoredElements = ['my-element'];
+  await initVue();
+  // ...
+}
+```

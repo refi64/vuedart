@@ -1,0 +1,165 @@
+<!DOCTYPE html><html><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VueDart: Working with plugins</title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script src="../dist/vendor.js"></script>
+
+  <script defer="" src="docs.initialize.dart.js"></script>
+  
+
+  <style>
+    #content { padding: 0em 1em; }
+    .md-layout { flex-wrap: nowrap !important; }
+    .highlight .err { border: 0px !important; }
+    pre { overflow-x: auto; }
+    [v-cloak] { display: none; }
+    a:visited:not(.md-button) { color: blue; }
+  </style>
+</head>
+
+<body>
+  <div id="app" v-cloak="">
+    <site-navbar nested=""></site-navbar>
+
+    <md-layout md-row="" md-column-small="">
+      <docs-navlist></docs-navlist>
+
+      <div id="content" v-pre="">
+        <h1>Working with plugins</h1><div id="work"></div>
+<h2>How do plugins work in VueDart?</h2>
+<p>As of right now, you can't easily define bindings to Vue plugins; support for many of
+them needs to be embedded into VueDart itself. (Generic support is a planned feature.) In
+the meantime, VueDart contains support for some commonly used Vue plugins.</p>
+<p>Note that for all of the below plugins, you still need to manually load their
+corresponding assets, <a href="/pages/advanced.html#assets">preferably using Aspen</a>.</p><div id="vue-router"></div>
+<h2>VueRouter</h2>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'vue2/vue.dart'</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">'vue2/plugins/vue_router.dart'</span><span class="p">;</span>
+
+
+<span class="c1">// Define some components to be used in the router</span>
+<span class="nd">@VueComponent</span><span class="p">(</span><span class="nl">template:</span> <span class="s1">'''&lt;p&gt;vue-router demo! Id is: {{id}}&lt;/p&gt;</span>
+<span class="s1">                           &lt;router-view&gt;&lt;/router-view&gt;'''</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">RootComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="kd">with</span> <span class="n">VueRouterMixin</span> <span class="p">{</span>
+  <span class="n">RootComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="c1">// Params can be accessed just like in the JS world.</span>
+  <span class="nd">@computed</span>
+  <span class="kt">int</span> <span class="kd">get</span> <span class="n">id</span> <span class="o">=&gt;</span> <span class="n">$route</span><span class="p">.</span><span class="n">params</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="nd">@VueComponent</span><span class="p">(</span><span class="nl">template:</span> <span class="s1">'&lt;p&gt;child component!&lt;/p&gt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">ChildComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="kd">with</span> <span class="n">VueRouterMixin</span> <span class="p">{</span>
+  <span class="n">DemoComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="nd">@VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
+  <span class="c1">// When using vue-router, the factory here changes a bit. Notice that now we're passing</span>
+  <span class="c1">// down a 'router' named parameter. You should be able to mostly just copy-paste this</span>
+  <span class="c1">// without needing to worry about its workings.</span>
+  <span class="kd">factory</span> <span class="n">App</span><span class="p">({</span><span class="n">router</span><span class="p">})</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+                                             <span class="nl">router:</span> <span class="n">router</span><span class="p">);</span>
+  <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="n">App</span> <span class="n">app</span><span class="p">;</span>
+
+
+<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">await</span> <span class="n">initVue</span><span class="p">();</span>
+
+  <span class="c1">// Here is an example router. This should look quite close to the official VueRouter,</span>
+  <span class="c1">// except for the extra type constructors. Note that each component is prefixed with a</span>
+  <span class="c1">// # sign: this is very important!</span>
+  <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="k">new</span> <span class="n">VueRouter</span><span class="p">(</span><span class="nl">routes:</span> <span class="p">[</span>
+    <span class="k">new</span> <span class="n">VueRoute</span><span class="p">(</span><span class="nl">path:</span> <span class="s1">'/item/:id'</span><span class="p">,</span> <span class="nl">component:</span> <span class="err">#</span><span class="n">RootComponent</span><span class="p">,</span> <span class="nl">children:</span> <span class="p">[</span>
+      <span class="c1">// Nested children work</span>
+      <span class="k">new</span> <span class="n">VueRoute</span><span class="p">(</span><span class="nl">path:</span> <span class="s1">'info'</span><span class="p">,</span> <span class="nl">component:</span> <span class="err">#</span><span class="n">ChildComponent</span><span class="p">),</span>
+    <span class="p">]),</span>
+    <span class="c1">// As do named views:</span>
+    <span class="k">new</span> <span class="n">VueRoute</span><span class="p">(</span><span class="nl">path:</span> <span class="s1">'/named-view/:id'</span><span class="p">,</span> <span class="nl">components:</span> <span class="p">{</span>
+      <span class="s1">'root'</span><span class="o">:</span> <span class="err">#</span><span class="n">RootComponent</span><span class="p">,</span>
+    <span class="p">}),</span>
+  <span class="p">]);</span>
+
+  <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">App</span><span class="p">(</span><span class="nl">router:</span> <span class="n">router</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<div id="vuematerial"></div>
+<h2>VueMaterial</h2>
+<p>Note that this is only for VueMaterial 0.7, not 0.8 (yet!).</p>
+<p>Here's a pretty thorough example:</p>
+<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'vue2/vue.dart'</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">'vue2/plugins/vuematerial.dart'</span><span class="p">;</span>
+
+
+<span class="nd">@VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
+  <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+  <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="n">App</span> <span class="n">app</span><span class="p">;</span>
+
+
+<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">await</span> <span class="n">initVue</span><span class="p">();</span>
+
+  <span class="c1">// Equivalent to Vue.use(VueMaterial)</span>
+  <span class="n">VueMaterial</span><span class="p">.</span><span class="n">use</span><span class="p">();</span>
+
+  <span class="c1">// Equivalent to Vue.material.registerTheme</span>
+  <span class="n">VueMaterial</span><span class="p">.</span><span class="n">registerTheme</span><span class="p">(</span><span class="s1">'main'</span><span class="p">,</span> <span class="k">new</span> <span class="n">MdTheme</span><span class="p">(</span>
+    <span class="c1">// Simple color names.</span>
+    <span class="nl">primary:</span> <span class="s1">'indigo'</span><span class="p">,</span>
+    <span class="c1">// You can give hues, too.</span>
+    <span class="nl">accent:</span> <span class="k">new</span> <span class="n">MdColor</span><span class="p">(</span><span class="nl">color:</span> <span class="s1">'blue'</span><span class="p">,</span> <span class="nl">hue:</span> <span class="m">800</span><span class="p">),</span>
+    <span class="nl">warn:</span> <span class="s1">'red'</span><span class="p">,</span>
+    <span class="nl">background:</span> <span class="s1">'white'</span><span class="p">,</span>
+  <span class="p">));</span>
+
+  <span class="c1">// Equivalent to Vue.material.setCurrentTheme</span>
+  <span class="n">VueMaterial</span><span class="p">.</span><span class="n">setCurrentTheme</span><span class="p">(</span><span class="s1">'main'</span><span class="p">);</span>
+
+  <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">App</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>For menus, dialogs, sidenavs, and snackbars, you can use the <code>Md*</code> types:</p>
+<div class="highlight"><pre><span></span><span class="nd">@VueComponent</span><span class="p">(</span><span class="nl">name:</span> <span class="s1">'my-component'</span><span class="p">,</span> <span class="nl">template:</span> <span class="s1">'&lt;&lt;'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">MyComponent</span> <span class="kd">extends</span> <span class="n">VueComponentBase</span> <span class="p">{</span>
+  <span class="n">MyComponent</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="c1">// Dialog ref.</span>
+  <span class="nd">@ref</span>
+  <span class="n">MdDialog</span> <span class="n">dialog</span><span class="p">;</span>
+  <span class="c1">// Sidenav ref.</span>
+  <span class="nd">@ref</span>
+  <span class="n">MdSidenav</span> <span class="n">sidenav</span><span class="p">;</span>
+
+  <span class="c1">// and so forth...</span>
+
+  <span class="c1">// example usage:</span>
+
+  <span class="kt">void</span> <span class="n">mounted</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">dialog</span><span class="p">.</span><span class="n">open</span><span class="p">();</span>
+    <span class="n">sidenav</span><span class="p">.</span><span class="n">toggle</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+      </div>
+    </md-layout>
+  </div>
+
+</body></html>

@@ -8,14 +8,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
-  <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
-
-  <script src="https://unpkg.com/vue-material"></script>
-  <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css">
-
-  <link rel="stylesheet" href="https://cdn.rawgit.com/richleland/pygments-css/c39da1d9/default.css">
-
-  <script> Vue.use(VueMaterial); </script>
+  <script src="../dist/vendor.js"></script>
 
   <script defer="" src="docs.initialize.dart.js"></script>
   
@@ -57,7 +50,7 @@ $ <span class="nb">cd</span> my-project
 <span class="k">import</span> <span class="s1">'dart:async'</span><span class="p">;</span>
 
 
-<span class="err">@</span><span class="n">VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<span class="nd">@VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
 <span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
   <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
   <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
@@ -65,8 +58,8 @@ $ <span class="nb">cd</span> my-project
 
 <span class="n">App</span> <span class="n">app</span><span class="p">;</span>
 
-<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="n">async</span> <span class="p">{</span>
-  <span class="n">await</span> <span class="n">initVue</span><span class="p">();</span>
+<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">await</span> <span class="n">initVue</span><span class="p">();</span>
   <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">App</span><span class="p">();</span>
 <span class="p">}</span>
 </pre></div>
@@ -109,12 +102,16 @@ your root. <em>initVue</em> does what you think it does: it initializes VueDart.
 <span class="l l-Scalar l-Scalar-Plain">author</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Foo Bar</span>
 <span class="l l-Scalar l-Scalar-Plain">dependencies</span><span class="p p-Indicator">:</span>
   <span class="l l-Scalar l-Scalar-Plain">browser</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
-  <span class="l l-Scalar l-Scalar-Plain">initialize</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
   <span class="l l-Scalar l-Scalar-Plain">vue2</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
 <span class="l l-Scalar l-Scalar-Plain">transformers</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">vue2</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">vue2</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">entry_points</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web/index.dart</span>
 </pre></div>
 
+<p>Note that the <code>entry_points</code> argument should only contain your Vue-using web entry
+points, not all your Dart files. <strong>TL;DR:</strong> all your Dart files that define <code>main</code> and
+also setup a Vue app should be in <code>entry_points</code>.</p>
 <p>Now that everything's been put together, run:</p>
 <div class="highlight"><pre><span></span>$ pub get
 $ pub serve --web-compiler dartdevc
@@ -137,12 +134,12 @@ converted to <code>vue.min.js</code>.</p><div id="data"></div>
 <p>This app is cool and all...but it's not actually <em>doing</em> anything. Let's read in a name
 and show it to the screen.</p>
 <p>Modify your app class to look like so:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="nd">@VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
 <span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
   <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
   <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-  <span class="err">@</span><span class="n">data</span>
+  <span class="nd">@data</span>
   <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -159,19 +156,46 @@ a name in our HTML file:</p>
 </pre></div>
 
 <p>Now run your app, enter a name, and watch the fireworks. (Not really, but actual fireworks
-take far too much effort.)</p><div id="computed"></div>
-<h2>Declaring computed data</h2>
-<p>What if we want to, for instance, capitalize the name? VueDart lets you use Vue's
-computed properties, too:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+take far too much effort.)</p><div id="methods"></div>
+<h2>Declaring methods</h2>
+<p>What if we want to, for instance, capitalize the name? One approach to this is to
+use methods:</p>
+<div class="highlight"><pre><span></span><span class="nd">@VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
 <span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
   <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
   <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-  <span class="err">@</span><span class="n">data</span>
+  <span class="nd">@data</span>
   <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
 
-  <span class="err">@</span><span class="n">computed</span>
+  <span class="nd">@method</span>
+  <span class="kt">void</span> <span class="n">capitalize</span><span class="p">(</span><span class="kt">String</span> <span class="n">str</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">str</span><span class="p">.</span><span class="n">toUpperCase</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">body</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"app"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">v-model</span><span class="o">=</span><span class="s">"name"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Your name is: {{capitalize(name)}}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</pre></div>
+
+<p>As you can see, declaring Vue methods is the same as declaring a normal method, except
+for the <code>@method</code> decorator.</p><div id="computed"></div>
+<h2>Declaring computed data</h2>
+<p>Of course, a better approach in this case would be to use computed data. Here's how
+that's done in VueDart:</p>
+<div class="highlight"><pre><span></span><span class="nd">@VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
+  <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+  <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="nd">@data</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+
+  <span class="c1">// The computed data</span>
+  <span class="nd">@computed</span>
   <span class="kt">String</span> <span class="kd">get</span> <span class="n">capitalizedName</span> <span class="o">=&gt;</span> <span class="n">name</span><span class="p">.</span><span class="n">toUpperCase</span><span class="p">();</span>
 <span class="p">}</span>
 </pre></div>
@@ -185,67 +209,40 @@ computed properties, too:</p>
 </pre></div>
 
 <p>You can also define setters on computed properties using the normal Dart setter syntax:</p>
-<div class="highlight"><pre><span></span><span class="err">@</span><span class="n">computed</span>
+<div class="highlight"><pre><span></span><span class="nd">@computed</span>
 <span class="kt">void</span> <span class="kd">set</span> <span class="n">capitalizedName</span><span class="p">(</span><span class="kt">String</span> <span class="n">newValue</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
 </pre></div>
-<div id="final"></div>
-<h2>Final code</h2>
-<h3><code>web/index.dart</code>:</h3>
-<div class="highlight"><pre><span></span><span class="k">import</span> <span class="s1">'package:vue2/vue.dart'</span><span class="p">;</span>
-<span class="k">import</span> <span class="s1">'dart:async'</span><span class="p">;</span>
-
-<span class="err">@</span><span class="n">VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
+<div id="watchers"></div>
+<h2>Watchers</h2>
+<p>Just like everything else here, watchers work in similar manner to Vue, except with
+a more Dart-ified syntax.</p>
+<div class="highlight"><pre><span></span><span class="nd">@VueApp</span><span class="p">(</span><span class="nl">el:</span> <span class="s1">'#app'</span><span class="p">)</span>
 <span class="kd">class</span> <span class="nc">App</span> <span class="kd">extends</span> <span class="n">VueAppBase</span> <span class="p">{</span>
   <span class="kd">factory</span> <span class="n">App</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">VueAppBase</span><span class="p">.</span><span class="n">create</span><span class="p">((</span><span class="n">context</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
   <span class="n">App</span><span class="p">.</span><span class="n">_</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-  <span class="err">@</span><span class="n">data</span>
-  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+  <span class="nd">@data</span>
+  <span class="kt">int</span> <span class="n">value1</span> <span class="o">=</span> <span class="m">0</span><span class="p">,</span> <span class="n">value2</span> <span class="o">=</span> <span class="m">0</span><span class="p">,</span> <span class="n">value3</span> <span class="o">=</span> <span class="m">0</span><span class="p">;</span>
 
-  <span class="err">@</span><span class="n">computed</span>
-  <span class="kt">String</span> <span class="kd">get</span> <span class="n">capitalizedName</span> <span class="o">=&gt;</span> <span class="n">name</span><span class="p">.</span><span class="n">toUpperCase</span><span class="p">();</span>
-<span class="p">}</span>
-
-<span class="n">App</span> <span class="n">app</span><span class="p">;</span>
-
-<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="n">async</span> <span class="p">{</span>
-  <span class="n">await</span> <span class="n">initVue</span><span class="p">();</span>
-  <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">App</span><span class="p">();</span>
+  <span class="nd">@watch</span><span class="p">(</span><span class="s1">'value1'</span><span class="p">)</span>
+  <span class="kt">void</span> <span class="n">watchValue1</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s1">'Watching value1'</span><span class="p">);</span>
+  <span class="nd">@watch</span><span class="p">(</span><span class="s1">'value2'</span><span class="p">)</span>
+  <span class="kt">void</span> <span class="n">watchValue2</span><span class="p">(</span><span class="kt">int</span> <span class="n">newValue</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s1">'Watching value2'</span><span class="p">);</span>
+  <span class="nd">@watch</span><span class="p">(</span><span class="s1">'value3'</span><span class="p">,</span> <span class="nl">deep:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">void</span> <span class="n">watchValue3</span><span class="p">(</span><span class="kt">int</span> <span class="n">newValue</span><span class="p">,</span> <span class="kt">int</span> <span class="n">oldValue</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s1">'Watching value3'</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-
-<h3><code>web/index.html</code>:</h3>
-<div class="highlight"><pre><span></span><span class="cp">&lt;!DOCTYPE html&gt;</span>
-
-<span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>VueDart first example<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
-
-  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">"https://unpkg.com/vue"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-
-  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">defer</span> <span class="na">type</span><span class="o">=</span><span class="s">"application/dart"</span> <span class="na">src</span><span class="o">=</span><span class="s">"index.dart"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">defer</span> <span class="na">src</span><span class="o">=</span><span class="s">"packages/browser/dart.js"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
-
-<span class="p">&lt;</span><span class="nt">body</span> <span class="na">vuedart</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"app"</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">v-model</span><span class="o">=</span><span class="s">"name"</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Your name is: {{capitalizedName}}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
-  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
-</pre></div>
-
-<h3><code>pubspec.yaml</code>:</h3>
-<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">vuedart_example</span>
-<span class="l l-Scalar l-Scalar-Plain">version</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0.1.0</span>
-<span class="l l-Scalar l-Scalar-Plain">description</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">VueDart example app</span>
-<span class="l l-Scalar l-Scalar-Plain">author</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Foo Bar</span>
-<span class="l l-Scalar l-Scalar-Plain">dependencies</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">browser</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
-  <span class="l l-Scalar l-Scalar-Plain">vue2</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
-<span class="l l-Scalar l-Scalar-Plain">transformers</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">vue2</span>
-</pre></div>
-
+<div id="cli"></div>
+<h2>Using the VueDart CLI to create your projects</h2>
+<p>VueDart also as a CLI you can use to generate projects from templates. To get started,
+install it:</p>
+<pre><code>$ pub global activate vue2_cli
+</code></pre>
+<p>and then create your project:</p>
+<pre><code>$ vuedart create my-project
+</code></pre>
+<p>This will create a directory <code>my-project</code> with everything you need for a basic VueDart
+project.</p>
       </div>
     </md-layout>
   </div>
