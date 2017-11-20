@@ -20,8 +20,7 @@ class VueRouteInfo {
   final dynamic _route;
   final Map<String, dynamic> params;
 
-  VueRouteInfo(this._route): params = VueRouteInfo._convertParams(_route) {
-  }
+  VueRouteInfo(this._route): params = VueRouteInfo._convertParams(_route);
 
   static Map<String, dynamic> _convertParams(dynamic route) {
     var params = <String, dynamic>{};
@@ -57,7 +56,7 @@ class VueRouterLocation {
 
     setProperty(obj, 'path', path);
     setProperty(obj, 'name', name);
-    setProperty(obj, 'params', mapToJs(params));
+    setProperty(obj, 'params', params != null ? mapToJs(params) : null);
 
     return obj;
   }
@@ -134,6 +133,7 @@ enum VueRouterMode { hash, history, abstract_ }
 
 class VueRouter {
   dynamic _router;
+  get js => _router;
 
   VueRouter({List<VueRoute> routes, VueRouterMode mode: null, String base: null}) {
     var jsRoutes = routes.map((route) => route.jsargs()).toList();
@@ -155,12 +155,10 @@ class VueRouter {
     _router = callConstructor(_vueRouter, [args]);
   }
 
+  VueRouter._(this._router);
+
   VueRouterEvents push(VueRouterLocation location) => _call('push', location);
   VueRouterEvents replace(VueRouterLocation location) => _call('replace', location);
-
-  void go(int where) => callMethod(_router, 'go', [where]);
-
-  get js => _router;
 
   VueRouterEvents _call(String name, VueRouterLocation location) {
     var onComplete = _newEventInfo();
@@ -171,17 +169,21 @@ class VueRouter {
                                onAbort: onAbort.completer.future);
   }
 
+  void go(int where) => callMethod(_router, 'go', [where]);
+
   _EventInfo _newEventInfo() {
     var compl = new Completer<VueRouteInfo>();
     return new _EventInfo(compl,
                           allowInterop((route) =>
-                                        compl.complete(new VueRouteInfo(route))));
+                                        compl.complete(route != null ?
+                                                       new VueRouteInfo(route) :
+                                                       null)));
   }
 }
 
 abstract class VueRouterMixin {
   dynamic vuedart_get(String key);
 
-  VueRouter get $router => vuedart_get(r'$router');
+  VueRouter get $router => new VueRouter._(vuedart_get(r'$router'));
   VueRouteInfo get $route => new VueRouteInfo(vuedart_get(r'$route'));
 }

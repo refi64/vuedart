@@ -119,12 +119,12 @@ Voila! We're back to the same code, but now it's better organized. Yaaay!!
 
 (Yes, I left out the capitalization; that's an exercise for the reader!)
 
-<div id="methods"></div>
+<div id="scoped"></div>
 
-## Declaring methods
+## Scoped styles
 
-There are two more things I want to touch: methods and mixins. You know what methods are
-already; the question is, how do you define them in VueDart? Try this in `show_name.dart`:
+VueDart also supports scoped styles via
+[scopify](https://pub.dartlang.org/packages/scopify). Here's how they work:
 
 ```dart
 @VueComponent(name: 'show-name', template: '<<')
@@ -133,14 +133,20 @@ class ShowName extends VueComponentBase {
 
   @prop
   String name;
-
-  @method
-  String capitalize(String thing) => thing.toUpperCase();
 }
 ```
 
-As you can see, declaring Vue methods is the same as declaring a normal method, except
-for the `@method` decorator.
+```html
+<template vuedart>
+  <p>Your name is: {{name}}</p>
+</template>
+
+<style scoped>
+p { color: purple; }
+</style>
+```
+
+The syntax for scoped styles closely resembles Vue's own single-file components.
 
 <div id="mixins"></div>
 
@@ -175,91 +181,112 @@ class ShowName extends VueComponentBase with TodoMixin {
 Note that the only difference between using a standard Dart mixin and a VueDart mixin is
 the extra `mixins:` argument to `@VueComponent`.
 
-<div id="final"></div>
+<div id="lifecycle"></div>
 
-## Final code
+## Lifecycle callbacks
 
-### `lib/show_name.dart`:
+Lifecycle callbacks are dead simple in VueDart! For starters, the `created` lifecycle
+callback is just your constructor. For example:
 
 ```dart
-import 'package:vue2/vue.dart';
-
-@VueComponent('show-name', template: '<<')
-class ShowName extends VueComponentBase {
-  ShowName(context): super(context);
-
-  @prop
-  String name;
+@VueComponent(name: 'my-component', template: '<pHello!</p>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context) {
+    // This is the VueDart equivalent of the 'created' lifecycle callback
+  }
 }
-```
-
-### `lib/show_name.html`:
-
-```html
-<template vuedart>
-  <p>Your name is: {{name}}</p>
-</template>
-```
-
-### `web/index.dart`:
-
-```dart
-import 'package:vue2/vue.dart';
-import 'package:vuedart_example/show_name.dart';
-import 'dart:async';
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
   factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
-
-  @data
-  String name;
-}
-
-App app;
-
-Future main() async {
-  await initVue();
-  app = new App();
+  App._(context): super(context) {
+    // Same here.
+  }
 }
 ```
 
-### `web/index.html`:
+The others are just method overrides:
 
-```html
-<!DOCTYPE html>
+```dart
+@VueComponent(name: 'my-component', template: '<pHello!</p>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context);
 
-<head>
-  <title>VueDart first example</title>
-
-  <script src="https://unpkg.com/vue"></script>
-
-  <script defer type="application/dart" src="index.dart"></script>
-  <script defer src="packages/browser/dart.js"></script>
-</head>
-
-<body vuedart>
-  <div id="app">
-    <input v-model="name">
-    <show-name :name="name"></show-name>
-  </div>
-</body>
+  @override
+  void mounted() => print("mounted!");
+  @override
+  void destroyed() => print("destroyed!");
+}
 ```
 
-### `pubspec.yaml`:
+and so forth for all the other lifecycle callbacks.
 
-```yaml
-name: vuedart_example
-version: 0.2.0
-description: VueDart example app
-author: Foo Bar
-dependencies:
-  browser: any
-  initialize: any
-  vue2: any
-transformers:
-  - vue2:
-      entry_points:
-        - web/index.dart
+<div id="refs"></div>
+
+## Accessing refs
+
+Take the following component:
+
+```dart
+@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context);
+
+  @override
+  void mounted() {
+    // How to access the div element?
+  }
+}
+```
+
+For this, you can use the `@ref` annotation:
+
+```dart
+import 'dart:html'; // to get DivElement
+
+@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
+class MyComponent extends VueComponentBase {
+  MyComponent(context): super(context);
+
+  @ref
+  DivElement text;
+
+  @override
+  void mounted() => print(text.text);
+}
+```
+
+Piece of cake, right? It's like declaring a normal attribute.
+
+Accessing component refs is just as simple:
+
+```dart
+@VueComponent('first-component', template: '<div>Hello!</div>')
+class FirstComponent extends VueComponentBase {
+  FirstComponent(context): super(context);
+
+  @computed
+  String get stuff => 'Hello!';
+}
+
+@VueComponent('second-component',
+              template: '<first-component ref="first"></first-component>')
+class SecondComponent extends VueComponentBase {
+  SecondComponent(context): super(context);
+
+  @ref
+  FirstComponent first;
+
+  @override
+  void mounted() => print(first.stuff); // Hello!
+}
+```
+
+If you need to get a ref by name instead of declaring it ahead-of-type, use the `$ref`
+function:
+
+```dart
+void mounted() {
+  print($ref('first') as FirstComponent);
+}
 ```

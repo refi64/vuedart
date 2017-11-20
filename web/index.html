@@ -10,6 +10,8 @@
     <router-link to="/item/10/info">goto item info</router-link>
     <router-link to="/singleitem/10">goto single</router-link>
 
+    <button @click="click">go test</button>
+
     <ol>
       <todo-item
         v-for="item in groceryList" :todo="item" :key="item.id">

@@ -30,8 +30,8 @@ class DocsNavlist extends VueComponentBase {
         ['Welcome', 'welcome'],
         ['First steps', 'first-steps'],
         ['Declaring data', 'data'],
+        ['Declaring methods', 'methods'],
         ['Declaring computed data', 'computed'],
-        ['Final code', 'final'],
       ],
     ),
     new Entry(
@@ -40,18 +40,20 @@ class DocsNavlist extends VueComponentBase {
       contents: [
         ['Defining a component', 'component'],
         ['Declaring properties', 'props'],
-        ['Declaring methods', 'methods'],
+        ['Scoped styles', 'scoped'],
         ['Mixins', 'mixins'],
-        ['Final code', 'final'],
+        ['Lifecycle callbacks', 'lifecycle'],
+        ['Accessing refs', 'refs'],
       ],
     ),
     new Entry(
       title: 'Advanced topics',
       addr: 'advanced.html',
       contents: [
+        ['Bundling your assets via Aspen', 'assets'],
         ['Crossing the JavaScript and Dart boundary', 'boundary'],
-        ['Lifecycle callbacks', 'lifecycle'],
-        ['Accessing refs', 'refs'],
+        ['Events via \$emit, and other instance methods', 'instance'],
+        ['Watchers', 'watchers'],
         ['Render functions', 'render'],
       ],
     ),
@@ -60,6 +62,7 @@ class DocsNavlist extends VueComponentBase {
       addr: 'plugins.html',
       contents: [
         ['How do plugins work in VueDart?', 'work'],
+        ['VueRouter', 'vue-router'],
         ['VueMaterial', 'vuematerial'],
       ],
     ),

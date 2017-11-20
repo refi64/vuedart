@@ -3,6 +3,7 @@ import 'package:vue2/plugins/vue_router.dart';
 import 'todo_item.dart';
 
 import 'dart:async';
+import 'dart:html';
 
 
 @VueComponent(template: '<p>todo item #{{id}} <router-view></router-view></p>')
@@ -24,7 +25,7 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
 
 
 @VueApp(el: '#app')
-class App extends VueAppBase {
+class App extends VueAppBase with VueRouterMixin {
   factory App({router}) => VueAppBase.create((context) => new App._(context),
                                              router: router);
   App._(context): super(context);
@@ -43,6 +44,13 @@ class App extends VueAppBase {
     new TodoEntry(id: 1, text: 'Cheese'),
     new TodoEntry(id: 2, text: 'Whatever else humans are supposed to eat'),
   ];
+
+  @method
+  void click(MouseEvent evt) {
+    $router.replace(new VueRouterLocation(path: '/item/10')).onComplete.then((VueRouteInfo info) {
+      print('replace onComplete: ${info.params}');
+    });
+  }
 }
 
 

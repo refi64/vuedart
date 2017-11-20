@@ -92,7 +92,6 @@ description: VueDart example app
 author: Foo Bar
 dependencies:
   browser: any
-  initialize: any
   vue2: any
 transformers:
   - vue2:
@@ -165,12 +164,12 @@ a name in our HTML file:
 Now run your app, enter a name, and watch the fireworks. (Not really, but actual fireworks
 take far too much effort.)
 
-<div id="computed"></div>
+<div id="methods"></div>
 
-## Declaring computed data
+## Declaring methods
 
-What if we want to, for instance, capitalize the name? VueDart lets you use Vue's
-computed properties, too:
+What if we want to, for instance, capitalize the name? One approach to this is to
+use methods:
 
 ```dart
 @VueApp(el: '#app')
@@ -181,6 +180,41 @@ class App extends VueAppBase {
   @data
   String name;
 
+  @method
+  void capitalize(String str) => str.toUpperCase();
+}
+```
+
+```html
+<body vuedart>
+  <div id="app">
+    <input v-model="name">
+    <p>Your name is: {{capitalize(name)}}</p>
+  </div>
+</body>
+```
+
+As you can see, declaring Vue methods is the same as declaring a normal method, except
+for the `@method` decorator.
+
+
+<div id="computed"></div>
+
+## Declaring computed data
+
+Of course, a better approach in this case would be to use computed data. Here's how
+that's done in VueDart:
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
+
+  @data
+  String name;
+
+  // The computed data
   @computed
   String get capitalizedName => name.toUpperCase();
 }
@@ -200,72 +234,4 @@ You can also define setters on computed properties using the normal Dart setter 
 ```dart
 @computed
 void set capitalizedName(String newValue) { /* ... */ }
-```
-
-<div id="final"></div>
-
-## Final code
-
-### `web/index.dart`:
-
-```dart
-import 'package:vue2/vue.dart';
-import 'dart:async';
-
-@VueApp(el: '#app')
-class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
-
-  @data
-  String name;
-
-  @computed
-  String get capitalizedName => name.toUpperCase();
-}
-
-App app;
-
-Future main() async {
-  await initVue();
-  app = new App();
-}
-```
-
-### `web/index.html`:
-
-```html
-<!DOCTYPE html>
-
-<head>
-  <title>VueDart first example</title>
-
-  <script src="https://unpkg.com/vue"></script>
-
-  <script defer type="application/dart" src="index.dart"></script>
-  <script defer src="packages/browser/dart.js"></script>
-</head>
-
-<body vuedart>
-  <div id="app">
-    <input v-model="name">
-    <p>Your name is: {{capitalizedName}}</p>
-  </div>
-</body>
-```
-
-### `pubspec.yaml`:
-
-```yaml
-name: vuedart_example
-version: 0.1.0
-description: VueDart example app
-author: Foo Bar
-dependencies:
-  browser: any
-  vue2: any
-transformers:
-  - vue2:
-      entry_points:
-        - web/index.dart
 ```
