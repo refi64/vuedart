@@ -4,6 +4,7 @@
 - **BREAKING CHANGE** The `VueComponent` annotation now requires the name to be in
   a named argument (e.g. `@VueComponent(name: 'foo')`, instead of
   `@VueComponent('foo')`). This was necessary to support unnamed components.
+- Added the VueDart CLI.
 - Proper error messages.
 - Add VueMaterial 0.7 support.
 - Add vue-router support.

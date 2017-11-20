@@ -1,14 +1,14 @@
-name: vuedart_cli
+name: vue2_cli
 version: 0.1.0
 description: A CLI helper for VueDart, featuring project template and easy migrations
 author: Ryan Gonzalez
-homepage: https://github.com/kirbyfan64/aspen
+homepage: https://github.com/kirbyfan64/vuedart
 dependencies:
   ansicolor: ^0.0.9
-  args: any
+  args: ^1.0.0
   path: ^1.5.0
-  source_maps: any
-  source_span: any
+  source_maps: ^0.10.4
+  source_span: ^1.4.0
 executables:
   vuedart:
 environment:

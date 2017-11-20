@@ -14,12 +14,50 @@ final TEMPLATE_README_MD = '''
 Enter your README contents here.
 ''';
 
+final TEMPLATE_ASPEN_YML = '''
+targets:
+  default:
+    outputs:
+      default: web/vendor.js
+
+    assets:
+    - dev: node_modules/vue/dist/vue.js
+      prod: node_modules/vue/dist/vue.min.js
+''';
+
+final TEMPLATE_PACKAGE_JSON = '''
+{
+  "name": "{{project}}",
+  "version": "0.1.0",
+  "dependencies": {
+    "vue": "^2.0.0"
+  }
+}
+''';
+
 final TEMPLATE_PUBSPEC = '''
 name: {{project}}
 author: {{author}}
 version: 0.1.0
 description: Project description goes here
 dependencies:
+  browser: any
+  dart_to_js_script_rewriter: any
+  vue2: ^0.3.0
+transformers:
+  - vue2:
+      entry_points:
+        - web/index.dart
+  - dart_to_js_script_rewriter
+''';
+
+final TEMPLATE_PUBSPEC_ASPEN = '''
+name: {{project}}
+author: {{author}}
+version: 0.1.0
+description: Project description goes here
+dependencies:
+  aspen_assets: ^0.1.0
   browser: any
   dart_to_js_script_rewriter: any
   vue2: ^0.3.0
@@ -52,6 +90,9 @@ final TEMPLATE_INDEX_HTML = '''
 </body>
 ''';
 
+final TEMPLATE_INDEX_HTML_ASPEN =
+        TEMPLATE_INDEX_HTML.replaceAll('https://unpkg.com/vue', 'vendor.js');
+
 final TEMPLATE_INDEX_DART = '''
 import 'package:vue2/vue.dart';
 
@@ -72,6 +113,9 @@ Future main() async {
   app = new App();
 }
 ''';
+
+final TEMPLATE_INDEX_DART_ASPEN = "import 'package:aspen_assets/aspen_assets.dart';\n" +
+                                  TEMPLATE_INDEX_DART;
 
 final TEMPLATE_MY_COMPONENT_HTML = '''
 <template vuedart>
@@ -113,6 +157,17 @@ final TEMPLATES = {
   'lib/my_component.dart': TEMPLATE_MY_COMPONENT_DART,
 };
 
+final ASPEN_TEMPLATES = {
+  'README.md': TEMPLATE_README_MD,
+  'aspen.yml': TEMPLATE_ASPEN_YML,
+  'package.json': TEMPLATE_PACKAGE_JSON,
+  'pubspec.yaml': TEMPLATE_PUBSPEC_ASPEN,
+  'web/index.html': TEMPLATE_INDEX_HTML_ASPEN,
+  'web/index.dart': TEMPLATE_INDEX_DART_ASPEN,
+  'lib/my_component.html': TEMPLATE_MY_COMPONENT_HTML,
+  'lib/my_component.dart': TEMPLATE_MY_COMPONENT_DART,
+};
+
 AnsiPen errorPen = new AnsiPen()..red(),
         warnPen = new AnsiPen()..magenta(),
         notePen = new AnsiPen()..cyan();
@@ -138,6 +193,8 @@ class CreateCommand extends Command {
     argParser.addOption('author', help: 'The author to use for the template',
                         defaultsTo: 'the author');
     argParser.addOption('name', help: 'The project name');
+    argParser.addFlag('aspen',
+                      help: 'Use Aspen + package.json instead of a CDN for loading Vue');
   }
 
   void run() {
@@ -161,11 +218,12 @@ class CreateCommand extends Command {
 
     outdir.createSync();
     Directory.current = outdir;
+    var templates = argResults['aspen'] ? ASPEN_TEMPLATES : TEMPLATES;
 
-    for (var templatePath in TEMPLATES.keys) {
+    for (var templatePath in templates.keys) {
       note('Writing $templatePath...');
 
-      var templateText = TEMPLATES[templatePath];
+      var templateText = templates[templatePath];
       var rootPath = pathmod.dirname(templatePath);
       var root = new Directory(rootPath);
 
