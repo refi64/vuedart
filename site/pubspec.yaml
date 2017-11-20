@@ -3,6 +3,7 @@ version: 0.1.0
 description: VueDart website
 author: Ryan Gonzalez
 dependencies:
+  aspen_assets: ^0.1.1
   browser: any
   dart_to_js_script_rewriter: any
   md_to_html: ^0.1.0

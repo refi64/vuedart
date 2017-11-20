@@ -1,0 +1,14 @@
+targets:
+  default:
+    outputs:
+      default: web/dist/vendor.js
+
+    assets:
+    - dev: node_modules/vue/dist/vue.js
+      prod: node_modules/vue/dist/vue.min.js
+    - dev: node_modules/vue-material/dist/vue-material.debug.js
+      prod: node_modules/vue-material/dist/vue-material.debug.js
+    - name: pygments-css
+      default: web/dist/pygments.css
+    - name: vue-material-css
+      default: node_modules/vue-material/dist/vue-material.css
