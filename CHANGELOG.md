@@ -21,8 +21,7 @@
 
 ## 0.2.0
 
-*Yes this should have been a minor release, but I was tired.*
-
+- Remove need for explicit *initialize* transformer usage.
 - Upgrade initialize dependency for strong mode/DDC support.
 
 ## 0.1.0

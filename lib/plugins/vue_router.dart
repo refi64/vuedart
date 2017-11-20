@@ -131,7 +131,9 @@ class VueRoute<T extends VueComponentBase> {
 
 enum VueRouterMode { hash, history, abstract_ }
 
-class VueRouter {
+class VueRouter extends VuePlugin {
+  static void use() => VuePlugin.use('VueRouter');
+
   dynamic _router;
   get js => _router;
 

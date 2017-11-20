@@ -69,6 +69,8 @@ Future main() async {
       'root': #RootComponent,
     }),
   ]);
+
+  app = new App(router: router);
 }
 ```
 
