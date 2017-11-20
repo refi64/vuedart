@@ -235,3 +235,48 @@ You can also define setters on computed properties using the normal Dart setter 
 @computed
 void set capitalizedName(String newValue) { /* ... */ }
 ```
+
+<div id="watchers"></div>
+
+## Watchers
+
+Just like everything else here, watchers work in similar manner to Vue, except with
+a more Dart-ified syntax.
+
+```dart
+@VueApp(el: '#app')
+class App extends VueAppBase {
+  factory App() => VueAppBase.create((context) => new App._(context));
+  App._(context): super(context);
+
+  @data
+  int value1 = 0, value2 = 0, value3 = 0;
+
+  @watch('value1')
+  void watchValue1() => print('Watching value1');
+  @watch('value2')
+  void watchValue2(int newValue) => print('Watching value2');
+  @watch('value3', deep: true)
+  void watchValue3(int newValue, int oldValue) => print('Watching value3');
+}
+```
+
+<div id="cli"></div>
+
+## Using the VueDart CLI to create your projects
+
+VueDart also as a CLI you can use to generate projects from templates. To get started,
+install it:
+
+```
+$ pub global activate vue2_cli
+```
+
+and then create your project:
+
+```
+$ vuedart create my-project
+```
+
+This will create a directory `my-project` with everything you need for a basic VueDart
+project.

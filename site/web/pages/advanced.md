@@ -112,6 +112,10 @@ mode. Now only `vendor.js` needs to be included:
 <script src="vendor.js"></script>
 ```
 
+If you're using the VueDart CLI, you can use `vuedart create my-project --aspen` to
+create a new project that uses Aspen and npm/Yarn instead of the default that uses
+the unpkg CDN.
+
 <div id="boundary"></div>
 
 ## Crossing the JavaScript and Dart boundary
@@ -255,29 +259,6 @@ class MyComponent extends VueComponentBase {
 }
 ```
 
-<div id="watchers"></div>
-
-## Watchers
-
-Again, they work similarly to Vue, except with a more Dart-ish syntax:
-
-```dart
-@VueComponent(name: 'my-component', template: '')
-class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
-
-  @data
-  int value1 = 0, value2 = 0, value3 = 0;
-
-  @watch('value1')
-  void watchValue1() => print('Watching value1');
-  @watch('value2')
-  void watchValue2(int newValue) => print('Watching value2');
-  @watch('value3', deep: true)
-  void watchValue3(int newValue, int oldValue) => print('Watching value3');
-}
-```
-
 <div id="render"></div>
 
 ## Render functions
@@ -314,3 +295,22 @@ the outer maps are converted automatically, the inner maps aren't. In this case,
 Other than that, just note that all the return values here are `dynamic`, and if
 you make a mistake, Dart's type system isn't going to be there to save you when it fails.
 Beware!
+
+<div id="migrate"></div>
+
+## Using the VueDart CLI to perform migrations
+
+VueDart's CLI also comes with a simple tool to help with version migrations. Just run
+`vuedart migrate` like so:
+
+```
+$ vuedart migrate . pubspec.yaml web/* lib/*
+```
+
+The first argument is the root directory of your project; the rest of the arguments
+are the source files that should be included in the migration. To include everything,
+just do something like this:
+
+```
+$ find * -not -path '*/\.*' -type f | xargs vuedart migrate .
+```

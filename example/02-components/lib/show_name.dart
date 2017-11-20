@@ -1,6 +1,6 @@
 import 'package:vue2/vue.dart';
 
-@VueComponent('show-name', template: '<<')
+@VueComponent(name: 'show-name', template: '<<')
 class ShowName extends VueComponentBase {
   ShowName(context): super(context);
 

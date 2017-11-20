@@ -32,6 +32,8 @@ class DocsNavlist extends VueComponentBase {
         ['Declaring data', 'data'],
         ['Declaring methods', 'methods'],
         ['Declaring computed data', 'computed'],
+        ['Watchers', 'watchers'],
+        ['Using the VueDart CLI to create your projects', 'cli'],
       ],
     ),
     new Entry(
@@ -53,7 +55,7 @@ class DocsNavlist extends VueComponentBase {
         ['Bundling your assets via Aspen', 'assets'],
         ['Crossing the JavaScript and Dart boundary', 'boundary'],
         ['Events via \$emit, and other instance methods', 'instance'],
-        ['Watchers', 'watchers'],
+        ['Using the VueDart CLI to perform migrations', 'migrate'],
         ['Render functions', 'render'],
       ],
     ),
