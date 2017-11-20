@@ -9,6 +9,7 @@ dependencies:
   analyzer: ^0.29.11
   barback: ^0.15.2+11
   browser: ^0.10.0+2 # demo
+  csslib: ^0.14.1
   dart_to_js_script_rewriter: ^1.0.3 # demo
   html: ^0.13.2
   initialize: ^0.6.2+7
