@@ -57,7 +57,7 @@ author: {{author}}
 version: 0.1.0
 description: Project description goes here
 dependencies:
-  aspen_assets: ^0.1.0
+  aspen_assets: ^0.2.0
   browser: any
   dart_to_js_script_rewriter: any
   vue2: ^0.3.0
