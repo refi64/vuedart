@@ -20,14 +20,16 @@ What works:
 - Methods.
 - Refs.
 - Lifecycle callbacks.
+- Mixins.
+- vue-router.
+- Scoped styles.
 
 What doesn't work:
 
 - Render functions (or at least, they don't work *well*).
-- Most of the [instance properties](https://vuejs.org/v2/api/#Instance-Properties).
+- Some of the [instance properties](https://vuejs.org/v2/api/#Instance-Properties).
 - Server-side rendering.
-- Mixins.
-- Hardcoded support for the Vuex and vue-router plugins.
+- Hardcoded support for the Vuex plugin.
 - Generic plugin support (this is going to take a while though).
 
 ## Logo
