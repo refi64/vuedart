@@ -138,7 +138,18 @@ Dart. You can also give a default value by doing <code>String name = "default na
 <span class="p">&lt;/</span><span class="nt">style</span><span class="p">&gt;</span>
 </pre></div>
 
-<p>The syntax for scoped styles closely resembles Vue's own single-file components.</p><div id="mixins"></div>
+<p>The syntax for scoped styles closely resembles Vue's own single-file components.</p>
+<p>If you want scoped styles to "bleed" into <code>v-html</code> elements other similar items (e.g.
+jQuery plugins), you can add the <em>bleeds</em> attribute to your <em>style</em> element:</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">template</span> <span class="na">vuedart</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">v-html</span><span class="o">=</span><span class="s">"'&lt;p&gt;Inside v-html!&lt;/p&gt;'"</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">template</span><span class="p">&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">style</span> <span class="na">scoped</span> <span class="na">bleeds</span><span class="p">&gt;</span>
+<span class="nt">p</span> <span class="p">{</span> <span class="k">color</span><span class="p">:</span> <span class="kc">purple</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">&lt;/</span><span class="nt">style</span><span class="p">&gt;</span>
+</pre></div>
+<div id="mixins"></div>
 <h2>Mixins</h2>
 <p>Mixins are easy to declare in VueDart. Take this example:</p>
 <div class="highlight"><pre><span></span><span class="nd">@VueMixin</span><span class="p">()</span>
