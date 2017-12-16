@@ -95,13 +95,22 @@ dependencies:
   vue2: any
 transformers:
   - vue2:
+      # This is important!! See below.
       entry_points:
         - web/index.dart
 ```
 
-Note that the `entry_points` argument should only contain your Vue-using web entry
-points, not all your Dart files. **TL;DR:** all your Dart files that define `main` and
-also setup a Vue app should be in `entry_points`.
+Note the `entry_points` argument. This contains all your Vue-using web entry points
+**TL;DR:** all your Dart files that define `main` and also setup a Vue app should be in
+`entry_points`.
+
+If you ever get an error like this:
+
+```
+[Vue warn]: Unknown custom element: <my-component> - did you register the component correctly? For recursive components, make sure to provide the "name" option.
+```
+
+you probably didn't add an entry point to `entry_points`.
 
 Now that everything's been put together, run:
 
