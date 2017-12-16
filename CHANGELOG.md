@@ -1,5 +1,13 @@
 ## development
 
+- Upgrade scopify to 0.2.0.
+- **BREAKING CHANGE** Due to the above upgrade, scoped styles no longer "bleed" into
+  child elements. This behavior can still be manually re-enabled via the *bleeds* option
+  to the *style* element. (AFAIK no one actually really used this, so it's not really
+  a big change.)
+
+## 0.3.0
+
 - **BREAKING CHANGE** Require explicit declaration of entry points.
 - **BREAKING CHANGE** The `VueComponent` annotation now requires the name to be in
   a named argument (e.g. `@VueComponent(name: 'foo')`, instead of

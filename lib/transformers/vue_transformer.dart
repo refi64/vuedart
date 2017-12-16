@@ -8,6 +8,7 @@ import 'package:html/parser.dart' as html;
 import 'package:scopify/scopify.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 import 'package:source_maps/refactor.dart';
+import 'package:uuid/uuid.dart';
 
 
 class AnnotationArgs {
@@ -283,11 +284,14 @@ $typestring $name${member.parameters.toSource()} =>
       }
 
       var template = templates[0];
+      var uuid = new Uuid().v4();
+      scopify(html: [template], css: [], uuid: uuid);
 
       var styleInject = '';
       var styles = doc.querySelectorAll('style[scoped]');
       if (styles.isNotEmpty) {
         var parsedStyles = [];
+        var printer = new CssPrinter();
 
         for (var style in styles) {
           var errors = [];
@@ -301,14 +305,9 @@ $typestring $name${member.parameters.toSource()} =>
             continue;
           }
 
-          parsedStyles.add(parsed);
-        }
-
-        scopify(html: [template], css: parsedStyles);
-
-        var printer = new CssPrinter();
-        for (var style in parsedStyles) {
-          style.visit(printer);
+          scopify(html: [], css: [parsed], uuid: uuid,
+                  bleeds: style.attributes.containsKey('bleeds'));
+          parsed.visit(printer);
         }
 
         styleInject = printer.toString();
