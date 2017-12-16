@@ -148,6 +148,19 @@ p { color: purple; }
 
 The syntax for scoped styles closely resembles Vue's own single-file components.
 
+If you want scoped styles to "bleed" into `v-html` elements other similar items (e.g.
+jQuery plugins), you can add the *bleeds* argument:
+
+```html
+<template vuedart>
+  <div v-html="'<p>Inside v-html!</p>'"></div>
+</template>
+
+<style scoped bleeds>
+p { color: purple; }
+</style>
+```
+
 <div id="mixins"></div>
 
 ## Mixins
