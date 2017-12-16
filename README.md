@@ -1,6 +1,6 @@
 # VueDart
 
-![Logo](https://raw.githubusercontent.com/kirbyfan64/vuedart/master/logo/logo.png)
+![](https://raw.githubusercontent.com/kirbyfan64/vuedart/master/logo/logo.png)
 
 VueDart lets you create Vue web apps using Dart.
 

@@ -1,4 +1,4 @@
-## development
+## 0.3.1
 
 - Upgrade scopify to 0.2.0.
 - **BREAKING CHANGE** Due to the above upgrade, scoped styles no longer "bleed" into
