@@ -106,8 +106,8 @@ Note the `entry_points` argument. This contains all your Vue-using web entry poi
 
 If you ever get an error like this:
 
-```
-[Vue warn]: Unknown custom element: <my-component> - did you register the component correctly? For recursive components, make sure to provide the "name" option.
+```text
+[Vue warn]: Unknown custom element: <my-component> - did you register the component correctly?
 ```
 
 you probably didn't add an entry point to `entry_points`.
