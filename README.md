@@ -1,12 +1,12 @@
 # VueDart
 
-![Logo](/logo/logo.png)
+![Logo](https://raw.githubusercontent.com/kirbyfan64/vuedart/master/logo/logo.png)
 
 VueDart lets you create Vue web apps using Dart.
 
 ## Website and documentation
 
-https://refi64.com/vuedart
+[https://refi64.com/vuedart](https://refi64.com/vuedart)
 
 ## Status
 
