@@ -11,7 +11,7 @@ them needs to be embedded into VueDart itself. (Generic support is a planned fea
 the meantime, VueDart contains support for some commonly used Vue plugins.
 
 Note that for all of the below plugins, you still need to manually load their
-corresponding assets, [preferably using Aspen](/pages/advanced.html#assets).
+corresponding assets, [preferably using Aspen](advanced.html#assets).
 
 <div id="vue-router"></div>
 
@@ -30,7 +30,7 @@ class RootComponent extends VueComponentBase with VueRouterMixin {
 
   // Params can be accessed just like in the JS world.
   @computed
-  int get id => $route.params['id']
+  int get id => $route.params['id'];
 }
 
 @VueComponent(template: '<p>child component!</p>')
