@@ -442,7 +442,7 @@ $opts
 
     rewriter.edit(unit.end, unit.end, '''
 @initMethod
-void vuedart_INTERNAL_init() {
+void _vuedart_INTERNAL_init() {
 ${components.map((comp) =>
     "  VueComponentBase.register(#${comp.name.name}, ${comp.name.name}.constructor);")
             .join('\n')}
