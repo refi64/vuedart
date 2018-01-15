@@ -440,9 +440,10 @@ $opts
       await processClass(cls);
     }
 
+    var id = new Uuid().v4();
     rewriter.edit(unit.end, unit.end, '''
 @initMethod
-void _vuedart_INTERNAL_init() {
+void vuedart_INTERNAL_init_${id.toString().replaceAll('-', '_')}() {
 ${components.map((comp) =>
     "  VueComponentBase.register(#${comp.name.name}, ${comp.name.name}.constructor);")
             .join('\n')}
