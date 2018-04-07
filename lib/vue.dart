@@ -19,7 +19,14 @@ dynamic getWindowProperty(String name) {
   return getProperty(_window, name);
 }
 
-dynamic _vue = getWindowProperty('Vue');
+dynamic get _vue {
+  var vue = getWindowProperty('Vue');
+  if (vue == null) {
+    throw new Exception("Can't get window.vue. Please make sure the vue.js is referenced in your html <script> tag");
+  }
+  return vue;
+}
+
 
 // @JS('console.log')
 // external dynamic _log(dynamic value);
