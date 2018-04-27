@@ -2,7 +2,7 @@
 library todo_item;
 
 import 'package:js/js.dart';
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 import 'dart:html';
 

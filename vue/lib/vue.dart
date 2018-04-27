@@ -2,14 +2,11 @@
 library vue;
 
 
-import 'package:initialize/initialize.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 import 'dart:async';
 import 'dart:html';
-
-export 'package:initialize/initialize.dart' show initMethod;
 
 
 @JS('window')
@@ -207,7 +204,7 @@ class _VueBase {
     callMethod(vuethis, '\$emit', [event]..addAll(args ?? []));
 
   Future<Null> $nextTick() {
-    var compl = new Completer();
+    var compl = new Completer<Null>();
     callMethod(vuethis, '\$nextTick', [allowInterop(() => compl.complete(null))]);
     return compl.future;
   }
@@ -380,5 +377,3 @@ class VueConfig {
   static get ignoredElements => _ignoredElements;
   static set ignoredElements(elements) => _ignoredElements = elements;
 }
-
-Future initVue() async => run();

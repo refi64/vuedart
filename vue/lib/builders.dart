@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:barback/barback.dart';
+import 'package:build/build.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:csslib/visitor.dart' show CssPrinter;
 import 'package:html/parser.dart' as html;
@@ -71,24 +71,27 @@ class VueClassInfo {
   VueClassInfo();
 }
 
+class VueImportedComponent {
+  String prefix, name;
 
-class VuedartApplyTransform {
-  final BarbackSettings settings;
-  final Transform transform;
+  VueImportedComponent(this.prefix, this.name);
+  String get prefixed => prefix != null ? '$prefix.$name' : name;
+}
+
+
+class VuedartBuildContext {
+  final BuildStep buildStep;
 
   SourceFile source;
-  Asset primary;
+  AssetId inputId;
   TextEditTransaction rewriter;
   CompilationUnit unit;
 
-  List<ClassDeclaration> components = [];
-
-  VuedartApplyTransform(this.settings, this.transform):
-    primary = transform.primaryInput;
+  VuedartBuildContext(this.buildStep): inputId = buildStep.inputId;
 
   void error(AstNode node, String error) {
     var span = source.span(node.offset, node.end);
-    transform.logger.error(span.message(error), asset: primary.id);
+    log.severe(span.message(error));
   }
 
   Annotation getAnn(AnnotatedNode node, List<String> annotations) {
@@ -156,6 +159,19 @@ class VuedartApplyTransform {
     ''';
 
   String codegenString(String str) => 'r"""${str.replaceAll('"""', '\\"""')}"""';
+
+  String codegenRegister(VueImportedComponent icls) =>
+    'VueComponentBase.register(#${icls.name}, ${icls.prefixed}.constructor);';
+
+  List<ClassDeclaration> getVueClasses(LibraryElement lib) =>
+    lib.units.expand((unit) => unit.unit.declarations)
+             .where((d) => d is ClassDeclaration && containsVueAnn(d))
+             .map((d) => d as ClassDeclaration).toList();
+
+  List<VueImportedComponent> getVueComponents(List<ClassDeclaration> classes,
+                                              [String prefix]) =>
+    classes.where((cls) => getVueAnn(cls)?.name?.name == 'VueComponent')
+           .map((cls) => new VueImportedComponent(prefix, cls.name.name));
 
   void processField(FieldDeclaration member, VueClassInfo info) {
     var ann = getAnn(member, ['prop', 'data', 'ref']);
@@ -260,14 +276,14 @@ $typestring $name${member.parameters.toSource()} =>
     var htmlasset;
 
     if (relhtmlpath == '') {
-      htmlasset = primary.id.changeExtension('.html');
+      htmlasset = inputId.changeExtension('.html');
     } else {
-      htmlasset = new AssetId(primary.id.package,
-                              primary.id.path + '/../' + relhtmlpath);
+      htmlasset = new AssetId(inputId.package,
+                              inputId.path + '/../' + relhtmlpath);
     }
 
-    if (await transform.hasInput(htmlasset)) {
-      var doc = html.parse(await transform.readInputAsString(htmlasset));
+    if (await buildStep.canRead(htmlasset)) {
+      var doc = html.parse(await buildStep.readAsString(htmlasset));
 
       if (doc.querySelector('template') == null) {
         error(ann, 'template file does not have a template');
@@ -300,7 +316,7 @@ $typestring $name${member.parameters.toSource()} =>
           if (errors.isNotEmpty) {
             error(ann, 'errors parsing CSS style');
             for (var error in errors) {
-              transform.logger.error(error.toString());
+              log.severe(error.toString());
             }
             continue;
           }
@@ -350,7 +366,6 @@ $typestring $name${member.parameters.toSource()} =>
         }
 
         creator = '(context) => new ${cls.name.name}(context)';
-        components.add(cls);
       }
 
       var template = args.named['template'] as StringLiteral;
@@ -414,25 +429,18 @@ $opts
     rewriter.edit(cls.end-1, cls.end-1, code);
   }
 
-  Future apply() async {
-    var contents = await primary.readAsString();
-    source = new SourceFile.fromString(contents);
-    rewriter = new TextEditTransaction(contents, source);
-
-    try {
-      unit = parseCompilationUnit(contents, name: primary.id.path);
-    } catch (ex) {
-      // Just ignore it; it will propagate to the Dart compiler anyway.
-      transform.logger.warning('Error parsing ${primary.id.path}', asset: primary.id);
-      transform.addOutput(primary);
+  Future build() async {
+    if (!await buildStep.canRead(buildStep.inputId)) {
       return new Future.value();
     }
 
-    var classes = unit.declarations.where((d) => d is ClassDeclaration &&
-                                                 containsVueAnn(d))
-                                          .map((d) => d as ClassDeclaration).toList();
+    var contents = await buildStep.readAsString(inputId);
+    var lib = await buildStep.inputLibrary;
+    source = new SourceFile.fromString(contents);
+    rewriter = new TextEditTransaction(contents, source);
+
+    var classes = getVueClasses(lib);
     if (classes.isEmpty) {
-      transform.addOutput(primary);
       return new Future.value();
     }
 
@@ -440,33 +448,58 @@ $opts
       await processClass(cls);
     }
 
-    var id = new Uuid().v4();
-    rewriter.edit(unit.end, unit.end, '''
-@initMethod
-void vuedart_INTERNAL_init_${id.toString().replaceAll('-', '_')}() {
-${components.map((comp) =>
-    "  VueComponentBase.register(#${comp.name.name}, ${comp.name.name}.constructor);")
-            .join('\n')}
-}
-    ''');
+    if (lib.entryPoint != null) {
+      var components = <VueImportedComponent>[];
+      components.addAll(getVueComponents(classes));
+
+      for (var imported in lib.imports) {
+        var importedClasses = getVueClasses(imported.importedLibrary);
+        components.addAll(getVueComponents(importedClasses, imported.prefix?.name));
+
+        if (importedClasses.isNotEmpty) {
+          var renamed = new AssetId.resolve(imported.uri, from: inputId)
+                                   .changeExtension('.vue.dart');
+          rewriter.edit(imported.uriOffset, imported.uriEnd, "'${renamed.uri}'");
+        }
+      }
+
+      if (components.isNotEmpty) {
+        var body = lib.entryPoint.computeNode().functionExpression.body;
+        if (!(body is BlockFunctionBody)) {
+          error(body, 'Expected function block.');
+          return new Future.value();
+        }
+
+        var offset = (body as BlockFunctionBody).block.leftBracket.end;
+        rewriter.edit(offset, offset, components.map(codegenRegister).join());
+      }
+    }
 
     var printer = rewriter.commit();
     printer.build(null);
     // print(printer.text);
-    transform.addOutput(new Asset.fromString(primary.id, printer.text));
+    buildStep.writeAsString(inputId.changeExtension('.vue.dart'), printer.text);
 
     return new Future.value();
   }
 }
 
 
-class DartTransformer extends Transformer {
-  final BarbackSettings _settings;
+class _VuedartBuilder {
+  const _VuedartBuilder();
 
-  DartTransformer.asPlugin(this._settings);
+  factory _VuedartBuilder.fromOptions(BuilderOptions options) =>
+    const _VuedartBuilder();
 
-  String get allowedExtensions => '.dart';
+  @override final buildExtensions = const {
+    '.dart': const ['.vue.dart'],
+  };
 
-  Future apply(Transform transform) async =>
-    await new VuedartApplyTransform(_settings, transform).apply();
+  @override
+  Future build(BuildStep buildStep) async {
+    return await new VuedartBuildContext(buildStep).build();
+  }
 }
+
+Builder vuedartBuilder(BuilderOptions options) =>
+  new _VuedartBuilder.fromOptions(options);

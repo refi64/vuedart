@@ -1,6 +1,6 @@
-import 'package:vue2/vue.dart';
-import 'package:vue2/plugins/vue_router.dart';
-import 'todo_item.dart';
+import 'package:vue/vue.dart';
+import 'package:vue/plugins/vue_router.dart';
+import 'package:vue_playground/todo_item.dart';
 
 import 'dart:async';
 import 'dart:html';
@@ -11,7 +11,7 @@ class SingleItem extends VueComponentBase with VueRouterMixin {
   SingleItem(context): super(context);
 
   @computed
-  int get id => $route.params['id'];
+  int get id => int.parse($route.params['id']);
 }
 
 
@@ -20,7 +20,7 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
   SingleItemInfo(context): super(context);
 
   @computed
-  int get id => $route.params['id'];
+  int get id => int.parse($route.params['id']);
 }
 
 
@@ -58,7 +58,7 @@ App app;
 
 
 Future main() async {
-  await initVue();
+  // await initVue();
 
   final router = new VueRouter(routes: [
     new VueRoute(path: '/item/:id', component: #SingleItem, children: [

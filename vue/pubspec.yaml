@@ -6,11 +6,10 @@ homepage: https://refi64.com/vuedart
 environment:
   sdk: ">=1.8.0 <2.0.0"
 dependencies:
-  analyzer: ^0.29.11
-  barback: ^0.15.2+11
+  analyzer: ^0.31.1
+  build: ^0.12.4
   csslib: ^0.14.1
   html: ^0.13.2
-  initialize: ^0.6.2+7
   scopify: ^0.2.0
   source_maps: ^0.10.4
   source_span: ^1.4.0

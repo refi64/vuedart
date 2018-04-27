@@ -77,7 +77,7 @@ class VueRoute<T extends VueComponentBase> {
 
     var singleComponent = this.component != null;
     var components = this.components ?? {'default': this.component};
-    var jsComponent, jsComponents = {};
+    var jsComponent, jsComponents = <String, dynamic>{};
 
     for (var view in components.keys) {
       var component = components[view];
