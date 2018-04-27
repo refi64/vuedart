@@ -29,7 +29,7 @@ $ cd my-project
 Now create a new file `web/index.dart` and add this:
 
 ```dart
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 import 'dart:async';
 
 
@@ -92,9 +92,9 @@ description: VueDart example app
 author: Foo Bar
 dependencies:
   browser: any
-  vue2: any
+  vue: any
 transformers:
-  - vue2:
+  - vue:
       # This is important!! See below.
       entry_points:
         - web/index.dart
@@ -153,7 +153,7 @@ class App extends VueAppBase {
   App._(context): super(context);
 
   @data
-  String name;
+  String name = '';
 }
 ```
 
@@ -221,7 +221,7 @@ class App extends VueAppBase {
   App._(context): super(context);
 
   @data
-  String name;
+  String name = '';
 
   // The computed data
   @computed
@@ -278,7 +278,7 @@ VueDart also as a CLI you can use to generate projects from templates. To get st
 install it:
 
 ```
-$ pub global activate vue2_cli
+$ pub global activate vue_cli
 ```
 
 and then create your project:

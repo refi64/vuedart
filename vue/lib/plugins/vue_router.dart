@@ -1,8 +1,8 @@
 @JS()
-library vue2.plugins.vue_router;
+library vue.plugins.vue_router;
 
 
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';

@@ -1,7 +1,7 @@
 @JS()
-library vue2.plugins.vuematerial;
+library vue.plugins.vuematerial;
 
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';

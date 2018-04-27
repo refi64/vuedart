@@ -1,5 +1,5 @@
 import 'package:aspen_assets/aspen_assets.dart' as aspen;
-import 'package:vue2/plugins/vuematerial.dart';
+import 'package:vue/plugins/vuematerial.dart';
 
 
 void setup() {

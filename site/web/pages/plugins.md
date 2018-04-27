@@ -18,8 +18,8 @@ corresponding assets, [preferably using Aspen](advanced.html#assets).
 ## VueRouter
 
 ```dart
-import 'vue2/vue.dart';
-import 'vue2/plugins/vue_router.dart';
+import 'vue/vue.dart';
+import 'vue/plugins/vue_router.dart';
 
 
 // Define some components to be used in the router
@@ -83,8 +83,8 @@ Note that this is only for VueMaterial 0.7, not 0.8 (yet!).
 Here's a pretty thorough example:
 
 ```dart
-import 'vue2/vue.dart';
-import 'vue2/plugins/vuematerial.dart';
+import 'vue/vue.dart';
+import 'vue/plugins/vuematerial.dart';
 
 
 @VueApp(el: '#app')

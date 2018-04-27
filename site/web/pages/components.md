@@ -13,7 +13,7 @@ its own component, `show-name`.
 Toss this in `lib/show_name.dart`:
 
 ```dart
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 
 @VueComponent(name: 'show-name', template: '<p>Your name is: Bob</p>')

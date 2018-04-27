@@ -1,4 +1,4 @@
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 import 'dart:async';
 
 
@@ -8,7 +8,7 @@ class App extends VueAppBase {
   App._(context): super(context);
 
   @data
-  String name;
+  String name = '';
 
   @computed
   String get capitalizedName => name.toUpperCase();

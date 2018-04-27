@@ -1,4 +1,4 @@
-name: vue2_cli
+name: vue_cli
 version: 0.1.1
 description: A CLI helper for VueDart, featuring project template and easy migrations
 author: Ryan Gonzalez <rymg19@gmail.com>

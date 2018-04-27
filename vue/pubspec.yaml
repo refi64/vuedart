@@ -1,6 +1,6 @@
-name: vue2
+name: vue
 version: 0.3.2
-description: Vue 2.0 bindings for Dart
+description: Vue bindings for Dart
 author: Ryan Gonzalez <rymg19@gmail.com>
 homepage: https://refi64.com/vuedart
 environment:
@@ -19,7 +19,7 @@ dependencies:
   source_span: ^1.4.0
   uuid: ^0.5.0
 transformers:
-  - vue2:
+  - vue:
       entry_points:
         - web/index.dart
   - dart_to_js_script_rewriter

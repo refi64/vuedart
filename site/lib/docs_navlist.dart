@@ -2,7 +2,7 @@
 library vuedart_site.docs_navlist;
 
 
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 import 'package:js/js.dart';
 
 @anonymous

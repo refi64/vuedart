@@ -39,7 +39,7 @@ and add `aspen_assets` to your `pubspec.yaml`:
 ```yaml
 dependencies:
   aspen_assets: any
-  vue2: any
+  vue: any
 ```
 
 Now run `yarn init` to set up your `package.json`, and `yarn add` your dependencies:
@@ -92,7 +92,7 @@ automatically applied to the document (similar to Webpack). In order to do so,
 you need to use `aspen_assets`:
 
 ```dart
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 import 'package:aspen_assets/aspen_assets.dart' as aspen;
 
 // ..

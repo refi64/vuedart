@@ -1,5 +1,5 @@
 @JS()
-library vue2;
+library vue;
 
 
 import 'package:initialize/initialize.dart';

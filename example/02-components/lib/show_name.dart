@@ -1,4 +1,4 @@
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 @VueComponent(name: 'show-name', template: '<<')
 class ShowName extends VueComponentBase {

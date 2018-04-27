@@ -94,7 +94,7 @@ final TEMPLATE_INDEX_HTML_ASPEN =
         TEMPLATE_INDEX_HTML.replaceAll('https://unpkg.com/vue', 'vendor.js');
 
 final TEMPLATE_INDEX_DART = '''
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 import 'dart:async';
 
@@ -139,7 +139,7 @@ final TEMPLATE_MY_COMPONENT_HTML = '''
 ''';
 
 final TEMPLATE_MY_COMPONENT_DART = '''
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 @VueComponent(name: 'my-component', template: '<<')
 class MyComponent extends VueComponentBase {
@@ -249,8 +249,8 @@ class MigrateCommand extends Command {
   final description = 'Migrate your code between VueDart releases';
 
   MigrateCommand() {
-    argParser.addOption('source', help: 'The source version', defaultsTo: '0.2');
-    argParser.addOption('target', help: 'The target version', defaultsTo: '0.3');
+    argParser.addOption('source', help: 'The source version', defaultsTo: '0.3');
+    argParser.addOption('target', help: 'The target version', defaultsTo: '0.4');
   }
 
   void explicitEntryPoints(Map<String, String> sources,
@@ -315,11 +315,33 @@ class MigrateCommand extends Command {
     }
   }
 
+  void renameVue2ToVue(Map<String, String> sources,
+                       Map<String, TextEditTransaction> rewriters) {
+    var importRe = new RegExp('\\bpackage:vue2/');
+    var pubspecRe = new RegExp('\\bvue2:');
+
+    for (var path in sources.keys) {
+      var source = sources[path];
+      var rewriter = rewriters[path];
+
+      if (path.endsWith('.dart')) {
+        for (var match in importRe.allMatches(source)) {
+          rewriter.edit(match.start, match.end, 'package:vue/');
+        }
+      } else if (path == 'pubspec.yml' || path == 'pubspec.yaml') {
+        for (var match in pubspecRe.allMatches(source)) {
+          rewriter.edit(match.start, match.end, 'vue:');
+        }
+      }
+    }
+  }
+
   void run() {
-    final VERSIONS = ['0.2', '0.3'];
+    final VERSIONS = ['0.2', '0.3', '0.4'];
 
     final TRANSFORMS = {
       '0.2': [explicitEntryPoints, rewriteComponentAnnotations],
+      '0.3': [renameVue2ToVue],
     };
 
     if (argResults.rest.length < 1) {

@@ -8,10 +8,10 @@ dependencies:
   dart_to_js_script_rewriter: any
   md_to_html: ^0.1.0
   pygments: ^0.1.1
-  vue2: any
+  vue: any
 dependency_overrides:
-  vue2:
-    path: ..
+  vue:
+    path: ../vue
 transformers:
   - md_to_html:
       template: web/template.html
@@ -19,7 +19,7 @@ transformers:
       classes:
         - "pre.bash, pre.dart, pre.html, pre.yaml":
             re: "(.*)"
-  - vue2:
+  - vue:
       entry_points:
         - web/index.dart
         - web/pages/docs.dart

@@ -4,11 +4,11 @@ description: VueDart example app
 author: Foo Bar
 dependencies:
   browser: any
-  vue2: any
+  vue: any
 dependency_overrides:
-  vue2:
-    path: ../..
+  vue:
+    path: ../../vue
 transformers:
-  - vue2:
+  - vue:
       entry_points:
         - web/index.dart

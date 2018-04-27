@@ -1,4 +1,4 @@
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 
 @VueComponent(name: 'site-navbar', template: '<<')
