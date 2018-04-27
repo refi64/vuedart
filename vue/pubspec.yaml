@@ -8,21 +8,10 @@ environment:
 dependencies:
   analyzer: ^0.29.11
   barback: ^0.15.2+11
-  browser: ^0.10.0+2 # demo
   csslib: ^0.14.1
-  dart_to_js_script_rewriter: ^1.0.3 # demo
   html: ^0.13.2
   initialize: ^0.6.2+7
-  js: ^0.6.1 # demo
   scopify: ^0.2.0
   source_maps: ^0.10.4
   source_span: ^1.4.0
   uuid: ^0.5.0
-transformers:
-  - vue:
-      entry_points:
-        - web/index.dart
-  - dart_to_js_script_rewriter
-  - $dart2js:
-      $exclude: [web/todo_item.dart]
-      commandLineOptions: [--show-package-warnings]

@@ -1,6 +1,7 @@
 build/
 .packages
 .pub/
+.dart_tool/
 pubspec.lock
 
 site/web/dist/
