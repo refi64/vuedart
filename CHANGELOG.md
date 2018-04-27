@@ -1,3 +1,12 @@
+## 0.3.2
+
+- Fix [#13](https://github.com/kirbyfan64/vuedart/issues/13): internal symbols were
+  duplicated when using `part` with component files.
+- Merged [#12](https://github.com/kirbyfan64/vuedart/pull/12): fixed typos in
+  documentation.
+- Merged [#16](https://github.com/kirbyfan64/vuedart/pull/16): check `window.Vue` to
+  make sure it's been defined.
+
 ## 0.3.1
 
 - Upgrade scopify to 0.2.0.
