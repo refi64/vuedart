@@ -414,7 +414,7 @@ class MigrateCommand extends Command {
 
 Future main(List<String> args) async {
   try {
-    await new CommandRunner('vuedart_cli', 'The VueDart CLI')
+    await new CommandRunner('vuedart', 'The VueDart CLI')
         ..addCommand(new CreateCommand())
         ..addCommand(new MigrateCommand())
         ..run(args);
