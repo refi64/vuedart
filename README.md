@@ -4,6 +4,10 @@
 
 VueDart lets you create Vue web apps using Dart.
 
+**NOTICE:** This will be the last VueDart release under the *vue2* package name. From
+0.4 onward, the *vue* package name will be used instead. The VueDart CLI will be able to
+help with the conversion.
+
 ## Website and documentation
 
 [https://refi64.com/vuedart](https://refi64.com/vuedart)
