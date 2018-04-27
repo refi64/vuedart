@@ -43,9 +43,9 @@ description: Project description goes here
 dependencies:
   browser: any
   dart_to_js_script_rewriter: any
-  vue2: ^0.3.0
+  vue: ^0.3.0
 transformers:
-  - vue2:
+  - vue:
       entry_points:
         - web/index.dart
   - dart_to_js_script_rewriter
@@ -60,9 +60,9 @@ dependencies:
   aspen_assets: ^0.2.0
   browser: any
   dart_to_js_script_rewriter: any
-  vue2: ^0.3.0
+  vue: ^0.3.0
 transformers:
-  - vue2:
+  - vue:
       entry_points:
         - web/index.dart
   - dart_to_js_script_rewriter
