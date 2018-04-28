@@ -17,7 +17,6 @@ App app;
 
 
 Future main() async {
-  await initVue();
   setup();
   app = new App();
 }

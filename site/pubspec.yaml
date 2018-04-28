@@ -19,10 +19,6 @@ transformers:
       classes:
         - "pre.bash, pre.dart, pre.html, pre.yaml":
             re: "(.*)"
-  - vue:
-      entry_points:
-        - web/index.dart
-        - web/pages/docs.dart
   - dart_to_js_script_rewriter
   - $dart2js:
       commandLineOptions: [--show-package-warnings]

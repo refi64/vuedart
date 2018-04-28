@@ -1,4 +1,4 @@
-import 'package:vue2/vue.dart';
+import 'package:vue/vue.dart';
 
 import 'package:vuedart_site/site_navbar.dart';
 import 'package:vuedart_site/docs_navlist.dart';
@@ -18,7 +18,6 @@ App app;
 
 
 Future main() async {
-  await initVue();
   setup();
   app = new App();
 }

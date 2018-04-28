@@ -101,8 +101,7 @@ Future main() async {
   // This will apply the style to the document.
   aspen.loadGlobal('vue-material-css');
 
-  await initVue();
-}
+  }
 ```
 
 In order to bundle the assets, run `aspen`, or `aspen -m prod` to bundle in production
@@ -324,7 +323,6 @@ The VueDart equivalent of `Vue.config.ignoredElements` is `VueConfig.ignoredElem
 ```dart
 void main() async {
   VueConfig.ignoredElements = ['my-element'];
-  await initVue();
   // ...
 }
 ```

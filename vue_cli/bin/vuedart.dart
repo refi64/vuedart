@@ -420,6 +420,27 @@ class MigrateCommand extends Command {
     }
   }
 
+  bool skipPath(String p) {
+    if (p == '.' || p == '..') {
+      return false;
+    }
+
+    var skip = ['build', 'node_modules'];
+    if (p.startsWith('.') || p.endsWith('.lock') || skip.contains(p)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  List<String> scandir(String root) {
+    var dir = new Directory(root);
+    return dir.listSync(recursive: true, followLinks: true)
+              .where((item) => item is File && !pathmod.split(item.path).any(skipPath))
+              .map((item) => pathmod.relative(item.path, from: root))
+              .toList();
+  }
+
   void run() {
     final VERSIONS = ['0.2', '0.3', '0.4'];
 
@@ -434,8 +455,13 @@ class MigrateCommand extends Command {
 
     var root = argResults.rest[0];
     var state = <String, String>{};
-    for (var path in argResults.rest.sublist(1)) {
-      note('Loading $path...');
+
+    var paths = argResults.rest.sublist(1);
+    if (paths.isEmpty) {
+      paths = scandir(root);
+    }
+
+    for (var path in paths) {
       var fullpath = pathmod.join(root, path);
 
       var file = new File(fullpath);
@@ -443,7 +469,12 @@ class MigrateCommand extends Command {
         error('$path does not exist!');
       }
 
-      state[path] = new File(fullpath).readAsStringSync();
+      try {
+        state[path] = new File(fullpath).readAsStringSync();
+        note('Loaded $path...');
+      } on FileSystemException {
+        continue;
+      }
     }
 
     var source = argResults['source'];

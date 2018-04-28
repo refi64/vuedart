@@ -54,8 +54,6 @@ App app;
 
 
 Future main() async {
-  await initVue();
-
   // Here is an example router. This should look quite close to the official VueRouter,
   // except for the extra type constructors. Note that each component is prefixed with a
   // # sign: this is very important!
@@ -98,8 +96,6 @@ App app;
 
 
 Future main() async {
-  await initVue();
-
   // Equivalent to Vue.use(VueMaterial)
   VueMaterial.use();
 
