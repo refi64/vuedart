@@ -42,14 +42,10 @@ author: {{author}}
 version: 0.1.0
 description: Project description goes here
 dependencies:
-  browser: any
-  dart_to_js_script_rewriter: any
   vue: ^0.3.0
-transformers:
-  - vue:
-      entry_points:
-        - web/index.dart
-  - dart_to_js_script_rewriter
+dev_dependencies:
+  build_runner: ^0.7.0
+  build_web_compilers: ^0.2.0
 ''';
 
 final TEMPLATE_PUBSPEC_ASPEN = '''
@@ -60,6 +56,9 @@ description: Project description goes here
 dependencies:
   aspen_assets: ^0.2.0
   vue: ^0.3.0
+dev_dependencies:
+  build_runner: ^0.7.0
+  build_web_compilers: ^0.2.0
 ''';
 
 final TEMPLATE_BUILD_RELEASE = r'''
@@ -119,7 +118,6 @@ class App extends VueAppBase {
 App app;
 
 Future main() async {
-  await initVue();
   app = new App();
 }
 ''';
