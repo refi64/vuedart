@@ -6,6 +6,7 @@ import 'package:source_maps/refactor.dart';
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:mirrors';
 
 final TEMPLATE_README_MD = '''
@@ -58,14 +59,23 @@ version: 0.1.0
 description: Project description goes here
 dependencies:
   aspen_assets: ^0.2.0
-  browser: any
-  dart_to_js_script_rewriter: any
   vue: ^0.3.0
-transformers:
-  - vue:
-      entry_points:
-        - web/index.dart
-  - dart_to_js_script_rewriter
+''';
+
+final TEMPLATE_BUILD_RELEASE = r'''
+targets:
+  $default:
+    builders:
+      build_web_compilers|entrypoint:
+        options:
+          compiler: dart2js
+          dart2js_args:
+          - --fast-startup
+          - --minify
+          - --trust-type-annotations
+          - --trust-primitives
+          - --use-old-frontend
+          - --package-root=.
 ''';
 
 final TEMPLATE_INDEX_HTML = '''
@@ -151,6 +161,7 @@ class MyComponent extends VueComponentBase {
 final TEMPLATES = {
   'README.md': TEMPLATE_README_MD,
   'pubspec.yaml': TEMPLATE_PUBSPEC,
+  'build.release.yaml': TEMPLATE_BUILD_RELEASE,
   'web/index.html': TEMPLATE_INDEX_HTML,
   'web/index.dart': TEMPLATE_INDEX_DART,
   'lib/my_component.html': TEMPLATE_MY_COMPONENT_HTML,
@@ -162,6 +173,7 @@ final ASPEN_TEMPLATES = {
   'aspen.yml': TEMPLATE_ASPEN_YML,
   'package.json': TEMPLATE_PACKAGE_JSON,
   'pubspec.yaml': TEMPLATE_PUBSPEC_ASPEN,
+  'build.release.yaml': TEMPLATE_BUILD_RELEASE,
   'web/index.html': TEMPLATE_INDEX_HTML_ASPEN,
   'web/index.dart': TEMPLATE_INDEX_DART_ASPEN,
   'lib/my_component.html': TEMPLATE_MY_COMPONENT_HTML,
@@ -253,6 +265,18 @@ class MigrateCommand extends Command {
     argParser.addOption('target', help: 'The target version', defaultsTo: '0.4');
   }
 
+  List<int> _getIndentBefore(String source, int offset) {
+    var indent = 0;
+    offset--;
+
+    while (offset > 0 && source[offset] == ' ') {
+      indent++;
+      offset--;
+    }
+
+    return indent;
+  }
+
   void explicitEntryPoints(Map<String, String> sources,
                            Map<String, TextEditTransaction> rewriters) {
     var entryPoints = [];
@@ -283,11 +307,7 @@ class MigrateCommand extends Command {
       return;
     }
 
-    var indent = 0, indentPoint = insertPoint - 1;
-    while (indentPoint > 0 && pubspec[indentPoint] == ' ') {
-      indent++;
-      indentPoint--;
-    }
+    var indent = _getIndentBefore(pubspec, insertPoint);
 
     var builder = new StringBuffer();
     builder.writeln("${' ' * (indent + 4)}entry_points:");
@@ -336,12 +356,76 @@ class MigrateCommand extends Command {
     }
   }
 
+  void pubspecRemoveTransformer(Map<String, String> sources,
+                                Map<String, TextEditTransaction> rewriters) {
+    var pubspec = sources['pubspec.yaml'];
+    if (pubspec == null) {
+      warn('    No pubspec.yaml found; skipping.');
+      return;
+    }
+
+    var transformers = pubspec.indexOf('transformers:');
+    int removeBegin = -1;
+
+    if (transformers != -1) {
+      removeBegin = pubspec.indexOf('- vue', transformers);
+    }
+
+    if (removeBegin == -1) {
+      warn('  pubspec.yaml does not contain vue transformer; skipping.');
+      return;
+    }
+
+    var indent = _getIndentBefore(pubspec, removeBegin);
+    var removeEnd = pubspec.indexOf(new RegExp('^(?: ){0,$indent}\\S', multiLine: true),
+                                    removeBegin);
+
+    removeBegin -= indent;
+    if (removeEnd == -1) {
+      removeEnd = pubspec.length;
+    }
+
+    rewriters['pubspec.yaml'].edit(removeBegin, removeEnd, '');
+
+    if (removeEnd == pubspec.length || pubspec[removeEnd] != ' ') {
+      var match = new RegExp('transformers:\\s*').firstMatch(pubspec);
+      rewriters['pubspec.yaml'].edit(match.start, min(match.end, removeBegin), '');
+    } else {
+      warn('    You should manually remove any other transformers from pubspec.yaml.');
+    }
+  }
+
+  void removeInitVue(Map<String, String> sources,
+                     Map<String, TextEditTransaction> rewriters) {
+    var re = new RegExp(r'await\s+initVue\s*\(\s*\)\s*;\s*');
+
+    for (var path in sources.keys) {
+      var source = sources[path];
+      var rewriter = rewriters[path];
+
+      if (source.contains('initVue')) {
+        for (var match in re.allMatches(source)) {
+          rewriter.edit(match.start, match.end, '');
+        }
+      }
+    }
+  }
+
+  void addBuildYaml(Map<String, String> sources,
+                    Map<String, TextEditTransaction> rewriters) {
+    if (!sources.containsKey('build.release.yaml')) {
+      sources['build.release.yaml'] = TEMPLATE_BUILD_RELEASE;
+    } else {
+      warn('  build.release.yaml already exists; skipping.');
+    }
+  }
+
   void run() {
     final VERSIONS = ['0.2', '0.3', '0.4'];
 
     final TRANSFORMS = {
       '0.2': [explicitEntryPoints, rewriteComponentAnnotations],
-      '0.3': [renameVue2ToVue],
+      '0.3': [renameVue2ToVue, pubspecRemoveTransformer, removeInitVue, addBuildYaml],
     };
 
     if (argResults.rest.length < 1) {
@@ -398,9 +482,11 @@ class MigrateCommand extends Command {
         transform(state, rewriters);
 
         for (var path in state.keys) {
-          var printer = rewriters[path].commit();
-          printer.build(null);
-          state[path] = printer.text;
+          if (rewriters[path] != null) {
+            var printer = rewriters[path].commit();
+            printer.build(null);
+            state[path] = printer.text;
+          }
         }
       }
     }

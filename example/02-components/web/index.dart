@@ -14,6 +14,5 @@ class App extends VueAppBase {
 App app;
 
 Future main() async {
-  await initVue();
   app = new App();
 }

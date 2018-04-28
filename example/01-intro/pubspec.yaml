@@ -8,7 +8,3 @@ dependencies:
 dependency_overrides:
   vue:
     path: ../../vue
-transformers:
-  - vue:
-      entry_points:
-        - web/index.dart
