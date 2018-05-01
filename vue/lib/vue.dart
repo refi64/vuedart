@@ -12,6 +12,15 @@ import 'dart:html';
 @JS('window')
 external dynamic get _window;
 
+@JS('String')
+external dynamic get _jsString;
+
+@JS('Number')
+external dynamic get _jsNumber;
+
+@JS('Boolean')
+external dynamic get _jsBool;
+
 dynamic getWindowProperty(String name) {
   return getProperty(_window, name);
 }
@@ -47,10 +56,11 @@ dynamic _interopWithObj(Function func) =>
 typedef dynamic CreateElement(dynamic tag, [dynamic arg1, dynamic arg2]);
 
 class VueProp {
+  final Symbol type;
   final Function validator;
   final Object initializer;
 
-  VueProp(this.validator, this.initializer);
+  VueProp(this.type, this.validator, this.initializer);
 }
 
 class VueComputed {
@@ -114,10 +124,28 @@ class VueComponentConstructor {
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
 
-    for (var prop in props.keys) {
-      jsprops[prop] = mapToJs({
-        'default': props[prop].initializer,
-        'validator': allowInterop(props[prop].validator),
+    for (var name in props.keys) {
+      var prop = props[name];
+
+      var type = null;
+      if (prop.type != null) {
+        switch (prop.type) {
+        case #number:
+          type = _jsNumber;
+          break;
+        case #string:
+          type = _jsString;
+          break;
+        case #bool:
+          type = _jsBool;
+          break;
+        }
+      }
+
+      jsprops[name] = mapToJs({
+        'type': type,
+        'default': prop.initializer,
+        'validator': allowInterop(prop.validator),
       });
     }
 

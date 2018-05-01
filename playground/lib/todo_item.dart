@@ -56,6 +56,9 @@ class TodoItem extends VueComponentBase with TodoMixin {
   @prop
   TodoEntry todo;
 
+  @prop
+  bool first = false;
+
   // @method
   // String getTodoText(TodoEntry todo) => todo.text;
 

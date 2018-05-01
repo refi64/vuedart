@@ -127,8 +127,27 @@ class VuedartBuildContext {
 
   String sourceOrNull(AstNode node) => node?.toSource() ?? 'null';
 
+  String codegenPropType(Prop prop) {
+    switch (prop.type.name.name) {
+    case 'num':
+    case 'int':
+    case 'double':
+      return '#number';
+    case 'String':
+      return '#string';
+    case 'bool':
+      return '#bool';
+    default:
+      return 'null';
+    }
+  }
+
   String codegenProp(Prop prop) =>
-    ''' '${prop.name}': new VueProp((_) => true, ${sourceOrNull(prop.initializer)}), ''';
+    ''' '${prop.name}': new VueProp(
+      ${codegenPropType(prop)},
+      (_) => _ is ${prop.type.toSource()},
+      ${sourceOrNull(prop.initializer)}
+    ), ''';
 
   String codegenData(Data data) =>
     ''' '${data.name}': ${sourceOrNull(data.initializer)}, ''';

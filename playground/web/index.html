@@ -14,7 +14,8 @@
 
     <ol>
       <todo-item
-        v-for="item in groceryList" :todo="item" :key="item.id">
+        v-for="item in groceryList" :todo="item" :key="item.id"
+        :first="item.id == 0">
       </todo-item>
     </ol>
   </div>
