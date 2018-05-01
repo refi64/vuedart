@@ -88,8 +88,7 @@ final TEMPLATE_INDEX_HTML = '''
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script defer type="application/dart" src="index.dart"></script>
-  <script defer src="packages/browser/dart.js"></script>
+  <script defer type="application/dart" src="index.vue.dart.js"></script>
 </head>
 
 <body vuedart>
@@ -105,8 +104,6 @@ final TEMPLATE_INDEX_HTML_ASPEN =
 final TEMPLATE_INDEX_DART = '''
 import 'package:vue/vue.dart';
 
-import 'dart:async';
-
 import 'package:{{project}}/my_component.dart';
 
 @VueApp(el: '#app')
@@ -117,7 +114,7 @@ class App extends VueAppBase {
 
 App app;
 
-Future main() async {
+void main() {
   app = new App();
 }
 ''';

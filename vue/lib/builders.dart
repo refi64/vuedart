@@ -430,7 +430,7 @@ $opts
   }
 
   Future build() async {
-    if (!await buildStep.canRead(buildStep.inputId)) {
+    if (!await buildStep.canRead(inputId)) {
       return new Future.value();
     }
 
