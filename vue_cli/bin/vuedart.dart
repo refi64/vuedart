@@ -305,9 +305,9 @@ class MigrateCommand extends Command {
     var indent = _getIndentBefore(pubspec, insertPoint);
 
     var builder = new StringBuffer();
-    builder.writeln("${' ' * (indent + 4)}entry_points:");
+    builder.writeln('${' ' * (indent + 4)}entry_points:');
     for (var entryPoint in entryPoints) {
-      builder.writeln("${' ' * (indent + 6)}- $entryPoint");
+      builder.writeln('${' ' * (indent + 6)}- $entryPoint');
     }
 
     rewriters['pubspec.yaml'].edit(insertPoint + 7, insertPoint + 7, builder.toString());
@@ -394,7 +394,7 @@ class MigrateCommand extends Command {
                      Map<String, TextEditTransaction> rewriters) {
     var re = new RegExp(r'await\s+initVue\s*\(\s*\)\s*;\s*');
 
-    for (var path in sources.keys) {
+    for (var path in sources.keys.where((path) => path.endsWith('.dart'))) {
       var source = sources[path];
       var rewriter = rewriters[path];
 
@@ -413,6 +413,27 @@ class MigrateCommand extends Command {
     } else {
       warn('  build.release.yaml already exists; skipping.');
     }
+  }
+
+  void removeNameField(Map<String, String> sources,
+                       Map<String, TextEditTransaction> rewriters) {
+    var re = new RegExp(r'VueComponent\((name: [^\s,]+),\s*');
+
+    for (var path in sources.keys.where((path) => path.endsWith('.dart'))) {
+      var source = sources[path];
+      var rewriter = rewriters[path];
+
+      if (source.contains('VueComponent')) {
+        for (var match in re.allMatches(source)) {
+          rewriter.edit(match.start + match[0].indexOf(match[1]), match.end, '');
+        }
+      }
+    }
+  }
+
+  void explicitComponents(sources, rewriters) {
+    warn('  VueDart 0.4 requires an explicit components annotation.');
+    warn('  You must add it yourself!');
   }
 
   bool skipPath(String p) {
@@ -441,7 +462,8 @@ class MigrateCommand extends Command {
 
     final TRANSFORMS = {
       '0.2': [explicitEntryPoints, rewriteComponentAnnotations],
-      '0.3': [renameVue2ToVue, pubspecRemoveTransformer, removeInitVue, addBuildYaml],
+      '0.3': [renameVue2ToVue, pubspecRemoveTransformer, removeInitVue, addBuildYaml,
+              removeNameField, explicitComponents],
     };
 
     if (argResults.rest.length < 1) {
