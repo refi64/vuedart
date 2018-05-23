@@ -179,6 +179,9 @@ class VuedartBuildContext {
 
   String codegenString(String str) => 'r"""${str.replaceAll('"""', '\\"""')}"""';
 
+  String codegenConstructorList(ListLiteral items) =>
+    '[${items.map((item) => '${item.name}.constructor').join(', ')}]';
+
   String codegenRegister(VueImportedComponent icls) =>
     'VueComponentBase.register(#${icls.name}, ${icls.prefixed}.constructor);';
 
@@ -193,10 +196,16 @@ class VuedartBuildContext {
            .map((cls) => new VueImportedComponent(prefix, cls.name.name));
 
   void processField(FieldDeclaration member, VueClassInfo info) {
+    var fields = member.fields;
+
+    if (fields.variables.length == 1 &&
+        fields.variables[0].name.name == 'constructor') {
+      rewriter.edit(member.offset, member.end+1, '');
+    }
+
     var ann = getAnn(member, ['prop', 'data', 'ref']);
     if (ann == null) return;
 
-    var fields = member.fields;
     var type = fields.type;
     var typestring = type.toSource();
 
@@ -368,23 +377,21 @@ $typestring $name${member.parameters.toSource()} =>
       }
     }
 
+    var components = (args.named['components'] as ListLiteral)?.elements ?? [];
     var opts = '''
   data: {${info.data.map(codegenData).join('\n')}},
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},
   watchers: {${info.watchers.map(codegenWatch).join('\n')}},
   methods: {${info.methods.map(codegenMethod).join('\n')}},
+  components: ${codegenConstructorList(components)},
     ''';
     var code;
 
     if (ann.name.name == 'VueComponent' || ann.name.name == 'VueMixin') {
-      var name = null, creator = null;
+      var name = cls.name.name, creator;
 
       if (ann.name.name == 'VueComponent') {
-        if (args.named.containsKey('name')) {
-          name = args.named['name'].toSource();
-        }
-
-        creator = '(context) => new ${cls.name.name}(context)';
+        creator = '(context) => new $name(context)';
       }
 
       var template = args.named['template'] as StringLiteral;
@@ -413,12 +420,12 @@ $typestring $name${member.parameters.toSource()} =>
 
       code = '''
 static VueComponentConstructor constructor = new VueComponentConstructor(
-  name: $name,
+  name: ${codegenString(name)},
   creator: $creator,
   template: $templateString,
   styleInject: $styleInject,
   props: {${info.props.map(codegenProp).join('\n')}},
-  mixins: [${mixins.map((mixin) => '${mixin.name}.constructor').join(', ')}],
+  mixins: ${codegenConstructorList(mixins)},
 $opts
 );
       ''';
@@ -431,15 +438,12 @@ $opts
         ''');
       }
     } else {
-      if (!args.named.containsKey('el')) {
-        error(ann, 'VueApp annotations need el key');
-        return new Future.value();
-      }
+      var el = args.named['el']?.toSource() ?? 'null';
 
       code = '''
 @override
 VueAppConstructor get constructor => new VueAppConstructor(
-  el: ${args.named['el'].toSource()},
+  el: $el,
 $opts
 );
       ''';

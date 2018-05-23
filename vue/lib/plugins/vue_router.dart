@@ -64,8 +64,8 @@ class VueRouterLocation {
 
 class VueRoute<T extends VueComponentBase> {
   String path, name;
-  Symbol component;
-  Map<String, Symbol> components;
+  VueComponentConstructor component;
+  Map<String, VueComponentConstructor> components;
   dynamic redirect, props;
   List<VueRoute> children;
 
@@ -81,13 +81,7 @@ class VueRoute<T extends VueComponentBase> {
 
     for (var view in components.keys) {
       var component = components[view];
-
-      var componentArgs = VueComponentBase.componentArgStore[component];
-      if (componentArgs == null) {
-        throw new Exception('Unregistered component $component');
-      }
-
-      jsComponents[view] = componentArgs;
+      jsComponents[view] = VueComponentBase.componentArgs(component);
     }
 
     // Go round-trip: treat a single component as named views, then undo it.

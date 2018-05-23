@@ -16,7 +16,7 @@ class TodoEntry {
   external factory TodoEntry({int id, String text});
 }
 
-@VueComponent(name: 'test-component', template: '<p><slot></slot></p>')
+@VueComponent(template: '<p><slot></slot></p>')
 class TestComponent extends VueComponentBase {
   TestComponent(context): super(context);
 }
@@ -27,8 +27,8 @@ abstract class TodoMixin {
   String getTodoText(TodoEntry todo) => todo.text;
 }
 
-@VueComponent(name: 'todo-item', template: '<<', mixins: const [TodoMixin])
-// @VueComponent('todo-item')
+@VueComponent(template: '<<', components: const [TestComponent],
+              mixins: const [TodoMixin])
 class TodoItem extends VueComponentBase with TodoMixin {
   TodoItem(context): super(context) { test = 'abc'; }
 

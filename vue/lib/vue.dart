@@ -113,13 +113,14 @@ class VueComponentConstructor {
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
   final Map<String, VueWatcher> watchers;
+  final List<VueComponentConstructor> components;
   final List<VueComponentConstructor> mixins;
   Function creator;
 
   VueComponentConstructor({this.name: null, this.template: null, this.styleInject: null,
                            this.props: null, this.data: null, this.computed: null,
                            this.methods: null, this.watchers: null, this.creator: null,
-                           this.mixins: null});
+                           this.components, this.mixins: null});
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
@@ -162,8 +163,10 @@ class VueAppConstructor {
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
   final Map<String, VueWatcher> watchers;
+  final List<VueComponentConstructor> components;
 
-  VueAppConstructor({this.el, this.data, this.computed, this.methods, this.watchers});
+  VueAppConstructor({this.el, this.data, this.computed, this.methods, this.watchers,
+                     this.components});
 
   dynamic jscomputed() => _convertComputed(computed);
   dynamic jswatch() => _convertWatchers(watchers);
@@ -291,18 +294,28 @@ class VueComponentBase extends _VueBase {
       'watch': watch,
       'template': constr.template,
       'render': renderFunc,
-      'mixins': constr.mixins
-                  .map((mx) => VueComponentBase.componentArgs(mx, isMixin: true))
-                  .toList(),
+      'components': VueComponentBase.componentsMap(constr.components),
+      'mixins': VueComponentBase.componentListArgs(constr.mixins, isMixin: true),
     }..addAll(_VueBase.lifecycleHooks));
   }
 
+  static dynamic componentsMap(List<VueComponentConstructor> constrs) =>
+    mapToJs(
+      new Map.fromIterable(constrs, key: (constr) => constr.name,
+                           value: (constr) => VueComponentBase.componentArgs(constr)));
+
+  static List componentListArgs(List<VueComponentConstructor> constrs,
+                                {bool isMixin: false}) =>
+    constrs
+      .map((constr) => VueComponentBase.componentArgs(constr, isMixin: isMixin))
+      .toList();
+
   static void register(Symbol name, VueComponentConstructor constr) {
-    var args = VueComponentBase.componentArgs(constr);
-    VueComponentBase.componentArgStore[name] = args;
-    if (constr.name != null) {
-      callMethod(_vue, 'component', [constr.name, args]);
-    }
+    // var args = VueComponentBase.componentArgs(constr);
+    // VueComponentBase.componentArgStore[name] = args;
+    // if (constr.name != null) {
+    //   callMethod(_vue, 'component', [constr.name, args]);
+    // }
   }
 }
 
@@ -337,6 +350,7 @@ class VueAppBase extends _VueBase {
       'computed': computed,
       'methods': _mapMethodsToJs(constr.methods),
       'watch': watch,
+      'components': VueComponentBase.componentsMap(constr.components),
     }..addAll(_VueBase.lifecycleHooks));
 
     if (router != null) {
@@ -363,14 +377,15 @@ class VuePlugin {
 }
 
 class VueComponent {
-  final String name, template;
-  final List mixins;
-  const VueComponent({this.name, this.template, this.mixins});
+  final String template;
+  final List components, mixins;
+  const VueComponent({this.template, this.components, this.mixins});
 }
 
 class VueApp {
   final String el;
-  const VueApp({this.el});
+  final List components;
+  const VueApp({this.el, this.components});
 }
 
 class VueMixin {

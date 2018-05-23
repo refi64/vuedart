@@ -10,6 +10,8 @@ import 'dart:html';
 class SingleItem extends VueComponentBase with VueRouterMixin {
   SingleItem(context): super(context);
 
+  static final constructor = null;
+
   @computed
   int get id => int.parse($route.params['id']);
 }
@@ -19,12 +21,14 @@ class SingleItem extends VueComponentBase with VueRouterMixin {
 class SingleItemInfo extends VueComponentBase with VueRouterMixin {
   SingleItemInfo(context): super(context);
 
+  static final constructor = null;
+
   @computed
   int get id => int.parse($route.params['id']);
 }
 
 
-@VueApp(el: '#app')
+@VueApp(el: '#app', components: const [TodoItem])
 class App extends VueAppBase with VueRouterMixin {
   factory App({router}) => VueAppBase.create((context) => new App._(context),
                                              router: router);
@@ -58,14 +62,12 @@ App app;
 
 
 Future main() async {
-  // await initVue();
-
   final router = new VueRouter(routes: [
-    new VueRoute(path: '/item/:id', component: #SingleItem, children: [
-      new VueRoute(path: 'info', component: #SingleItemInfo),
+    new VueRoute(path: '/item/:id', component: SingleItem.constructor, children: [
+      new VueRoute(path: 'info', component: SingleItemInfo.constructor),
     ]),
     new VueRoute(path: '/singleitem/:id', components: {
-      'single': #SingleItem,
+      'single': SingleItem.constructor,
     }),
   ]);
   app = new App(router: router);
