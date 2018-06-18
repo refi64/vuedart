@@ -49,7 +49,7 @@ dynamic _mapMethodsToJs(Map<String, Function> methods) =>
   mapToJs(new Map.fromIterables(methods.keys,
                                 methods.values.map(allowInteropCaptureThis)));
 
-dynamic vueGetObj(dynamic vuethis) => getProperty(vuethis, '\$dartobj');
+dynamic vueGetObj(dynamic vuethis) => getProperty(vuethis, r'$dartobj');
 dynamic _interopWithObj(Function func) =>
   allowInteropCaptureThis((context) => func(vueGetObj(context)));
 
@@ -116,6 +116,8 @@ class VueComponentConstructor {
   final List<VueComponentConstructor> components;
   final List<VueComponentConstructor> mixins;
   Function creator;
+
+  bool hasInjectedStyle = false;
 
   VueComponentConstructor({this.name: null, this.template: null, this.styleInject: null,
                            this.props: null, this.data: null, this.computed: null,
@@ -199,49 +201,49 @@ class _VueBase {
   };
 
   dynamic $ref(String name) {
-    var refs = getProperty(vuethis, '\$refs');
+    var refs = getProperty(vuethis, r'$refs');
     var ref = getProperty(refs, name);
     if (ref == null) return null;
     return vueGetObj(ref) ?? ref;
   }
 
-  dynamic get $data => vuedart_get('\$data');
-  dynamic get $props => vuedart_get('\$props');
-  Element get $el => vuedart_get('\$el');
-  dynamic get $options => vuedart_get('\$options');
+  dynamic get $data => vuedart_get(r'$data');
+  dynamic get $props => vuedart_get(r'$props');
+  Element get $el => vuedart_get(r'$el');
+  dynamic get $options => vuedart_get(r'$options');
 
   dynamic get $parent {
-    var parent = vuedart_get('\$parent');
+    var parent = vuedart_get(r'$parent');
     if (parent == null) return null;
 
     return vueGetObj(parent) ?? parent;
   }
 
   dynamic get $root {
-    var root = vuedart_get('\$root');
+    var root = vuedart_get(r'$root');
     return vueGetObj(root) ?? root;
   }
 
   void $on(dynamic event, Function callback) =>
-    callMethod(vuethis, '\$on', [event, allowInterop(callback)]);
+    callMethod(vuethis, r'$on', [event, allowInterop(callback)]);
 
   void $once(dynamic event, Function callback) =>
-    callMethod(vuethis, '\$once', [event, allowInterop(callback)]);
+    callMethod(vuethis, r'$once', [event, allowInterop(callback)]);
 
   void $off(dynamic event, Function callback) =>
-    callMethod(vuethis, '\$off', [event, allowInterop(callback)]);
+    callMethod(vuethis, r'$off', [event, allowInterop(callback)]);
 
   void $emit(String event, [List args]) =>
-    callMethod(vuethis, '\$emit', [event]..addAll(args ?? []));
+    callMethod(vuethis, r'$emit', [event]..addAll(args ?? []));
 
   Future<Null> $nextTick() {
     var compl = new Completer<Null>();
-    callMethod(vuethis, '\$nextTick', [allowInterop(() => compl.complete(null))]);
+    callMethod(vuethis, r'$nextTick', [allowInterop(() => compl.complete(null))]);
     return compl.future;
   }
 
-  void $forceUpdate() => callMethod(vuethis, '\$forceUpdate', []);
-  void $destroy() => callMethod(vuethis, '\$destroy', []);
+  void $forceUpdate() => callMethod(vuethis, r'$forceUpdate', []);
+  void $destroy() => callMethod(vuethis, r'$destroy', []);
 }
 
 class _FakeException {
@@ -252,10 +254,8 @@ class _FakeException {
 class VueComponentBase extends _VueBase {
   VueComponentBase(dynamic context) {
     vuethis = context;
-    setProperty(vuethis, '\$dartobj', this);
+    setProperty(vuethis, r'$dartobj', this);
   }
-
-  static Map<Symbol, dynamic> componentArgStore = {};
 
   static dynamic componentArgs(VueComponentConstructor constr, {bool isMixin: false}) {
     var props = constr.jsprops();
@@ -263,10 +263,12 @@ class VueComponentBase extends _VueBase {
     var watch = constr.jswatch();
     var renderFunc;
 
-    if (constr.styleInject.isNotEmpty) {
+    if (constr.styleInject.isNotEmpty && !constr.hasInjectedStyle) {
       var el = new StyleElement();
       el.appendText(constr.styleInject);
       document.head.append(el);
+
+      constr.hasInjectedStyle = true;
     }
 
     if (constr.template == null) {
@@ -286,7 +288,7 @@ class VueComponentBase extends _VueBase {
       'created': !isMixin ? allowInteropCaptureThis(constr.creator) : null,
       'data': allowInterop(([dynamic _=null]) {
         var data = mapToJs(constr.data);
-        setProperty(data, '\$dartobj', null);
+        setProperty(data, r'$dartobj', null);
         return data;
       }),
       'computed': computed,
@@ -309,14 +311,11 @@ class VueComponentBase extends _VueBase {
     constrs
       .map((constr) => VueComponentBase.componentArgs(constr, isMixin: isMixin))
       .toList();
+}
 
-  static void register(Symbol name, VueComponentConstructor constr) {
-    // var args = VueComponentBase.componentArgs(constr);
-    // VueComponentBase.componentArgStore[name] = args;
-    // if (constr.name != null) {
-    //   callMethod(_vue, 'component', [constr.name, args]);
-    // }
-  }
+
+abstract class VueAppOptions {
+  Map<String, dynamic> get appOptions;
 }
 
 class VueAppBase extends _VueBase {
@@ -328,7 +327,16 @@ class VueAppBase extends _VueBase {
     setProperty(vuethis, '\$dartobj', this);
   }
 
-  static create(Function creator, {dynamic router: null}) {
+  static Map<String, dynamic> _mergeOptions(List<VueAppOptions> options) {
+    if (options == null) {
+      return <String, dynamic>{};
+    }
+
+    return options.fold(<String, dynamic>{},
+                        (result, opts) => result..addAll(opts.appOptions));
+  }
+
+  static create(Function creator, {List<VueAppOptions> options}) {
     var constr;
 
     try {
@@ -351,11 +359,8 @@ class VueAppBase extends _VueBase {
       'methods': _mapMethodsToJs(constr.methods),
       'watch': watch,
       'components': VueComponentBase.componentsMap(constr.components),
-    }..addAll(_VueBase.lifecycleHooks));
-
-    if (router != null) {
-      setProperty(args, 'router', router.js);
-    }
+    }..addAll(_VueBase.lifecycleHooks)
+     ..addAll(VueAppBase._mergeOptions(options)));
 
     callConstructor(_vue, [args]);
     return result;

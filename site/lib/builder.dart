@@ -6,8 +6,7 @@ import 'package:protic/protic.dart';
 
 
 class MarkdownBuilder implements Builder {
-  @override
-  final buildExtensions = const {
+  @override final buildExtensions = const {
     '.md': const ['.html']
   };
 

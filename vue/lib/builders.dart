@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:csslib/visitor.dart' show CssPrinter;
@@ -179,11 +180,8 @@ class VuedartBuildContext {
 
   String codegenString(String str) => 'r"""${str.replaceAll('"""', '\\"""')}"""';
 
-  String codegenConstructorList(ListLiteral items) =>
-    '[${items.map((item) => '${item.name}.constructor').join(', ')}]';
-
-  String codegenRegister(VueImportedComponent icls) =>
-    'VueComponentBase.register(#${icls.name}, ${icls.prefixed}.constructor);';
+  String codegenConstructorList(NodeList<Expression> items) =>
+    '[${items.cast<Identifier>().map((item) => '${item.name}.constructor').join(', ')}]';
 
   List<ClassDeclaration> getVueClasses(LibraryElement lib) =>
     lib.units.expand((unit) => unit.unit.declarations)
@@ -248,7 +246,7 @@ void set $name($typestring value) => vuedart_set('$name', value);
     }
 
     var name = member.name.name;
-    var typestring = member.returnType?.name?.name ?? '';
+    var typestring = member.returnType?.toSource() ?? '';
 
     if (member.isGetter) {
       rewriter.edit(member.offset, member.end, '''
@@ -334,7 +332,6 @@ $typestring $name${member.parameters.toSource()} =>
       var styleInject = '';
       var styles = doc.querySelectorAll('style[scoped]');
       if (styles.isNotEmpty) {
-        var parsedStyles = [];
         var printer = new CssPrinter();
 
         for (var style in styles) {
@@ -485,17 +482,6 @@ $opts
           rewriter.edit(imported.uriOffset, imported.uriEnd, "'${renamed.uri}'");
         }
       }
-
-      if (components.isNotEmpty) {
-        var body = lib.entryPoint.computeNode().functionExpression.body;
-        if (!(body is BlockFunctionBody)) {
-          error(body, 'Expected function block.');
-          return new Future.value();
-        }
-
-        var offset = (body as BlockFunctionBody).block.leftBracket.end;
-        rewriter.edit(offset, offset, components.map(codegenRegister).join());
-      }
     }
 
     var printer = rewriter.commit();
@@ -508,11 +494,10 @@ $opts
 }
 
 
-class _VuedartBuilder {
-  const _VuedartBuilder();
+class _VuedartBuilder extends Builder {
+  _VuedartBuilder();
 
-  factory _VuedartBuilder.fromOptions(BuilderOptions options) =>
-    const _VuedartBuilder();
+  factory _VuedartBuilder.fromOptions(BuilderOptions options) => new _VuedartBuilder();
 
   @override final buildExtensions = const {
     '.dart': const ['.vue.dart'],

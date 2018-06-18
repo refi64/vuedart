@@ -17,6 +17,7 @@ external List<String> _keys(dynamic object);
 external dynamic get _vueRouter;
 
 class VueRouteInfo {
+  // ignore: unused_field
   final dynamic _route;
   final Map<String, dynamic> params;
 
@@ -84,7 +85,7 @@ class VueRoute<T extends VueComponentBase> {
       jsComponents[view] = VueComponentBase.componentArgs(component);
     }
 
-    // Go round-trip: treat a single component as named views, then undo it.
+    // Round-trip: treat a single component as named views, then undo it.
     if (singleComponent) {
       jsComponent = jsComponents['default'];
       jsComponents = null;
@@ -125,11 +126,10 @@ class VueRoute<T extends VueComponentBase> {
 
 enum VueRouterMode { hash, history, abstract_ }
 
-class VueRouter extends VuePlugin {
+class VueRouter extends VuePlugin implements VueAppOptions {
   static void use() => VuePlugin.use('VueRouter');
 
   dynamic _router;
-  get js => _router;
 
   VueRouter({List<VueRoute> routes, VueRouterMode mode: null, String base: null}) {
     var jsRoutes = routes.map((route) => route.jsargs()).toList();
@@ -175,6 +175,8 @@ class VueRouter extends VuePlugin {
                                                        new VueRouteInfo(route) :
                                                        null)));
   }
+
+  Map<String, dynamic> get appOptions => {'router': _router};
 }
 
 abstract class VueRouterMixin {

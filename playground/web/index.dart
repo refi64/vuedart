@@ -30,8 +30,8 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
 
 @VueApp(el: '#app', components: const [TodoItem])
 class App extends VueAppBase with VueRouterMixin {
-  factory App({router}) => VueAppBase.create((context) => new App._(context),
-                                             router: router);
+  factory App({options}) => VueAppBase.create((context) => App._(context),
+                                              options: options);
   App._(context): super(context);
 
   @override
@@ -44,14 +44,14 @@ class App extends VueAppBase with VueRouterMixin {
 
   @data
   List<TodoEntry> groceryList = <TodoEntry>[
-    new TodoEntry(id: 0, text: 'Vegetables'),
-    new TodoEntry(id: 1, text: 'Cheese'),
-    new TodoEntry(id: 2, text: 'Whatever else humans are supposed to eat'),
+    TodoEntry(id: 0, text: 'Vegetables'),
+    TodoEntry(id: 1, text: 'Cheese'),
+    TodoEntry(id: 2, text: 'Whatever else humans are supposed to eat'),
   ];
 
   @method
   void click(MouseEvent evt) {
-    $router.replace(new VueRouterLocation(path: '/item/10')).onComplete.then((VueRouteInfo info) {
+    $router.replace(VueRouterLocation(path: '/item/10')).onComplete.then((VueRouteInfo info) {
       print('replace onComplete: ${info.params}');
     });
   }
@@ -62,13 +62,13 @@ App app;
 
 
 Future main() async {
-  final router = new VueRouter(routes: [
-    new VueRoute(path: '/item/:id', component: SingleItem.constructor, children: [
-      new VueRoute(path: 'info', component: SingleItemInfo.constructor),
+  final router = VueRouter(routes: [
+    VueRoute(path: '/item/:id', component: SingleItem.constructor, children: [
+      VueRoute(path: 'info', component: SingleItemInfo.constructor),
     ]),
-    new VueRoute(path: '/singleitem/:id', components: {
+    VueRoute(path: '/singleitem/:id', components: {
       'single': SingleItem.constructor,
     }),
   ]);
-  app = new App(router: router);
+  app = App(options: [router]);
 }
