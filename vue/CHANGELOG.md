@@ -1,3 +1,17 @@
+## development (0.4.0)
+
+- **BREAKING CHANGE** vue2 and vue2_cli have been renamed to vue and vue_cli, respectively.
+- **BREAKING CHANGE** `package:build` is now used instead of Pub transformers. Using Pub
+  is no longer supported.
+- **BREAKING CHANGE** Components are never globally registered. Instead, they must
+  explicitly be passed to the `VueComponent` annotation.
+- **BREAKING CHANGE** A new, extensible `VueAppOptions` API has been added for passing
+  miscellaneous options to app constructors, and the specialized `router` argument
+  has been dropped in favor of `options`.
+- Dart 2.0 is now supported!
+- `bool` props now created a boolean prop, instead of a prop that's either `null` or
+  an empty string.
+
 ## 0.3.2
 
 - Fix [#13](https://github.com/kirbyfan64/vuedart/issues/13): internal symbols were
