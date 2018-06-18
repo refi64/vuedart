@@ -1,0 +1,6 @@
+builders:
+  markdownBuilder:
+    import: 'package:vuedart_site/builder.dart'
+    builder_factories: ['markdownBuilder']
+    build_extensions: {'.md': ['.html']}
+    auto_apply: root_package

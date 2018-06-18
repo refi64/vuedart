@@ -1,12 +1,12 @@
-import 'package:vue/vue.dart';
-
 import 'dart:async';
 
-import 'package:vuedart_site/site_navbar.dart';
+import 'package:vue/vue.dart';
+
 import 'package:vuedart_site/common.dart';
+import 'package:vuedart_site/site_navbar.dart';
 
 
-@VueApp(el: '#app')
+@VueApp(el: '#app', components: [SiteNavbar])
 class App extends VueAppBase {
   factory App() => VueAppBase.create((context) => new App._(context));
   App._(context): super(context);

@@ -1,9 +1,29 @@
 <template vuedart>
-  <md-toolbar>
-    <md-button class="md-icon-button" :href="relUrl('index.html')">
-      <md-icon md-src="favicon.ico"></md-icon>
-    </md-button>
+  <header class="mdc-top-app-bar">
+    <div class="mdc-top-app-bar__row">
+      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+        <a :href="relUrl('index.html')" class="mdc-top-app-bar__navigation-icon">
+          <img class="icon" :src="relUrl('favicon.ico')">
+        </a>
+        <span class="title mdc-top-bar__title">VueDart</span>
+      </section>
+    </div>
+  </header>
 
-    <h2 class="md-title" style="flex: 1">VueDart</h2>
-  </md-toolbar>
+  </header>
 </template>
+
+<style scoped>
+
+  .icon {
+    width: 28px;
+    height: auto;
+  }
+
+  .title {
+    color: white;
+    font-size: large;
+    padding: 12px;
+  }
+
+</style>

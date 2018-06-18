@@ -4,38 +4,34 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VueDart: {{title}}</title>
+  <+ value="<title> VueDart: $title </title>">
   <link rel="icon" href="favicon.ico">
 
   <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono|Material+Icons">
 
   <script src="../dist/vendor.js"></script>
+  <script defer src="docs.vue.dart.js"></script>
 
-  <script defer type="application/dart" src="docs.dart"></script>
-  <script defer src="../packages/browser/dart.js"></script>
-
-  <style>
-    #content { padding: 0em 1em; }
-    .md-layout { flex-wrap: nowrap !important; }
-    .highlight .err { border: 0px !important; }
-    pre { overflow-x: auto; }
-    [v-cloak] { display: none; }
-    a:visited:not(.md-button) { color: blue; }
-  </style>
+  <style> [v-cloak] { display: none; } </style>
 </head>
 
-<body vuedart>
+<body>
   <div id="app" v-cloak>
     <site-navbar nested></site-navbar>
 
-    <md-layout md-row md-column-small>
-      <docs-navlist></docs-navlist>
+    <div class="mdc-layout-grid">
+      <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2-desktop">
+          <docs-navlist></docs-navlist>
+        </div>
 
-      <div id="content" v-pre>
-        {{content}}
+        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-10">
+          <div v-pre>
+            <+ value="$content">
+          </div>
+        </div>
       </div>
-    </md-layout>
+    </div>
   </div>
 </body>

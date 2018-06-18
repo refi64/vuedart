@@ -1,8 +1,9 @@
 {
   "dependencies": {
     "bask": "^0.10.1",
-    "vue": "^2.5.3",
-    "vue-material": "^0.8.1",
-    "webpack": "^3.8.1"
+    "material-components-web": "^0.36.0",
+    "normalize.css": "^8.0.0",
+    "prismjs": "^1.15.0",
+    "vue": "^2.5.3"
   }
 }

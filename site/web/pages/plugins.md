@@ -1,5 +1,3 @@
-{"title": "Working with plugins"}
-
 # Working with plugins
 
 <div id="work"></div>

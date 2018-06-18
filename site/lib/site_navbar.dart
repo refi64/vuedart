@@ -1,7 +1,7 @@
 import 'package:vue/vue.dart';
 
 
-@VueComponent(name: 'site-navbar', template: '<<')
+@VueComponent(template: '<<')
 class SiteNavbar extends VueComponentBase {
   SiteNavbar(context): super(context);
 

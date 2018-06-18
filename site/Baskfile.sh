@@ -7,13 +7,7 @@ task_default() {
 }
 
 
-task_pygments() {
-  pygmentize -S friendly -f html -a .highlight > web/dist/pygments.css
-}
-
-
 task_pack_debug() {
-  bask_depends pygments
   aspen
 }
 
@@ -25,7 +19,7 @@ task_pack_release() {
 
 task_build_debug() {
   bask_depends pack_debug
-  pub build --mode debug
+  pub
 }
 
 task_build_release() {

@@ -4,11 +4,23 @@ targets:
       default: web/dist/vendor.js
 
     assets:
+    - name: normalize-css
+      default: node_modules/normalize.css/normalize.css
     - dev: node_modules/vue/dist/vue.js
       prod: node_modules/vue/dist/vue.min.js
-    - dev: node_modules/vue-material/dist/vue-material.debug.js
-      prod: node_modules/vue-material/dist/vue-material.debug.js
-    - name: pygments-css
-      default: web/dist/pygments.css
-    - name: vue-material-css
-      default: node_modules/vue-material/dist/vue-material.css
+    - dev: node_modules/material-components-web/dist/material-components-web.js
+      prod: node_modules/material-components-web/dist/material-components-web.min.js
+    - name: mdc-web-css
+      dev: node_modules/material-components-web/dist/material-components-web.css
+      prod: node_modules/material-components-web/dist/material-components-web.min.css
+    - node_modules/prismjs/prism.js
+    - dev: node_modules/prismjs/components/prism-dart.js
+      prod: node_modules/prismjs/components/prism-dart.min.js
+    - dev: node_modules/prismjs/components/prism-markup.js
+      prod: node_modules/prismjs/components/prism-markup.min.js
+    - dev: node_modules/prismjs/components/prism-yaml.js
+      prod: node_modules/prismjs/components/prism-yaml.min.js
+    - name: prism-css
+      default: node_modules/prismjs/themes/prism-okaidia.css
+    - name: styles-css
+      default: web/styles.css

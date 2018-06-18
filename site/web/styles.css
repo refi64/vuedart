@@ -1,0 +1,32 @@
+:root {
+  --mdc-theme-primary: #263238;
+  --mdc-theme-secondary: #0D47A1;
+}
+
+.mdc-top-app-bar {
+  position: relative;
+}
+
+body {
+  font-family: Roboto, sans-serif;
+}
+
+.center {
+  text-align: center;
+}
+
+pre[class*="language-"] {
+  font-family: "Roboto Mono", monospace;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item) {
+  color: var(--mdc-theme-secondary);
+}
+
+a:visited:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item) {
+  color: var(--mdc-theme-secondary);
+}

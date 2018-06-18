@@ -1,9 +1,11 @@
 @JS()
 library vuedart_site.docs_navlist;
 
+import 'dart:html';
 
 import 'package:vue/vue.dart';
 import 'package:js/js.dart';
+
 
 @anonymous
 @JS()
@@ -14,12 +16,17 @@ class Entry {
   external factory Entry({String title, String addr, List<List<String>> contents});
 }
 
-@VueComponent(name: 'docs-navlist', template: '<<')
+@VueComponent(template: '<<')
 class DocsNavlist extends VueComponentBase {
   DocsNavlist(context): super(context);
 
   @method
-  String getUrl(Entry entry, String ref) => '../pages/${entry.addr}#$ref';
+  String getUrl(Entry entry, [String ref = '']) =>
+    '../pages/${entry.addr}${ref.isNotEmpty ? '#$ref' : ''}';
+
+  @method
+  bool isCurrentPage(Entry entry) =>
+    window.location.pathname.endsWith('/${entry.addr}');
 
   @data
   List<Entry> entries = [

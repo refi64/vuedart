@@ -1,18 +1,36 @@
 <template vuedart>
-  <md-list>
-    <md-subheader>Navigation</md-subheader>
+  <nav class="nav mdc-drawer mdc-drawer--permanent mdc-typography">
+    <nav class="mdc-list">
+      <template v-for="entry in entries">
+        <a :class="{'mdc-list-item': true, 'mdc-list-item--activated': isCurrentPage(entry)}"
+           :href="getUrl(entry)">
+          {{entry.title}}
+        </a>
 
-    <md-list-item v-for="(entry, index) in entries" :key="index">
-      <span>{{entry.title}}</span>
-
-      <md-list-expand>
-        <md-list>
-          <md-list-item v-for="(content, subindex) in entry.contents"
-                        :key="subindex" :href="getUrl(entry, content[1])">
+        <div class="mdc-list nested-list" v-if="isCurrentPage(entry)">
+          <a class="mdc-list-item" v-for="content in entry.contents"
+             :href="getUrl(entry, content[1])">
             • {{content[0]}}
-          </md-list-item>
-        </md-list>
-      </md-list-expand>
-    </md-list-item>
-  </md-list>
+          </a>
+        </div>
+      </template>
+    </nav>
+  </nav>
 </template>
+
+<style scoped>
+
+.nav {
+  height: 100%;
+  width: 100%;
+}
+
+.mdc-list-item--activated {
+  font-weight: bold;
+}
+
+.nested-list {
+  padding-left: 1em;
+}
+
+</style>

@@ -1,5 +1,3 @@
-{"title": "Intro"}
-
 # Intro to VueDart
 
 <div id="welcome"></div>

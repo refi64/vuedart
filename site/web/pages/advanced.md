@@ -1,5 +1,3 @@
-{"title": "Advanced topics"}
-
 # Advanced topics
 
 <div id="assets"></div>

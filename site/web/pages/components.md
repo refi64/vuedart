@@ -1,5 +1,3 @@
-{"title": "Components"}
-
 # Components
 
 <div id="component"></div>
