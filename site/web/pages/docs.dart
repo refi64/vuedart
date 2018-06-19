@@ -9,8 +9,6 @@ import 'package:vuedart_site/site_navbar.dart';
 
 @VueApp(el: '#app', components: [SiteNavbar, DocsNavlist])
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
 }
 
 
@@ -20,4 +18,5 @@ App app;
 Future main() async {
   setup();
   app = new App();
+  app.create();
 }

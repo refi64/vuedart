@@ -18,8 +18,6 @@ class Entry {
 
 @VueComponent(template: '<<')
 class DocsNavlist extends VueComponentBase {
-  DocsNavlist(context): super(context);
-
   @method
   String getUrl(Entry entry, [String ref = '']) =>
     '../pages/${entry.addr}${ref.isNotEmpty ? '#$ref' : ''}';
