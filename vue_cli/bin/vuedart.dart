@@ -427,9 +427,13 @@ class MigrateCommand extends Command {
     }
   }
 
-  void explicitComponents(sources, rewriters) {
-    warn('  VueDart 0.4 requires an explicit components annotation.');
-    warn('  You must add it yourself!');
+  void manualVueDart04Work(sources, rewriters) {
+    warn("  VueDart 0.4 has some other changes that you must migrate yourself:");
+    warn('    - Add an explicit components annotation to your app and components.');
+    warn('    - Remove all the constructor boilerplate.');
+    warn('    - Change the old router argument to the new options API.');
+    warn('    - Change component symbols in router declarations to constructors.')
+    warn('  See the release blog post for more info.');
   }
 
   bool skipPath(String p) {
@@ -459,7 +463,7 @@ class MigrateCommand extends Command {
     final TRANSFORMS = {
       '0.2': [explicitEntryPoints, rewriteComponentAnnotations],
       '0.3': [renameVue2ToVue, pubspecRemoveTransformer, removeInitVue, addBuildYaml,
-              removeNameField, explicitComponents],
+              removeNameField, manualVueDart04Work],
     };
 
     if (argResults.rest.length < 1) {
