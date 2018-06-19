@@ -42,7 +42,7 @@ author: {{author}}
 version: 0.1.0
 description: Project description goes here
 dependencies:
-  vue: ^0.3.0
+  vue: ^0.4.0
 dev_dependencies:
   build_runner: ^0.7.0
   build_web_compilers: ^0.2.0
@@ -55,7 +55,7 @@ version: 0.1.0
 description: Project description goes here
 dependencies:
   aspen_assets: ^0.2.0
-  vue: ^0.3.0
+  vue: ^0.4.0
 dev_dependencies:
   build_runner: ^0.7.0
   build_web_compilers: ^0.2.0
@@ -73,8 +73,6 @@ targets:
           - --minify
           - --trust-type-annotations
           - --trust-primitives
-          - --use-old-frontend
-          - --package-root=.
 ''';
 
 final TEMPLATE_INDEX_HTML = '''
@@ -91,7 +89,7 @@ final TEMPLATE_INDEX_HTML = '''
   <script defer type="application/dart" src="index.vue.dart.js"></script>
 </head>
 
-<body vuedart>
+<body>
   <div id="app">
     <my-component></my-component>
   </div>
@@ -108,14 +106,13 @@ import 'package:{{project}}/my_component.dart';
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
 }
 
 App app;
 
 void main() {
   app = new App();
+  app.create();
 }
 ''';
 
@@ -148,7 +145,6 @@ import 'package:vue/vue.dart';
 
 @VueComponent(name: 'my-component', template: '<<')
 class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
 }
 
 ''';
