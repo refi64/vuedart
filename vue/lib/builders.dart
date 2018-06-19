@@ -180,8 +180,10 @@ class VuedartBuildContext {
 
   String codegenString(String str) => 'r"""${str.replaceAll('"""', '\\"""')}"""';
 
-  String codegenConstructorList(NodeList<Expression> items) =>
-    '[${items.cast<Identifier>().map((item) => '${item.name}.constructor').join(', ')}]';
+  String codegenConstructor(String name) => '${name}()';
+
+  String codegenConstructorList(NodeList<Expression> items, {String suffix = ''}) =>
+    '[${items.cast<Identifier>().map((item) => '${item.name + suffix}()').join(', ')}]';
 
   List<ClassDeclaration> getVueClasses(LibraryElement lib) =>
     lib.units.expand((unit) => unit.unit.declarations)
@@ -375,12 +377,14 @@ $typestring $name${member.parameters.toSource()} =>
     }
 
     var components = (args.named['components'] as ListLiteral)?.elements ?? [];
+    var mixins = (args.named['mixins'] as ListLiteral)?.elements ?? [];
     var opts = '''
   data: {${info.data.map(codegenData).join('\n')}},
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},
   watchers: {${info.watchers.map(codegenWatch).join('\n')}},
   methods: {${info.methods.map(codegenMethod).join('\n')}},
   components: ${codegenConstructorList(components)},
+  mixins: ${codegenConstructorList(mixins, suffix: r'$VueDartMixinImpl')},
     ''';
     var code;
 
@@ -388,7 +392,7 @@ $typestring $name${member.parameters.toSource()} =>
       var name = cls.name.name, creator;
 
       if (ann.name.name == 'VueComponent') {
-        creator = '(context) => new $name(context)';
+        creator = '() => new $name()';
       }
 
       var template = args.named['template'] as StringLiteral;
@@ -413,26 +417,30 @@ $typestring $name${member.parameters.toSource()} =>
 
       styleInject = codegenString(styleInject);
 
-      var mixins = (args.named['mixins'] as ListLiteral)?.elements ?? [];
-
       code = '''
-static VueComponentConstructor constructor = new VueComponentConstructor(
+@override
+VueComponentConstructor get constructor => new VueComponentConstructor(
   name: ${codegenString(name)},
   creator: $creator,
   template: $templateString,
   styleInject: $styleInject,
   props: {${info.props.map(codegenProp).join('\n')}},
-  mixins: ${codegenConstructorList(mixins)},
 $opts
 );
       ''';
 
       if (ann.name.name == 'VueMixin') {
-        rewriter.edit(cls.end-1, cls.end-1, r'''
+        code = '''
   dynamic vuedart_get(String key);
   void vuedart_set(String key, dynamic value);
-  dynamic $ref(String name);
-        ''');
+  dynamic \$ref(String name);
+}
+
+class $name\$VueDartMixinImpl extends VueComponentBase with $name {
+  @override
+  bool get isMixin => true;
+  $code
+''';
       }
     } else {
       var el = args.named['el']?.toSource() ?? 'null';

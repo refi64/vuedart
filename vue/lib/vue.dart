@@ -113,8 +113,8 @@ class VueComponentConstructor {
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
   final Map<String, VueWatcher> watchers;
-  final List<VueComponentConstructor> components;
-  final List<VueComponentConstructor> mixins;
+  final List<VueComponentBase> components;
+  final List<VueComponentBase> mixins;
   Function creator;
 
   bool hasInjectedStyle = false;
@@ -165,10 +165,11 @@ class VueAppConstructor {
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
   final Map<String, VueWatcher> watchers;
-  final List<VueComponentConstructor> components;
+  final List<VueComponentBase> components;
+  final List<VueComponentBase> mixins;
 
   VueAppConstructor({this.el, this.data, this.computed, this.methods, this.watchers,
-                     this.components});
+                     this.components, this.mixins: null});
 
   dynamic jscomputed() => _convertComputed(computed);
   dynamic jswatch() => _convertWatchers(watchers);
@@ -182,6 +183,7 @@ class _VueBase {
 
   dynamic render(CreateElement createElement) => null;
 
+  void created() {}
   void mounted() {}
   void beforeUpdate() {}
   void updated() {}
@@ -246,32 +248,30 @@ class _VueBase {
   void $destroy() => callMethod(vuethis, r'$destroy', []);
 }
 
-class _FakeException {
-  VueAppConstructor constr;
-  _FakeException(this.constr);
-}
-
 class VueComponentBase extends _VueBase {
-  VueComponentBase(dynamic context) {
+  VueComponentConstructor get constructor => null;
+  bool get isMixin => false;
+
+  void _setContext(dynamic context) {
     vuethis = context;
     setProperty(vuethis, r'$dartobj', this);
   }
 
-  static dynamic componentArgs(VueComponentConstructor constr, {bool isMixin: false}) {
-    var props = constr.jsprops();
-    var computed = constr.jscomputed();
-    var watch = constr.jswatch();
+  dynamic componentArgs() {
+    var props = constructor.jsprops();
+    var computed = constructor.jscomputed();
+    var watch = constructor.jswatch();
     var renderFunc;
 
-    if (constr.styleInject.isNotEmpty && !constr.hasInjectedStyle) {
+    if (constructor.styleInject.isNotEmpty && !constructor.hasInjectedStyle) {
       var el = new StyleElement();
-      el.appendText(constr.styleInject);
+      el.appendText(constructor.styleInject);
       document.head.append(el);
 
-      constr.hasInjectedStyle = true;
+      constructor.hasInjectedStyle = true;
     }
 
-    if (constr.template == null) {
+    if (constructor.template == null) {
       renderFunc = allowInteropCaptureThis((context, jsCreateElement) {
         dynamic createElement(dynamic tag, [dynamic arg1, dynamic arg2]) {
           return jsCreateElement(tag is Map ? mapToJs(tag) : tag,
@@ -283,34 +283,43 @@ class VueComponentBase extends _VueBase {
       });
     }
 
-    return mapToJs({
+    var args = mapToJs({
       'props': props,
-      'created': !isMixin ? allowInteropCaptureThis(constr.creator) : null,
       'data': allowInterop(([dynamic _=null]) {
-        var data = mapToJs(constr.data);
+        var data = mapToJs(constructor.data);
         setProperty(data, r'$dartobj', null);
         return data;
       }),
       'computed': computed,
-      'methods': _mapMethodsToJs(constr.methods),
+      'methods': _mapMethodsToJs(constructor.methods),
       'watch': watch,
-      'template': constr.template,
       'render': renderFunc,
-      'components': VueComponentBase.componentsMap(constr.components),
-      'mixins': VueComponentBase.componentListArgs(constr.mixins, isMixin: true),
+      'components': VueComponentBase.componentsMap(constructor.components),
+      'mixins': VueComponentBase.mixinsArgs(constructor.mixins),
     }..addAll(_VueBase.lifecycleHooks));
+
+    if (!isMixin) {
+      void newCreated(dynamic context) {
+        var dartobj = constructor.creator();
+        dartobj._setContext(context);
+        dartobj.created();
+      }
+
+      setProperty(args, 'created', allowInteropCaptureThis(newCreated));
+
+      setProperty(args, 'template', constructor.template);
+    }
+
+    return args;
   }
 
-  static dynamic componentsMap(List<VueComponentConstructor> constrs) =>
+  static dynamic componentsMap(List<VueComponentBase> components) =>
     mapToJs(
-      new Map.fromIterable(constrs, key: (constr) => constr.name,
-                           value: (constr) => VueComponentBase.componentArgs(constr)));
+      new Map.fromIterable(components, key: (component) => component.constructor.name,
+                           value: (component) => component.componentArgs()));
 
-  static List componentListArgs(List<VueComponentConstructor> constrs,
-                                {bool isMixin: false}) =>
-    constrs
-      .map((constr) => VueComponentBase.componentArgs(constr, isMixin: isMixin))
-      .toList();
+  static List mixinsArgs(List<VueComponentBase> mixins) =>
+    mixins.map((mixin) => mixin.componentArgs()).toList();
 }
 
 
@@ -321,8 +330,7 @@ abstract class VueAppOptions {
 class VueAppBase extends _VueBase {
   VueAppConstructor get constructor => null;
 
-  VueAppBase(dynamic context) {
-    if (context == null) throw new _FakeException(constructor);
+  void _setContext(dynamic context) {
     vuethis = context;
     setProperty(vuethis, '\$dartobj', this);
   }
@@ -336,34 +344,26 @@ class VueAppBase extends _VueBase {
                         (result, opts) => result..addAll(opts.appOptions));
   }
 
-  static create(Function creator, {List<VueAppOptions> options}) {
-    var constr;
-
-    try {
-      creator(null);
-    } on _FakeException catch (ex) {
-      constr = ex.constr;
-    }
-
-    var computed = constr.jscomputed();
-    var watch = constr.jswatch();
-    var result;
+  void create({List<VueAppOptions> options}) {
+    var computed = constructor.jscomputed();
+    var watch = constructor.jswatch();
 
     var args = mapToJs({
-      'el': constr.el,
+      'el': constructor.el,
       'created': allowInteropCaptureThis((context) {
-        result = creator(context);
+        _setContext(context);
+        created();
       }),
-      'data': mapToJs(constr.data),
+      'data': mapToJs(constructor.data),
       'computed': computed,
-      'methods': _mapMethodsToJs(constr.methods),
+      'methods': _mapMethodsToJs(constructor.methods),
       'watch': watch,
-      'components': VueComponentBase.componentsMap(constr.components),
+      'components': VueComponentBase.componentsMap(constructor.components),
+      'mixins': VueComponentBase.mixinsArgs(constructor.mixins),
     }..addAll(_VueBase.lifecycleHooks)
      ..addAll(VueAppBase._mergeOptions(options)));
 
-    callConstructor(_vue, [args]);
-    return result;
+      callConstructor(_vue, [args]);
   }
 }
 
@@ -389,8 +389,8 @@ class VueComponent {
 
 class VueApp {
   final String el;
-  final List components;
-  const VueApp({this.el, this.components});
+  final List components, mixins;
+  const VueApp({this.el, this.components, this.mixins});
 }
 
 class VueMixin {

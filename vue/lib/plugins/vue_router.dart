@@ -65,8 +65,8 @@ class VueRouterLocation {
 
 class VueRoute<T extends VueComponentBase> {
   String path, name;
-  VueComponentConstructor component;
-  Map<String, VueComponentConstructor> components;
+  VueComponentBase component;
+  Map<String, VueComponentBase> components;
   dynamic redirect, props;
   List<VueRoute> children;
 
@@ -82,7 +82,7 @@ class VueRoute<T extends VueComponentBase> {
 
     for (var view in components.keys) {
       var component = components[view];
-      jsComponents[view] = VueComponentBase.componentArgs(component);
+      jsComponents[view] = component.componentArgs();
     }
 
     // Round-trip: treat a single component as named views, then undo it.

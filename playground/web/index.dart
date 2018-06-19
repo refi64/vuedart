@@ -8,10 +8,6 @@ import 'dart:html';
 
 @VueComponent(template: '<p>todo item #{{id}} <router-view></router-view></p>')
 class SingleItem extends VueComponentBase with VueRouterMixin {
-  SingleItem(context): super(context);
-
-  static final constructor = null;
-
   @computed
   int get id => int.parse($route.params['id']);
 }
@@ -19,10 +15,6 @@ class SingleItem extends VueComponentBase with VueRouterMixin {
 
 @VueComponent(template: '<p>todo item #{{id}} INFO</p>')
 class SingleItemInfo extends VueComponentBase with VueRouterMixin {
-  SingleItemInfo(context): super(context);
-
-  static final constructor = null;
-
   @computed
   int get id => int.parse($route.params['id']);
 }
@@ -30,10 +22,6 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
 
 @VueApp(el: '#app', components: const [TodoItem])
 class App extends VueAppBase with VueRouterMixin {
-  factory App({options}) => VueAppBase.create((context) => App._(context),
-                                              options: options);
-  App._(context): super(context);
-
   @override
   void mounted() {
     print('mounted!');
@@ -63,12 +51,14 @@ App app;
 
 Future main() async {
   final router = VueRouter(routes: [
-    VueRoute(path: '/item/:id', component: SingleItem.constructor, children: [
-      VueRoute(path: 'info', component: SingleItemInfo.constructor),
+    VueRoute(path: '/item/:id', component: SingleItem(), children: [
+      VueRoute(path: 'info', component: SingleItemInfo()),
     ]),
     VueRoute(path: '/singleitem/:id', components: {
-      'single': SingleItem.constructor,
+      'single': SingleItem(),
     }),
   ]);
-  app = App(options: [router]);
+
+  app = App();
+  app.create(options: [router]);
 }

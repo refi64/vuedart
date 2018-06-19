@@ -18,19 +18,22 @@ class TodoEntry {
 
 @VueComponent(template: '<p><slot></slot></p>')
 class TestComponent extends VueComponentBase {
-  TestComponent(context): super(context);
 }
 
 @VueMixin()
 abstract class TodoMixin {
   @method
   String getTodoText(TodoEntry todo) => todo.text;
+
+  @computed
+  String get todoMixinData => 'TodoMixin data!';
 }
 
 @VueComponent(template: '<<', components: const [TestComponent],
               mixins: const [TodoMixin])
-class TodoItem extends VueComponentBase with TodoMixin {
-  TodoItem(context): super(context) { test = 'abc'; }
+class TodoItem extends VueComponentBase {
+  @method
+  String getTodoText2(TodoEntry todo) => todo.text;
 
   @override
   void mounted() {

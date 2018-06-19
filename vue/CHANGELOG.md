@@ -8,7 +8,14 @@
 - **BREAKING CHANGE** A new, extensible `VueAppOptions` API has been added for passing
   miscellaneous options to app constructors, and the specialized `router` argument
   has been dropped in favor of `options`.
+- **BREAKING CHANGE** The constructor boilerplate has all been dropped! No more
+  `Component(context) => super(context)` or `factory App(context) => ...`.
+- **BREAKING CHANGE** As a side-effect of the above, it is now *prohibited* to access
+  anything Vue-related in your constructors. To be precise, *constructors can no longer be
+  used as a substitute for the created lifecycle hook*. Instead, override the new
+  `void created()` method.
 - Dart 2.0 is now supported!
+- Mixins are now supported on a `VueApp`.
 - `bool` props now created a boolean prop, instead of a prop that's either `null` or
   an empty string.
 
