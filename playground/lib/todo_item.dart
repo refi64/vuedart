@@ -31,7 +31,7 @@ abstract class TodoMixin {
 
 @VueComponent(template: '<<', components: const [TestComponent],
               mixins: const [TodoMixin])
-class TodoItem extends VueComponentBase {
+class TodoItem extends VueComponentBase with TodoMixin {
   @method
   String getTodoText2(TodoEntry todo) => todo.text;
 

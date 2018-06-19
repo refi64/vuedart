@@ -271,7 +271,7 @@ class VueComponentBase extends _VueBase {
       constructor.hasInjectedStyle = true;
     }
 
-    if (constructor.template == null) {
+    if (constructor.template == null && !isMixin) {
       renderFunc = allowInteropCaptureThis((context, jsCreateElement) {
         dynamic createElement(dynamic tag, [dynamic arg1, dynamic arg2]) {
           return jsCreateElement(tag is Map ? mapToJs(tag) : tag,
@@ -293,21 +293,18 @@ class VueComponentBase extends _VueBase {
       'computed': computed,
       'methods': _mapMethodsToJs(constructor.methods),
       'watch': watch,
+      'template': constructor.template,
       'render': renderFunc,
       'components': VueComponentBase.componentsMap(constructor.components),
       'mixins': VueComponentBase.mixinsArgs(constructor.mixins),
     }..addAll(_VueBase.lifecycleHooks));
 
     if (!isMixin) {
-      void newCreated(dynamic context) {
+      setProperty(args, 'created', allowInteropCaptureThis((dynamic context) {
         var dartobj = constructor.creator();
         dartobj._setContext(context);
         dartobj.created();
-      }
-
-      setProperty(args, 'created', allowInteropCaptureThis(newCreated));
-
-      setProperty(args, 'template', constructor.template);
+      }));
     }
 
     return args;

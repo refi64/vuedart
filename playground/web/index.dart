@@ -20,8 +20,8 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
 }
 
 
-@VueApp(el: '#app', components: const [TodoItem])
-class App extends VueAppBase with VueRouterMixin {
+@VueApp(el: '#app', components: const [TodoItem], mixins: const [TodoMixin])
+class App extends VueAppBase with VueRouterMixin, TodoMixin {
   @override
   void mounted() {
     print('mounted!');
