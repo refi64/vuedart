@@ -10,6 +10,8 @@ dependencies:
   build: ^0.12.4
   csslib: ^0.14.1
   html: ^0.13.2
+  sass: ^1.6.0
+  sass_builder: ^2.0.0
   scopify: ^0.2.0
   source_maps: ^0.10.4
   source_span: ^1.4.0

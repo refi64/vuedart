@@ -6,6 +6,8 @@ import 'package:build/build.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:csslib/visitor.dart' show CssPrinter;
 import 'package:html/parser.dart' as html;
+import 'package:sass/sass.dart' as sass;
+import 'package:sass_builder/src/build_importer.dart';
 import 'package:scopify/scopify.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 import 'package:source_maps/refactor.dart';
@@ -81,14 +83,17 @@ class VueImportedComponent {
 
 
 class VuedartBuildContext {
+  final BuilderOptions options;
   final BuildStep buildStep;
+
+  sass.OutputStyle sassOutputStyle = sass.OutputStyle.expanded;
 
   SourceFile source;
   AssetId inputId;
   TextEditTransaction rewriter;
   CompilationUnit unit;
 
-  VuedartBuildContext(this.buildStep): inputId = buildStep.inputId;
+  VuedartBuildContext(this.options, this.buildStep): inputId = buildStep.inputId;
 
   void error(AstNode node, String error) {
     var span = source.span(node.offset, node.end);
@@ -337,8 +342,20 @@ $typestring $name${member.parameters.toSource()} =>
         var printer = new CssPrinter();
 
         for (var style in styles) {
+          var styleContents = style.innerHtml;
+
+          var lang = style.attributes['lang'];
+          if (lang == 'scss' || lang == 'sass') {
+            styleContents = await sass.compileStringAsync(
+              styleContents,
+              importers: [new BuildImporter(buildStep)],
+              indented: lang == 'sass',
+              style: sassOutputStyle,
+            );
+          }
+
           var errors = [];
-          var parsed = css.parse(style.innerHtml, errors: errors);
+          var parsed = css.parse(styleContents, errors: errors);
 
           if (errors.isNotEmpty) {
             error(ann, 'errors parsing CSS style');
@@ -458,6 +475,21 @@ $opts
   }
 
   Future build() async {
+    var outputStyle = options.config['output_style'];
+    if (outputStyle != null) {
+      switch (outputStyle) {
+      case 'expanded':
+        sassOutputStyle = sass.OutputStyle.expanded;
+        break;
+      case 'compressed':
+        sassOutputStyle = sass.OutputStyle.compressed;
+        break;
+      default:
+        log.severe('Invalid output style: $outputStyle');
+        break;
+      }
+    }
+
     if (!await buildStep.canRead(inputId)) {
       return new Future.value();
     }
@@ -503,9 +535,11 @@ $opts
 
 
 class _VuedartBuilder extends Builder {
-  _VuedartBuilder();
+  BuilderOptions options;
+  _VuedartBuilder(this.options);
 
-  factory _VuedartBuilder.fromOptions(BuilderOptions options) => new _VuedartBuilder();
+  factory _VuedartBuilder.fromOptions(BuilderOptions options) =>
+    new _VuedartBuilder(options);
 
   @override final buildExtensions = const {
     '.dart': const ['.vue.dart'],
@@ -513,7 +547,7 @@ class _VuedartBuilder extends Builder {
 
   @override
   Future build(BuildStep buildStep) async {
-    return await new VuedartBuildContext(buildStep).build();
+    return await new VuedartBuildContext(options, buildStep).build();
   }
 }
 

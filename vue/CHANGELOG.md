@@ -15,6 +15,8 @@
   used as a substitute for the created lifecycle hook*. Instead, override the new
   `void created()` method.
 - Dart 2.0 is now supported!
+- You can now use Sass in your styles!! Just set `lang="sass"` or `lang="scss"` on your
+  `<style scoped>` tags.
 - Mixins are now supported on a `VueApp`.
 - `bool` props now created a boolean prop, instead of a prop that's either `null` or
   an empty string.
