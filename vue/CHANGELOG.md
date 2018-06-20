@@ -8,12 +8,14 @@
 - **BREAKING CHANGE** A new, extensible `VueAppOptions` API has been added for passing
   miscellaneous options to app constructors, and the specialized `router` argument
   has been dropped in favor of `options`.
+- **BREAKING CHANGE** The overridable lifecycle methods now all have a `lifecycle`
+  prefix, e.g. `void mounted` became `void lifecycleMounted`.
 - **BREAKING CHANGE** The constructor boilerplate has all been dropped! No more
   `Component(context) => super(context)` or `factory App(context) => ...`.
 - **BREAKING CHANGE** As a side-effect of the above, it is now *prohibited* to access
   anything Vue-related in your constructors. To be precise, *constructors can no longer be
   used as a substitute for the created lifecycle hook*. Instead, override the new
-  `void created()` method.
+  `void lifecycleCreated()` method.
 - Dart 2.0 is now supported!
 - You can now use Sass in your styles!! Just set `lang="sass"` or `lang="scss"` on your
   `<style scoped>` tags.

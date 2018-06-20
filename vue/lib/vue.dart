@@ -183,23 +183,23 @@ class _VueBase {
 
   dynamic render(CreateElement createElement) => null;
 
-  void created() {}
-  void mounted() {}
-  void beforeUpdate() {}
-  void updated() {}
-  void activated() {}
-  void deactivated() {}
-  void beforeDestroy() { }
-  void destroyed() {}
+  void lifecycleCreated() {}
+  void lifecycleMounted() {}
+  void lifecycleBeforeUpdate() {}
+  void lifecycleUpdated() {}
+  void lifecycleActivated() {}
+  void lifecycleDeactivated() {}
+  void lifecycleBeforeDestroy() { }
+  void lifecycleDestroyed() {}
 
   static Map<String, dynamic> lifecycleHooks = {
-    'mounted': _interopWithObj((obj) => obj.mounted()),
-    'beforeUpdate': _interopWithObj((obj) => obj.beforeUpdate()),
-    'updated': _interopWithObj((obj) => obj.updated()),
-    'activated': _interopWithObj((obj) => obj.activated()),
-    'deactivated': _interopWithObj((obj) => obj.deactivated()),
-    'beforeDestroy': _interopWithObj((obj) => obj.beforeDestroy()),
-    'destroyed': _interopWithObj((obj) => obj.destroyed()),
+    'mounted': _interopWithObj((obj) => obj.lifecycleMounted()),
+    'beforeUpdate': _interopWithObj((obj) => obj.lifecycleBeforeDestroy()),
+    'updated': _interopWithObj((obj) => obj.lifecycleUpdated()),
+    'activated': _interopWithObj((obj) => obj.lifecycleActivated()),
+    'deactivated': _interopWithObj((obj) => obj.lifecycleDeactivated()),
+    'beforeDestroy': _interopWithObj((obj) => obj.lifecycleBeforeDestroy()),
+    'destroyed': _interopWithObj((obj) => obj.lifecycleDestroyed()),
   };
 
   dynamic $ref(String name) {
@@ -303,7 +303,7 @@ class VueComponentBase extends _VueBase {
       setProperty(args, 'created', allowInteropCaptureThis((dynamic context) {
         var dartobj = constructor.creator();
         dartobj._setContext(context);
-        dartobj.created();
+        dartobj.lifecycleCreated();
       }));
     }
 
@@ -349,7 +349,7 @@ class VueAppBase extends _VueBase {
       'el': constructor.el,
       'created': allowInteropCaptureThis((context) {
         _setContext(context);
-        created();
+        lifecycleCreated();
       }),
       'data': mapToJs(constructor.data),
       'computed': computed,

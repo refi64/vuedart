@@ -433,6 +433,7 @@ class MigrateCommand extends Command {
     warn('    - Remove all the constructor boilerplate.');
     warn('    - Change the old router argument to the new options API.');
     warn('    - Change component symbols in router declarations to constructors.')
+    warn('    - Rename the lifecycle callbacks (e.g. mounted -> lifecycleMounted).');
     warn('  See the release blog post for more info.');
   }
 
