@@ -18,20 +18,22 @@
 
 <body>
   <div id="app" v-cloak>
-    <site-navbar nested></site-navbar>
+    <m-typography>
+      <site-navbar nested></site-navbar>
 
-    <div class="mdc-layout-grid">
-      <div class="mdc-layout-grid__inner">
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2-desktop">
-          <docs-navlist></docs-navlist>
-        </div>
+      <m-layout-grid>
+        <m-layout-grid-inner>
+          <m-layout-grid-cell :span-desktop="2">
+            <docs-navlist></docs-navlist>
+          </m-layout-grid-cell>
 
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-10">
-          <div v-pre>
-            <+ value="$content">
-          </div>
-        </div>
-      </div>
-    </div>
+          <m-layout-grid-cell :span="10">
+            <div>
+              <+ value="$content">
+            </div>
+          </m-layout-grid-cell>
+        </m-layout-grid-inner>
+      </m-layout-grid>
+    </m-typography>
   </div>
 </body>

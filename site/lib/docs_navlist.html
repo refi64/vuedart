@@ -1,32 +1,34 @@
 <template vuedart>
-  <nav class="nav mdc-drawer mdc-drawer--permanent mdc-typography">
-    <nav class="mdc-list">
+  <m-drawer-permanent>
+    <m-list>
       <template v-for="entry in entries">
-        <a :class="{'mdc-list-item': true, 'mdc-list-item--activated': isCurrentPage(entry)}"
-           :href="getUrl(entry)">
-          {{entry.title}}
+        <a :href="getUrl(entry)">
+          <m-list-item :activated="isCurrentPage(entry)">
+            <span slot="text">{{entry.title}}</span>
+          </m-list-item>
         </a>
 
-        <div class="mdc-list nested-list" v-if="isCurrentPage(entry)">
-          <a class="mdc-list-item" v-for="content in entry.contents"
-             :href="getUrl(entry, content[1])">
-            • {{content[0]}}
+        <m-list class="nested-list" v-if="isCurrentPage(entry)">
+          <a :href="getUrl(entry, content[1])" v-for="content in entry.contents">
+            <m-list-item>
+              <span slot="text">• {{content[0]}}</span>
+            </m-list-item>
           </a>
-        </div>
+        </m-list>
       </template>
-    </nav>
-  </nav>
+    </m-list>
+  </m-drawer-permanent>
 </template>
 
 <style scoped>
 
+  a {
+    color: inherit !important;
+  }
+
   .nav {
     height: 100%;
     width: 100%;
-  }
-
-  .mdc-list-item--activated {
-    font-weight: bold;
   }
 
   .nested-list {

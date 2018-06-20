@@ -36,7 +36,7 @@ class TodoItem extends VueComponentBase with TodoMixin {
   String getTodoText2(TodoEntry todo) => todo.text;
 
   @override
-  void mounted() {
+  void lifecycleMounted() {
     print(li.runtimeType);
     print(tstcomp.runtimeType);
   }

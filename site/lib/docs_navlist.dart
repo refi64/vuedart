@@ -4,6 +4,8 @@ library vuedart_site.docs_navlist;
 import 'dart:html';
 
 import 'package:vue/vue.dart';
+
+import 'package:vdmc/vdmc.dart';
 import 'package:js/js.dart';
 
 
@@ -16,7 +18,7 @@ class Entry {
   external factory Entry({String title, String addr, List<List<String>> contents});
 }
 
-@VueComponent(template: '<<')
+@VueComponent(template: '<<', components: [MDrawerPermanent, MList, MListItem])
 class DocsNavlist extends VueComponentBase {
   @method
   String getUrl(Entry entry, [String ref = '']) =>

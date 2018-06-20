@@ -16,6 +16,14 @@ class MarkdownBuilder implements Builder {
     var markdown = await buildStep.readAsString(inputId);
     var html = markdownToHtml(markdown, extensionSet: ExtensionSet.gitHubWeb);
 
+    html = html.replaceAll('<h1 ', '<m-typo-headline :level="3" ')
+               .replaceAll('<h2 ', '<m-typo-headline :level="4" ')
+               .replaceAll('<h3 ', '<m-typo-headline :level="5" ')
+               .replaceAll('</h1>', '</m-typo-headline>')
+               .replaceAll('</h2>', '</m-typo-headline>')
+               .replaceAll('</h3>', '</m-typo-headline>')
+               .replaceAll('<code', '<code v-pre');
+
     var firstLine = markdown.split('\n')[0];
     var title = firstLine.substring(2);
 

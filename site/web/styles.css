@@ -3,14 +3,6 @@
   --mdc-theme-secondary: #0D47A1;
 }
 
-.mdc-top-app-bar {
-  position: relative;
-}
-
-body {
-  font-family: Roboto, sans-serif;
-}
-
 .center {
   text-align: center;
 }
@@ -23,10 +15,10 @@ a {
   text-decoration: none;
 }
 
-a:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item) {
+a:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item):not(.mdc-button) {
   color: var(--mdc-theme-secondary);
 }
 
-a:visited:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item) {
+a:visited:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item):not(.mdc-button) {
   color: var(--mdc-theme-secondary);
 }

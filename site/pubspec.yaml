@@ -8,6 +8,7 @@ dependencies:
   js: ^0.6.1
   markdown: ^2.0.0
   protic: ^0.1.1
+  vdmc: any
   vue: any
 dev_dependencies:
   build_runner: any
@@ -15,3 +16,5 @@ dev_dependencies:
 dependency_overrides:
   vue:
     path: ../vue
+  vdmc:
+    path: ../../vdmc/vdmc

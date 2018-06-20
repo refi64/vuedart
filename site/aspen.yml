@@ -8,11 +8,6 @@ targets:
       default: node_modules/normalize.css/normalize.css
     - dev: node_modules/vue/dist/vue.js
       prod: node_modules/vue/dist/vue.min.js
-    - dev: node_modules/material-components-web/dist/material-components-web.js
-      prod: node_modules/material-components-web/dist/material-components-web.min.js
-    - name: mdc-web-css
-      dev: node_modules/material-components-web/dist/material-components-web.css
-      prod: node_modules/material-components-web/dist/material-components-web.min.css
     - node_modules/prismjs/prism.js
     - dev: node_modules/prismjs/components/prism-dart.js
       prod: node_modules/prismjs/components/prism-dart.min.js

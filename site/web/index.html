@@ -18,12 +18,13 @@
 
 <body>
   <div id="app" v-cloak>
+    <m-typography>
     <site-navbar></site-navbar>
 
-    <div class="mdc-layout-grid">
-      <div class="mdc-layout-grid__inner">
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12">
-          <h2>Enter the world of VueDart!</h2>
+    <m-layout-grid>
+      <m-layout-grid-inner>
+        <m-layout-grid-cell :span="12">
+          <m-typo-headline :level="4">Enter the world of VueDart!</m-typo-headline>
 
           <p>
             VueDart is a work-in-progress library that lets you build your Vue web apps
@@ -39,50 +40,44 @@
             </i>
           </p>
 
-          <a href="pages/intro.html">
-            <button class="mdc-button mdc-button--raised">Docs</button>
-          </a>
-          <a href="https://refi64.com/tags.html#vuedart">
-            <button class="mdc-button mdc-button--raised">Blog</button>
-          </a>
-          <a href="https://github.com/kirbyfan64/vuedart">
-            <button class="mdc-button mdc-button--raised">Source</button>
-          </a>
-        </div>
+          <m-button raised href="pages/intro.html">Docs</m-button>
+          <m-button raised href="https://refi64.com/tags.html#vuedart">Blog</m-button>
+          <m-button raised href="https://github.com/kirbyfan64/vuedart">Source</m-button>
+        </m-layout-grid-cell>
 
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-4">
+        <m-layout-grid-cell :span="4">
           <div class="center">
-            <h3>Familiar</h3>
+            <m-typo-headline :level="5">Familiar</m-typo-headline>
 
             <p>VueDart tries to follow existing Vue conventions for best
                familiarity.</p>
           </div>
-        </div>
+        </m-layout-grid-cell>
 
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-4">
+        <m-layout-grid-cell :span="4">
           <div class="center">
-            <h3>Powerful</h3>
+            <m-typo-headline :level="5">Powerful</m-typo-headline>
 
             <p>Many of the Vue.js features you know and love are available,
                and the others will be added soon!</p>
           </div>
-        </div>
+        </m-layout-grid-cell>
 
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-4">
+        <m-layout-grid-cell :span="4">
           <div class="center">
-            <h3>Modern</h3>
+            <m-typo-headline :level="5">Modern</m-typo-headline>
 
             <p>VueDart has been updated for Dart 2.0 and <code>package:build</code>
                support. Now you can easily experience Dart's new safer type system and
                incremental builds.</p>
           </div>
-        </div>
+        </m-layout-grid-cell>
 
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-3"></div>
+        <m-layout-grid-cell :span="3"></m-layout-grid-cell>
 
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
+        <m-layout-grid-cell :span="6">
           <div class="center">
-            <h3>See for yourself!</h3>
+            <m-typo-headline :level="5">See for yourself!</m-typo-headline>
 
             <pre><code class="language-dart" v-pre>@VueComponent(template: '&lt;p&gt;{{uppercaseName}}&lt;/p&gt;')
   class ShowName extends VueComponentBase {
@@ -96,10 +91,11 @@
   }
   </code></pre>
           </div>
-        </div>
+        </m-layout-grid-cell>
 
-        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-3"></div>
-      </div>
-    </div>
+        <m-layout-grid-cell :span="3"></m-layout-grid-cell>
+      </m-layout-grid-inner>
+    </m-layout-grid>
+    </m-typography>
   </div>
 </body>

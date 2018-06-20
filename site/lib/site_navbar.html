@@ -1,16 +1,14 @@
 <template vuedart>
-  <header class="mdc-top-app-bar">
-    <div class="mdc-top-app-bar__row">
-      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-        <a :href="relUrl('index.html')" class="mdc-top-app-bar__navigation-icon">
-          <img class="icon" :src="relUrl('favicon.ico')">
-        </a>
-        <span class="title mdc-top-bar__title">VueDart</span>
-      </section>
-    </div>
-  </header>
+  <div>
+    <m-top-app-bar>
+      <a :href="relUrl('index.html')" slot="navigation">
+        <img class="icon" :src="relUrl('favicon.ico')">
+      </a>
+      <span>VueDart</span>
+    </m-top-app-bar>
 
-  </header>
+    <m-top-app-bar-fixed-adjust></m-top-app-bar-fixed-adjust>
+  </div>
 </template>
 
 <style scoped>
