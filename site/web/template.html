@@ -10,30 +10,16 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono|Material+Icons">
 
-  <script src="../dist/vendor.js"></script>
-  <script defer src="docs.vue.dart.js"></script>
+  <script src="dist/vendor.js"></script>
+  <script defer src="index.vue.dart.js"></script>
 
   <style> [v-cloak] { display: none; } </style>
 </head>
 
 <body>
   <div id="app" v-cloak>
-    <m-typography>
-      <site-navbar nested></site-navbar>
-
-      <m-layout-grid>
-        <m-layout-grid-inner>
-          <m-layout-grid-cell :span-desktop="2">
-            <docs-navlist></docs-navlist>
-          </m-layout-grid-cell>
-
-          <m-layout-grid-cell :span="10">
-            <div>
-              <+ value="$content">
-            </div>
-          </m-layout-grid-cell>
-        </m-layout-grid-inner>
-      </m-layout-grid>
-    </m-typography>
+    <app-root>
+      <+ value="$content">
+    </app-root>
   </div>
 </body>

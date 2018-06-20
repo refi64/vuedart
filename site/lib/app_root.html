@@ -1,0 +1,59 @@
+<template vuedart>
+  <m-typography>
+    <m-top-app-bar>
+      <m-icon icon="menu" slot="navigation" v-if="mobile" @click="toggleNav()"></m-icon>
+      <a class="home-link" href="index.html">
+        <img class="icon" src="favicon.ico">
+        <span class="title" v-if="!mobile">VueDart</span>
+      </a>
+      <div slot="actions" v-if="mobile"></div>
+    </m-top-app-bar>
+
+    <m-top-app-bar-fixed-adjust></m-top-app-bar-fixed-adjust>
+
+    <m-layout-grid>
+      <m-layout-grid-inner>
+        <m-layout-grid-cell :span="2" v-if="!mobile">
+          <m-drawer-persistent>
+            <app-navlist></app-navlist>
+          </m-drawer-persistent>
+        </m-layout-grid-cell>
+
+        <m-layout-grid-cell :span="10" :span-phone="4">
+          <m-drawer-temporary ref="mobileNav" :open="navOpen" @change="navChanged"
+                              v-if="mobile">
+            <m-top-app-bar-fixed-adjust></m-top-app-bar-fixed-adjust>
+            <app-navlist></app-navlist>
+          </m-drawer-temporary>
+          <slot></slot>
+        </m-layout-grid-cell>
+      </m-layout-grid-inner>
+    </m-layout-grid>
+  </m-typography>
+</template>
+
+<style scoped bleeds>
+
+  .mdc-top-app-bar__section {
+    justify-content: space-between;
+  }
+
+</style>
+
+<style scoped>
+
+  .home-link {
+    color: inherit !important;
+  }
+
+  .icon {
+    width: 28px;
+    height: auto;
+    vertical-align: middle;
+  }
+
+  .title {
+    vertical-align: middle;
+  }
+
+</style>

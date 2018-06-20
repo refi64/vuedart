@@ -1,0 +1,33 @@
+<template vuedart>
+  <m-list class="overflow">
+    <template v-for="entry in entries">
+      <a :href="getUrl(entry)">
+        <m-list-item :activated="isCurrentPage(entry)">
+          <span slot="text">{{entry.title}}</span>
+        </m-list-item>
+      </a>
+
+      <a :href="getUrl(entry, content[1])" v-for="content in entry.contents">
+        <m-list-item>
+          <span slot="text" class="nested-list-item">• {{content[0]}}</span>
+        </m-list-item>
+      </a>
+    </template>
+  </m-list>
+</template>
+
+<style scoped>
+
+  a {
+    color: inherit !important;
+  }
+
+  .overflow {
+    overflow-y: auto;
+  }
+
+  .nested-list-item {
+    padding-left: 1em;
+  }
+
+</style>

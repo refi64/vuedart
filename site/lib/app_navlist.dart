@@ -18,11 +18,11 @@ class Entry {
   external factory Entry({String title, String addr, List<List<String>> contents});
 }
 
-@VueComponent(template: '<<', components: [MDrawerPermanent, MList, MListItem])
-class DocsNavlist extends VueComponentBase {
+@VueComponent(template: '<<', components: [MList, MListItem])
+class AppNavlist extends VueComponentBase {
   @method
   String getUrl(Entry entry, [String ref = '']) =>
-    '../pages/${entry.addr}${ref.isNotEmpty ? '#$ref' : ''}';
+    '${entry.addr}${ref.isNotEmpty ? '#$ref' : ''}';
 
   @method
   bool isCurrentPage(Entry entry) =>

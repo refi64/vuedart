@@ -18,84 +18,81 @@
 
 <body>
   <div id="app" v-cloak>
-    <m-typography>
-    <site-navbar></site-navbar>
+    <app-root>
+      <m-layout-grid>
+        <m-layout-grid-inner>
+          <m-layout-grid-cell :span="12">
+            <m-typo-headline :level="4">Enter the world of VueDart!</m-typo-headline>
 
-    <m-layout-grid>
-      <m-layout-grid-inner>
-        <m-layout-grid-cell :span="12">
-          <m-typo-headline :level="4">Enter the world of VueDart!</m-typo-headline>
+            <p>
+              VueDart is a work-in-progress library that lets you build your Vue web
+              apps using Dart, including
+              <a href="https://github.com/kirbyfan64/vuedart/tree/master/site">this very
+              site</a>.
+            </p>
 
-          <p>
-            VueDart is a work-in-progress library that lets you build your Vue web apps
-            using Dart, including
-            <a href="https://github.com/kirbyfan64/vuedart/tree/master/site">this very
-            site</a>.
-          </p>
+            <p>
+              <i>
+                Latest News:
+                <a href="/posts/vuedart-0.3.1-released.html">VueDart 0.3.1 released!</a>
+              </i>
+            </p>
 
-          <p>
-            <i>
-              Latest News:
-              <a href="/posts/vuedart-0.3.1-released.html">VueDart 0.3.1 released!</a>
-            </i>
-          </p>
+            <m-button raised href="intro.html">Get started</m-button>
+            <m-button raised href="https://refi64.com/tags.html#vuedart">Blog</m-button>
+            <m-button raised href="https://github.com/kirbyfan64/vuedart">Source</m-button>
+          </m-layout-grid-cell>
 
-          <m-button raised href="pages/intro.html">Docs</m-button>
-          <m-button raised href="https://refi64.com/tags.html#vuedart">Blog</m-button>
-          <m-button raised href="https://github.com/kirbyfan64/vuedart">Source</m-button>
-        </m-layout-grid-cell>
+          <m-layout-grid-cell :span="4">
+            <div class="center">
+              <m-typo-headline :level="5">Familiar</m-typo-headline>
 
-        <m-layout-grid-cell :span="4">
-          <div class="center">
-            <m-typo-headline :level="5">Familiar</m-typo-headline>
+              <p>VueDart tries to follow existing Vue conventions for best
+                 familiarity.</p>
+            </div>
+          </m-layout-grid-cell>
 
-            <p>VueDart tries to follow existing Vue conventions for best
-               familiarity.</p>
-          </div>
-        </m-layout-grid-cell>
+          <m-layout-grid-cell :span="4">
+            <div class="center">
+              <m-typo-headline :level="5">Powerful</m-typo-headline>
 
-        <m-layout-grid-cell :span="4">
-          <div class="center">
-            <m-typo-headline :level="5">Powerful</m-typo-headline>
+              <p>Many of the Vue.js features you know and love are available,
+                 and the others will be added soon!</p>
+            </div>
+          </m-layout-grid-cell>
 
-            <p>Many of the Vue.js features you know and love are available,
-               and the others will be added soon!</p>
-          </div>
-        </m-layout-grid-cell>
+          <m-layout-grid-cell :span="4">
+            <div class="center">
+              <m-typo-headline :level="5">Modern</m-typo-headline>
 
-        <m-layout-grid-cell :span="4">
-          <div class="center">
-            <m-typo-headline :level="5">Modern</m-typo-headline>
+              <p>VueDart has been updated for Dart 2.0 and <code>package:build</code>
+                 support. Now you can easily experience Dart's new safer type system and
+                 incremental builds.</p>
+            </div>
+          </m-layout-grid-cell>
 
-            <p>VueDart has been updated for Dart 2.0 and <code>package:build</code>
-               support. Now you can easily experience Dart's new safer type system and
-               incremental builds.</p>
-          </div>
-        </m-layout-grid-cell>
+          <m-layout-grid-cell :span="3"></m-layout-grid-cell>
 
-        <m-layout-grid-cell :span="3"></m-layout-grid-cell>
+          <m-layout-grid-cell :span="6">
+            <div class="center">
+              <m-typo-headline :level="5">See for yourself!</m-typo-headline>
 
-        <m-layout-grid-cell :span="6">
-          <div class="center">
-            <m-typo-headline :level="5">See for yourself!</m-typo-headline>
+              <pre><code class="language-dart" v-pre>@VueComponent(template: '&lt;p&gt;{{uppercaseName}}&lt;/p&gt;')
+class ShowName extends VueComponentBase {
+  ShowName(context): super(context);
 
-            <pre><code class="language-dart" v-pre>@VueComponent(template: '&lt;p&gt;{{uppercaseName}}&lt;/p&gt;')
-  class ShowName extends VueComponentBase {
-    ShowName(context): super(context);
+  @prop
+  String name;
 
-    @prop
-    String name;
+  @computed
+  String get uppercaseName =&gt; name.toUpperCase();
+}</code></pre>
+            </div>
+          </m-layout-grid-cell>
 
-    @computed
-    String get uppercaseName =&gt; name.toUpperCase();
-  }
-  </code></pre>
-          </div>
-        </m-layout-grid-cell>
-
-        <m-layout-grid-cell :span="3"></m-layout-grid-cell>
-      </m-layout-grid-inner>
-    </m-layout-grid>
-    </m-typography>
+          <m-layout-grid-cell :span="3"></m-layout-grid-cell>
+        </m-layout-grid-inner>
+      </m-layout-grid>
+    </app-root>
   </div>
 </body>

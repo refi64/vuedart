@@ -5,10 +5,10 @@ import 'package:vue/vue.dart';
 import 'package:vdmc/vdmc.dart';
 
 import 'package:vuedart_site/common.dart';
-import 'package:vuedart_site/site_navbar.dart';
+import 'package:vuedart_site/app_root.dart';
 
 
-@VueApp(el: '#app', components: [SiteNavbar, MButton, MLayoutGrid, MLayoutGridCell,
+@VueApp(el: '#app', components: [AppRoot, MButton, MLayoutGrid, MLayoutGridCell,
                                  MLayoutGridInner, MTypography, MTypoHeadline])
 class App extends VueAppBase {
 }
