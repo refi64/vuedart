@@ -20,7 +20,7 @@ class TodoEntry {
 class TestComponent extends VueComponentBase {
 }
 
-@VueMixin()
+@VueMixin(components: const [TestComponent])
 abstract class TodoMixin {
   @method
   String getTodoText(TodoEntry todo) => todo.text;
@@ -29,8 +29,7 @@ abstract class TodoMixin {
   String get todoMixinData => 'TodoMixin data!';
 }
 
-@VueComponent(template: '<<', components: const [TestComponent],
-              mixins: const [TodoMixin])
+@VueComponent(template: '<<', mixins: const [TodoMixin])
 class TodoItem extends VueComponentBase with TodoMixin {
   @method
   String getTodoText2(TodoEntry todo) => todo.text;

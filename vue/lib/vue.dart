@@ -391,7 +391,8 @@ class VueApp {
 }
 
 class VueMixin {
-  const VueMixin();
+  final List components;
+  const VueMixin({this.components});
 }
 
 class _VueData { const _VueData(); }
