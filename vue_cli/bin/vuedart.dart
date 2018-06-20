@@ -44,8 +44,8 @@ description: Project description goes here
 dependencies:
   vue: ^0.4.0
 dev_dependencies:
-  build_runner: ^0.7.0
-  build_web_compilers: ^0.2.0
+  build_runner: any
+  build_web_compilers: any
 ''';
 
 final TEMPLATE_PUBSPEC_ASPEN = '''
@@ -57,8 +57,8 @@ dependencies:
   aspen_assets: ^0.2.0
   vue: ^0.4.0
 dev_dependencies:
-  build_runner: ^0.7.0
-  build_web_compilers: ^0.2.0
+  build_runner: any
+  build_web_compilers: any
 ''';
 
 final TEMPLATE_BUILD_RELEASE = r'''
@@ -104,7 +104,7 @@ import 'package:vue/vue.dart';
 
 import 'package:{{project}}/my_component.dart';
 
-@VueApp(el: '#app')
+@VueApp(el: '#app', components: [MyComponent])
 class App extends VueAppBase {
 }
 
@@ -143,7 +143,7 @@ final TEMPLATE_MY_COMPONENT_HTML = '''
 final TEMPLATE_MY_COMPONENT_DART = '''
 import 'package:vue/vue.dart';
 
-@VueComponent(name: 'my-component', template: '<<')
+@VueComponent(template: '<<')
 class MyComponent extends VueComponentBase {
 }
 
