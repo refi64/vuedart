@@ -8,8 +8,7 @@ import 'package:vuedart_site/common.dart';
 import 'package:vuedart_site/app_root.dart';
 
 
-@VueApp(el: '#app', components: [AppRoot, MButton, MLayoutGrid, MLayoutGridCell,
-                                 MLayoutGridInner, MTypography, MTypoHeadline])
+@VueApp(el: '#app', components: [AppRoot], mixins: [MComponentsMixin])
 class App extends VueAppBase {
 }
 

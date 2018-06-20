@@ -1,27 +1,28 @@
 <template vuedart>
   <m-typography>
     <m-top-app-bar>
-      <m-icon icon="menu" slot="navigation" v-if="mobile" @click="toggleNav()"></m-icon>
+      <m-icon icon="menu" slot="navigation" v-if="useToggleNav"
+              @click="toggleNav()"></m-icon>
       <a class="home-link" href="index.html">
         <img class="icon" src="favicon.ico">
-        <span class="title" v-if="!mobile">VueDart</span>
+        <span class="title" v-if="!isMobile">VueDart</span>
       </a>
-      <div slot="actions" v-if="mobile"></div>
+      <div slot="actions" v-if="useToggleNav"></div>
     </m-top-app-bar>
 
     <m-top-app-bar-fixed-adjust></m-top-app-bar-fixed-adjust>
 
     <m-layout-grid>
       <m-layout-grid-inner>
-        <m-layout-grid-cell :span="2" v-if="!mobile">
-          <m-drawer-persistent>
+        <m-layout-grid-cell :span="2" v-if="!useToggleNav">
+          <m-drawer-permanent>
             <app-navlist></app-navlist>
-          </m-drawer-persistent>
+          </m-drawer-permanent>
         </m-layout-grid-cell>
 
-        <m-layout-grid-cell :span="10" :span-phone="4">
+        <m-layout-grid-cell :span="useToggleNav ? 12 : 10" :span-phone="4">
           <m-drawer-temporary ref="mobileNav" :open="navOpen" @change="navChanged"
-                              v-if="mobile">
+                              v-if="useToggleNav">
             <m-top-app-bar-fixed-adjust></m-top-app-bar-fixed-adjust>
             <app-navlist></app-navlist>
           </m-drawer-temporary>
@@ -36,6 +37,10 @@
 
   .mdc-top-app-bar__section {
     justify-content: space-between;
+  }
+
+  .mdc-drawer--permanent {
+    width: 100%;
   }
 
 </style>

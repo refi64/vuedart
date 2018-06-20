@@ -70,10 +70,13 @@
                  incremental builds.</p>
             </div>
           </m-layout-grid-cell>
+        </m-layout-grid-inner>
 
-          <m-layout-grid-cell :span="3"></m-layout-grid-cell>
+        <m-layout-grid-inner>
+          <m-layout-grid-cell :span-desktop="2" :span-tablet="1" :span-mobile="1">
+          </m-layout-grid-cell>
 
-          <m-layout-grid-cell :span="6">
+          <m-layout-grid-cell :span-desktop="8" :span-tablet="6" :span-mobile="2">
             <div class="center">
               <m-typo-headline :level="5">See for yourself!</m-typo-headline>
 
@@ -90,7 +93,8 @@ class ShowName extends VueComponentBase {
             </div>
           </m-layout-grid-cell>
 
-          <m-layout-grid-cell :span="3"></m-layout-grid-cell>
+          <m-layout-grid-cell :span-desktop="2" :span-tablet="1" :span-mobile="1">
+          </m-layout-grid-cell>
         </m-layout-grid-inner>
       </m-layout-grid>
     </app-root>

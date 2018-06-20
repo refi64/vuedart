@@ -7,7 +7,8 @@ import 'package:vdmc/vdmc.dart';
 import 'app_navlist.vue.dart';
 
 
-bool isMobile() => document.body.clientWidth <= 480;
+bool checkIsMobile() => document.body.clientWidth <= 480;
+bool checkUseToggleNav() => document.body.clientWidth < 1200;
 
 
 @VueComponent(template: '<<', components: [AppNavlist, MDrawerPersistent,
@@ -19,12 +20,15 @@ class AppRoot extends VueComponentBase {
   @override
   void lifecycleMounted() {
     window.onResize.listen((Event event) {
-      mobile = isMobile();
+      isMobile = checkIsMobile();
+      useToggleNav = checkUseToggleNav();
     });
   }
 
   @data
-  bool mobile = isMobile();
+  bool isMobile = checkIsMobile();
+  @data
+  bool useToggleNav = checkUseToggleNav();
   @data
   bool navOpen = false;
 
