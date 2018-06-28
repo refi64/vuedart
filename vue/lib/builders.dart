@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:csslib/parser.dart' as css;
@@ -12,14 +13,6 @@ import 'package:scopify/scopify.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 import 'package:source_maps/refactor.dart';
 import 'package:uuid/uuid.dart';
-
-
-class AnnotationArgs {
-  final List<Expression> positional;
-  final Map<String, Expression> named;
-
-  AnnotationArgs(this.positional, this.named);
-}
 
 
 class Model {
@@ -117,21 +110,6 @@ class VuedartBuildContext {
     getAnn(cls, ['VueApp', 'VueComponent', 'VueMixin']);
   bool containsVueAnn(ClassDeclaration cls) => getVueAnn(cls) != null;
 
-  AnnotationArgs getAnnArgs(Annotation ann) {
-    var positional = <Expression>[];
-    var named = <String, Expression>{};
-
-    for (var arg in ann.arguments.arguments) {
-      if (arg is NamedExpression) {
-        named[arg.name.label.name] = arg.expression;
-      } else {
-        positional.add(arg);
-      }
-    }
-
-    return new AnnotationArgs(positional, named);
-  }
-
   String computedGet(String name) => 'vuedart_INTERNAL_cg_$name';
   String computedSet(String name) => 'vuedart_INTERNAL_cs_$name';
   String method(String name) => 'vuedart_INTERAL_m_$name';
@@ -200,8 +178,8 @@ class VuedartBuildContext {
 
   String codegenConstructor(String name) => '${name}()';
 
-  String codegenConstructorList(NodeList<Expression> items, {String suffix = ''}) =>
-    '[${items.cast<Identifier>().map((item) => '${item.name + suffix}()').join(', ')}]';
+  String codegenConstructorList(List<DartObject> items, {String suffix = ''}) =>
+    '[${items.map((item) => '${item.toTypeValue().name + suffix}()').join(', ')}]';
 
   List<ClassDeclaration> getVueClasses(LibraryElement lib) =>
     lib.units.expand((unit) => unit.unit.declarations)
@@ -233,8 +211,8 @@ class VuedartBuildContext {
       }
 
       var prop = fields.variables[0].name.name;
-      var args = getAnnArgs(model);
-      var event = (args.named['event'] as StringLiteral)?.stringValue;
+      var event = model.elementAnnotation.constantValue.getField('event')
+                       .toStringValue();
 
       info.model = new Model(prop, event);
     }
@@ -302,18 +280,9 @@ $typestring ${computedSet(name)}${member.parameters.toSource()}
 $typestring set $name($typestring value) => vuedart_set('$name', value);
       ''');
     } else if (ann.name.name == 'watch') {
-      if (member.parameters.parameters.length > 2) {
-        error(member.parameters, 'watchers can only take up to 2 parameters');
-        return;
-      }
-
-      var args = getAnnArgs(ann);
-      var propName = (args.positional[0] as StringLiteral).stringValue;
-      var deep = false;
-
-      if (args.named.containsKey('deep') && args.named['deep'] is BooleanLiteral) {
-        deep = (args.named['deep'] as BooleanLiteral).value;
-      }
+      var annValue = ann.elementAnnotation.constantValue;
+      var propName = annValue.getField('name').toStringValue();
+      var deep = annValue.getField('deep').toBoolValue() ?? false;
 
       rewriter.edit(member.offset, member.end, '''
 $typestring $name${member.parameters.toSource()}
@@ -410,7 +379,7 @@ $typestring $name${member.parameters.toSource()} =>
 
   Future processClass(ClassDeclaration cls) async {
     var ann = getVueAnn(cls);
-    var args = getAnnArgs(ann);
+    var annValue = ann.elementAnnotation.constantValue;
     var info = new VueClassInfo();
 
     for (var member in cls.members) {
@@ -421,8 +390,8 @@ $typestring $name${member.parameters.toSource()} =>
       }
     }
 
-    var components = (args.named['components'] as ListLiteral)?.elements ?? [];
-    var mixins = (args.named['mixins'] as ListLiteral)?.elements ?? [];
+    var components = annValue.getField('components')?.toListValue() ?? [];
+    var mixins = annValue.getField('mixins')?.toListValue() ?? [];
     var opts = '''
   data: {${info.data.map(codegenData).join('\n')}},
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},
@@ -440,24 +409,22 @@ $typestring $name${member.parameters.toSource()} =>
         creator = '() => new $name()';
       }
 
-      var template = args.named['template'] as StringLiteral;
+      var template = annValue.getField('template')?.toStringValue();
       var templateString = '';
       var styleInject = '';
 
       if (template == null) {
         templateString = 'null';
       } else {
-        templateString = template.stringValue;
-
-        if (templateString.startsWith('<<')) {
-          var result = await readTemplate(ann, templateString);
+        if (template.startsWith('<<')) {
+          var result = await readTemplate(ann, template);
           if (result != null) {
-            templateString = result[0];
+            templateString = codegenString(result[0]);
             styleInject = result[1];
           }
+        } else {
+          templateString = codegenString(template);
         }
-
-        templateString = codegenString(templateString);
       }
 
       styleInject = codegenString(styleInject);
@@ -489,12 +456,12 @@ class $name\$VueDartMixinImpl extends VueComponentBase with $name {
 ''';
       }
     } else {
-      var el = args.named['el']?.toSource() ?? 'null';
+      var el = annValue.getField('el').toStringValue();
 
       code = '''
 @override
 VueAppConstructor get constructor => new VueAppConstructor(
-  el: $el,
+  el: ${el != null ? codegenString(el) : 'null'},
 $opts
 );
       ''';

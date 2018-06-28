@@ -27,7 +27,9 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
   </div>
 ''')
 class CheckBox extends VueComponentBase {
-  @model(event: 'check-status-changed')
+  static const EVENT = 'check-status-changed';
+
+  @model(event: CheckBox.EVENT)
   // @model()
   @prop
   bool checked = false;
@@ -35,7 +37,7 @@ class CheckBox extends VueComponentBase {
   @computed
   bool get checkedModel => checked;
   @computed
-  set checkedModel(bool value) => $emit('check-status-changed', [value]);
+  set checkedModel(bool value) => $emit(CheckBox.EVENT, [value]);
 
   @method
   void reset() => checkedModel = false;
