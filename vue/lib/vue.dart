@@ -405,14 +405,14 @@ class VuePlugin {
 
 class VueComponent {
   final String template;
-  final List components, mixins;
-  const VueComponent({this.template, this.components, this.mixins});
+  final List components;
+  const VueComponent({this.template, this.components});
 }
 
 class VueApp {
   final String el;
-  final List components, mixins;
-  const VueApp({this.el, this.components, this.mixins});
+  final List components;
+  const VueApp({this.el, this.components});
 }
 
 class VueMixin {

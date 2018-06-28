@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:csslib/visitor.dart' show CssPrinter;
@@ -178,8 +179,8 @@ class VuedartBuildContext {
 
   String codegenConstructor(String name) => '${name}()';
 
-  String codegenConstructorList(List<DartObject> items, {String suffix = ''}) =>
-    '[${items.map((item) => '${item.toTypeValue().name + suffix}()').join(', ')}]';
+  String codegenConstructorList(List<DartType> items, {String suffix = ''}) =>
+    '[${items.map((type) => '${type.name + suffix}()').join(', ')}]';
 
   List<ClassDeclaration> getVueClasses(LibraryElement lib) =>
     lib.units.expand((unit) => unit.unit.declarations)
@@ -377,6 +378,14 @@ $typestring $name${member.parameters.toSource()} =>
     }
   }
 
+  List<DartType> gatherVueMixins(ClassDeclaration cls) {
+    return cls.element.mixins
+      .where((InterfaceType mixin) =>
+        mixin.element.metadata.any((ElementAnnotation el) =>
+          el.constantValue.type?.name == 'VueMixin'))
+      .toList();
+  }
+
   Future processClass(ClassDeclaration cls) async {
     var ann = getVueAnn(cls);
     var annValue = ann.elementAnnotation.constantValue;
@@ -390,8 +399,11 @@ $typestring $name${member.parameters.toSource()} =>
       }
     }
 
-    var components = annValue.getField('components')?.toListValue() ?? [];
-    var mixins = annValue.getField('mixins')?.toListValue() ?? [];
+    var mixins = gatherVueMixins(cls);
+
+    var components = (annValue.getField('components')?.toListValue() ?? [])
+                      .map((DartObject component) => component.toTypeValue())
+                      .toList();
     var opts = '''
   data: {${info.data.map(codegenData).join('\n')}},
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},

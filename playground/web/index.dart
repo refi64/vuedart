@@ -44,7 +44,7 @@ class CheckBox extends VueComponentBase {
 }
 
 
-@VueApp(el: '#app', components: const [TodoItem, CheckBox], mixins: const [TodoMixin])
+@VueApp(el: '#app', components: const [TodoItem, CheckBox])
 class App extends VueAppBase with VueRouterMixin, TodoMixin {
   @override
   void lifecycleMounted() {

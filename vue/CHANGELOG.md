@@ -8,6 +8,9 @@
 - **BREAKING CHANGE** A new, extensible `VueAppOptions` API has been added for passing
   miscellaneous options to app constructors, and the specialized `router` argument
   has been dropped in favor of `options`.
+- **BREAKING CHANGE** Mixins no longer have to be explicitly passed to the `mixins:`
+  argument. Instead, VueDart will automatically find mixins in your class's `with`
+  clause.
 - **BREAKING CHANGE** The overridable lifecycle methods now all have a `lifecycle`
   prefix, e.g. `void mounted` became `void lifecycleMounted`.
 - **BREAKING CHANGE** The constructor boilerplate has all been dropped! No more
@@ -16,12 +19,12 @@
   anything Vue-related in your constructors. To be precise, *constructors can no longer be
   used as a substitute for the created lifecycle hook*. Instead, override the new
   `void lifecycleCreated()` method.
+- **BREAKING CHANGE** `bool` props now create a boolean prop, instead of a prop that's
+  either `null` or an empty string.
 - Dart 2.0 is now supported!
 - You can now use Sass in your styles!! Just set `lang="sass"` or `lang="scss"` on your
   `<style scoped>` tags.
 - Mixins are now supported on a `VueApp`.
-- `bool` props now create a boolean prop, instead of a prop that's either `null` or
-  an empty string.
 - Models are supported via `@model([event: '...'])`.
 
 ## 0.3.2
