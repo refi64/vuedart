@@ -20,7 +20,29 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
 }
 
 
-@VueApp(el: '#app', components: const [TodoItem], mixins: const [TodoMixin])
+@VueComponent(template: '''
+  <div>
+    <input v-model="checkedModel" type="checkbox"/>
+    <button @click="reset">Reset</button>
+  </div>
+''')
+class CheckBox extends VueComponentBase {
+  @model(event: 'check-status-changed')
+  // @model()
+  @prop
+  bool checked = false;
+
+  @computed
+  bool get checkedModel => checked;
+  @computed
+  set checkedModel(bool value) => $emit('check-status-changed', [value]);
+
+  @method
+  void reset() => checkedModel = false;
+}
+
+
+@VueApp(el: '#app', components: const [TodoItem, CheckBox], mixins: const [TodoMixin])
 class App extends VueAppBase with VueRouterMixin, TodoMixin {
   @override
   void lifecycleMounted() {
@@ -29,6 +51,9 @@ class App extends VueAppBase with VueRouterMixin, TodoMixin {
       print('nextTick called');
     });
   }
+
+  @data
+  bool checked = false;
 
   @data
   List<TodoEntry> groceryList = <TodoEntry>[

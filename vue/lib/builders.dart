@@ -22,6 +22,13 @@ class AnnotationArgs {
 }
 
 
+class Model {
+  final String prop, event;
+
+  Model(this.prop, this.event);
+}
+
+
 class Prop {
   final String name;
   final TypeName type;
@@ -65,6 +72,7 @@ class Watcher {
 
 
 class VueClassInfo {
+  Model model;
   List<Prop> props = [];
   List<Data> data = [];
   Map<String, Computed> computed = {};
@@ -132,6 +140,11 @@ class VuedartBuildContext {
     params.map((p) => p.identifier.name).join(', ');
 
   String sourceOrNull(AstNode node) => node?.toSource() ?? 'null';
+
+  String codegenModelEvent(String event) => event != null ? "'$event'" : null;
+  String codegenModel(Model model) =>
+    model != null ? 'new VueModel("${model.prop}", ${codegenModelEvent(model.event)})'
+                  : null;
 
   String codegenPropType(Prop prop) {
     switch (prop.type.name.name) {
@@ -203,13 +216,28 @@ class VuedartBuildContext {
   void processField(FieldDeclaration member, VueClassInfo info) {
     var fields = member.fields;
 
-    if (fields.variables.length == 1 &&
-        fields.variables[0].name.name == 'constructor') {
-      rewriter.edit(member.offset, member.end+1, '');
-    }
-
     var ann = getAnn(member, ['prop', 'data', 'ref']);
     if (ann == null) return;
+
+    var model = getAnn(member, ['model']);
+    if (model != null) {
+      if (ann.name.name != 'prop') {
+        error(model, '@model can only be used on props');
+        return;
+      } else if (info.model != null) {
+        error(model, 'another model has already been given');
+        return;
+      } else if (fields.variables.length != 1) {
+        error(model, '@model can only be used on one prop');
+        return;
+      }
+
+      var prop = fields.variables[0].name.name;
+      var args = getAnnArgs(model);
+      var event = (args.named['event'] as StringLiteral)?.stringValue;
+
+      info.model = new Model(prop, event);
+    }
 
     var type = fields.type;
     var typestring = type.toSource();
@@ -441,6 +469,7 @@ VueComponentConstructor get constructor => new VueComponentConstructor(
   creator: $creator,
   template: $templateString,
   styleInject: $styleInject,
+  model: ${codegenModel(info.model)},
   props: {${info.props.map(codegenProp).join('\n')}},
 $opts
 );

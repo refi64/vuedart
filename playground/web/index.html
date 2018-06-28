@@ -4,6 +4,8 @@
 
 <body>
   <div id="app">
+    <check-box v-model="checked"></check-box>
+
     <p>{{todoMixinData}}</p>
     <p>default:</p> <router-view></router-view>
     <p>single:</p> <router-view name="single"></router-view>

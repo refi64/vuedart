@@ -28,7 +28,8 @@ dynamic getWindowProperty(String name) {
 dynamic get _vue {
   var vue = getWindowProperty('Vue');
   if (vue == null) {
-    throw new Exception("Can't get window.vue. Please make sure the vue.js is referenced in your html <script> tag");
+    throw new Exception("Can't get window.Vue. Please make sure that vue.js is "
+                        "referenced in your html <script> tag");
   }
   return vue;
 }
@@ -61,6 +62,12 @@ class VueProp {
   final Object initializer;
 
   VueProp(this.type, this.validator, this.initializer);
+}
+
+class VueModel {
+  final String prop, event;
+
+  VueModel(this.prop, this.event);
 }
 
 class VueComputed {
@@ -108,6 +115,7 @@ dynamic _convertWatchers(Map<String, VueWatcher> watchers) {
 
 class VueComponentConstructor {
   final String name, template, styleInject;
+  final VueModel model;
   final Map<String, VueProp> props;
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
@@ -120,9 +128,24 @@ class VueComponentConstructor {
   bool hasInjectedStyle = false;
 
   VueComponentConstructor({this.name: null, this.template: null, this.styleInject: null,
-                           this.props: null, this.data: null, this.computed: null,
-                           this.methods: null, this.watchers: null, this.creator: null,
-                           this.components, this.mixins: null});
+                           this.model: null, this.props: null, this.data: null,
+                           this.computed: null, this.methods: null, this.watchers: null,
+                           this.creator: null, this.components, this.mixins: null});
+
+  dynamic jsmodel() {
+    if (model == null) {
+      return null;
+    }
+
+    var jsmodel = <String, String>{};
+    jsmodel['prop'] = model.prop;
+
+    if (model.event != null) {
+      jsmodel['event'] = model.event;
+    }
+
+    return mapToJs(jsmodel);
+  }
 
   dynamic jsprops() {
     var jsprops = <String, dynamic>{};
@@ -258,6 +281,7 @@ class VueComponentBase extends _VueBase {
   }
 
   dynamic componentArgs() {
+    var model = constructor.jsmodel();
     var props = constructor.jsprops();
     var computed = constructor.jscomputed();
     var watch = constructor.jswatch();
@@ -284,6 +308,7 @@ class VueComponentBase extends _VueBase {
     }
 
     var args = mapToJs({
+      'model': model,
       'props': props,
       'data': allowInterop(([dynamic _=null]) {
         var data = mapToJs(constructor.data);
@@ -411,6 +436,11 @@ class watch {
   final String name;
   final bool deep;
   const watch(this.name, {this.deep});
+}
+
+class model {
+  final String event;
+  const model({this.event});
 }
 
 

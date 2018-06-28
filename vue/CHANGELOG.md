@@ -20,8 +20,9 @@
 - You can now use Sass in your styles!! Just set `lang="sass"` or `lang="scss"` on your
   `<style scoped>` tags.
 - Mixins are now supported on a `VueApp`.
-- `bool` props now created a boolean prop, instead of a prop that's either `null` or
+- `bool` props now create a boolean prop, instead of a prop that's either `null` or
   an empty string.
+- Models are supported via `@model([event: '...'])`.
 
 ## 0.3.2
 
