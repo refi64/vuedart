@@ -31,6 +31,9 @@ abstract class TodoMixin implements VueMixinRequirements {
 
 @VueComponent(template: '<<')
 class TodoItem extends VueComponentBase with TodoMixin {
+  @prop
+  List something = [];
+
   @method
   String getTodoText2(TodoEntry todo) => todo.text;
 

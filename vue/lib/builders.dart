@@ -143,8 +143,8 @@ class VuedartBuildContext {
   String codegenProp(Prop prop) =>
     ''' '${prop.name}': new VueProp(
       ${codegenPropType(prop)},
+      () => ${sourceOrNull(prop.initializer)},
       (_) => _ is ${prop.type.toSource()},
-      ${sourceOrNull(prop.initializer)}
     ), ''';
 
   String codegenData(Data data) =>

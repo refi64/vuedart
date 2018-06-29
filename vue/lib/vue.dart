@@ -62,10 +62,9 @@ typedef dynamic CreateElement(dynamic tag, [dynamic arg1, dynamic arg2]);
 
 class VueProp {
   final Symbol type;
-  final Function validator;
-  final Object initializer;
+  final Function initializer, validator;
 
-  VueProp(this.type, this.validator, this.initializer);
+  VueProp(this.type, this.initializer, this.validator);
 }
 
 class VueModel {
@@ -174,7 +173,7 @@ class VueComponentConstructor {
 
       jsprops[name] = mapToJs({
         'type': type,
-        'default': prop.initializer,
+        'default': allowInterop(prop.initializer),
         'validator': allowInterop(prop.validator),
       });
     }
