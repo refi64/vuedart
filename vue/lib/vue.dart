@@ -198,7 +198,44 @@ class VueAppConstructor {
   dynamic jswatch() => _convertWatchers(watchers);
 }
 
-class _VueBase {
+abstract class _VueApi {
+  dynamic vuethis;
+
+  dynamic vuedart_get(String key);
+  void vuedart_set(String key, dynamic value);
+
+  void lifecycleCreated();
+  void lifecycleMounted();
+  void lifecycleBeforeUpdate();
+  void lifecycleUpdated();
+  void lifecycleActivated();
+  void lifecycleDeactivated();
+  void lifecycleBeforeDestroy();
+  void lifecycleDestroyed();
+
+  dynamic $ref(String name);
+
+  dynamic get $data;
+  dynamic get $props;
+  Element get $el;
+  dynamic get $options;
+  dynamic get $parent;
+  dynamic get $root;
+
+  void $on(dynamic event, Function callback);
+  void $once(dynamic event, Function callback);
+  void $off(dynamic event, Function callback);
+  void $emit(String event, [List args]);
+
+  Future<Null> $nextTick();
+
+  void $forceUpdate();
+  void $destroy();
+}
+
+abstract class VueMixinRequirements implements _VueApi {}
+
+class _VueBase implements _VueApi {
   dynamic vuethis;
 
   dynamic vuedart_get(String key) => getProperty(vuethis, key);

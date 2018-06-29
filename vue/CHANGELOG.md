@@ -11,6 +11,9 @@
 - **BREAKING CHANGE** Mixins no longer have to be explicitly passed to the `mixins:`
   argument. Instead, VueDart will automatically find mixins in your class's `with`
   clause.
+- **BREAKING CHANGE** Mixins must now all have an `implements VueMixinRequirements` clause.
+  This also means that they have access to pretty much the entire component/app API
+  out-of-the-box.
 - **BREAKING CHANGE** The overridable lifecycle methods now all have a `lifecycle`
   prefix, e.g. `void mounted` became `void lifecycleMounted`.
 - **BREAKING CHANGE** The constructor boilerplate has all been dropped! No more

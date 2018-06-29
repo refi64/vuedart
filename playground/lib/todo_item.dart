@@ -21,7 +21,7 @@ class TestComponent extends VueComponentBase {
 }
 
 @VueMixin(components: const [TestComponent])
-abstract class TodoMixin {
+abstract class TodoMixin implements VueMixinRequirements {
   @method
   String getTodoText(TodoEntry todo) => todo.text;
 

@@ -455,11 +455,7 @@ $opts
       ''';
 
       if (ann.name.name == 'VueMixin') {
-        code = '''
-  dynamic vuedart_get(String key);
-  void vuedart_set(String key, dynamic value);
-  dynamic \$ref(String name);
-}
+        code = '''}
 
 class $name\$VueDartMixinImpl extends VueComponentBase with $name {
   @override
