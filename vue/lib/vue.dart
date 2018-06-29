@@ -2,6 +2,7 @@
 library vue;
 
 
+import 'package:async/async.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
@@ -20,6 +21,9 @@ external dynamic get _jsNumber;
 
 @JS('Boolean')
 external dynamic get _jsBool;
+
+@JS('eval')
+external dynamic _eval(String code);
 
 dynamic getWindowProperty(String name) {
   return getProperty(_window, name);
@@ -198,7 +202,7 @@ class VueAppConstructor {
   dynamic jswatch() => _convertWatchers(watchers);
 }
 
-abstract class _VueApi {
+abstract class VueApi {
   dynamic vuethis;
 
   dynamic vuedart_get(String key);
@@ -222,20 +226,15 @@ abstract class _VueApi {
   dynamic get $parent;
   dynamic get $root;
 
-  void $on(dynamic event, Function callback);
-  void $once(dynamic event, Function callback);
-  void $off(dynamic event, Function callback);
-  void $emit(String event, [List args]);
-
   Future<Null> $nextTick();
 
   void $forceUpdate();
   void $destroy();
 }
 
-abstract class VueMixinRequirements implements _VueApi {}
+abstract class VueMixinRequirements implements VueApi {}
 
-class _VueBase implements _VueApi {
+class _VueBase implements VueApi {
   dynamic vuethis;
 
   dynamic vuedart_get(String key) => getProperty(vuethis, key);
@@ -286,18 +285,6 @@ class _VueBase implements _VueApi {
     return vueGetObj(root) ?? root;
   }
 
-  void $on(dynamic event, Function callback) =>
-    callMethod(vuethis, r'$on', [event, allowInterop(callback)]);
-
-  void $once(dynamic event, Function callback) =>
-    callMethod(vuethis, r'$once', [event, allowInterop(callback)]);
-
-  void $off(dynamic event, Function callback) =>
-    callMethod(vuethis, r'$off', [event, allowInterop(callback)]);
-
-  void $emit(String event, [List args]) =>
-    callMethod(vuethis, r'$emit', [event]..addAll(args ?? []));
-
   Future<Null> $nextTick() {
     var compl = new Completer<Null>();
     callMethod(vuethis, r'$nextTick', [allowInterop(() => compl.complete(null))]);
@@ -307,6 +294,70 @@ class _VueBase implements _VueApi {
   void $forceUpdate() => callMethod(vuethis, r'$forceUpdate', []);
   void $destroy() => callMethod(vuethis, r'$destroy', []);
 }
+
+
+class VueEventSink<E> extends DelegatingSink<E> {
+  final VueEventSpec<E> spec;
+
+  VueEventSink._(this.spec, StreamSink<E> sink): super(sink);
+
+  factory VueEventSink._create(VueEventSpec<E> spec, dynamic vue) {
+    var controller = new StreamController<E>();
+    controller.stream.listen((E evt) {
+      var args = [spec.name as dynamic];
+      args.addAll(spec.toJs != null ? spec.toJs(evt) : [evt]);
+      callMethod(vue, r'$emit', args);
+    });
+
+    return new VueEventSink._(spec, controller.sink);
+  }
+}
+
+class VueEventStream<E> extends DelegatingStream<E> {
+  final VueEventSpec<E> spec;
+
+  VueEventStream._(this.spec, Stream<E> stream): super(stream);
+
+  factory VueEventStream._create(VueEventSpec<E> spec, dynamic vue) {
+    var argProxy = _eval('''(function (callback) {
+      return (function () {
+        var args = [];
+        for (var i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        callback(args);
+      });
+    })''');
+
+    StreamController<E> controller;
+
+    var onEvent = argProxy(allowInterop((List args) {
+      var event = spec.fromJs != null ? spec.fromJs(args) : args[0];
+      controller.sink.add(event);
+    }));
+
+    controller = new StreamController<E>.broadcast(
+      onListen: () => callMethod(vue, r'$on', [spec.name, onEvent]),
+      onCancel: () => callMethod(vue, r'$off', [spec.name, onEvent]),
+    );
+
+    return new VueEventStream._(spec, controller.stream);
+  }
+}
+
+class VueEventSpec<E> {
+  final String name;
+  final E Function(List args) fromJs;
+  final List Function(E event) toJs;
+
+  VueEventSpec(this.name, {this.fromJs, this.toJs});
+
+  dynamic _getVueObj(obj) => obj is VueApi ? obj.vuethis : obj;
+
+  VueEventSink<E> createSink(obj) =>
+    new VueEventSink<E>._create(this, _getVueObj(obj));
+  VueEventStream<E> createStream(obj) =>
+    new VueEventStream<E>._create(this, _getVueObj(obj));
+}
+
 
 class VueComponentBase extends _VueBase {
   VueComponentConstructor get constructor => null;

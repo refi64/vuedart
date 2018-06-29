@@ -27,9 +27,23 @@ class SingleItemInfo extends VueComponentBase with VueRouterMixin {
   </div>
 ''')
 class CheckBox extends VueComponentBase {
-  static const EVENT = 'check-status-changed';
+  static const _EVENT = 'check-status-changed';
+  static final checkStatusChanged = VueEventSpec<bool>(CheckBox._EVENT);
+  VueEventSink<bool> checkStatusChangedSink;
+  VueEventStream<bool> checkStatusChangedStream;
 
-  @model(event: CheckBox.EVENT)
+  @override
+  void lifecycleCreated() {
+    checkStatusChangedSink = checkStatusChanged.createSink(this);
+    checkStatusChangedStream = checkStatusChanged.createStream(this);
+
+    checkStatusChangedStream.listen((bool checked) => print('checked is now $checked'));
+  }
+
+  @override
+  void lifecycleDestroyed() => checkStatusChangedSink.close();
+
+  @model(event: CheckBox._EVENT)
   // @model()
   @prop
   bool checked = false;
@@ -37,7 +51,7 @@ class CheckBox extends VueComponentBase {
   @computed
   bool get checkedModel => checked;
   @computed
-  set checkedModel(bool value) => $emit(CheckBox.EVENT, [value]);
+  set checkedModel(bool value) => checkStatusChangedSink.add(value);
 
   @method
   void reset() => checkedModel = false;

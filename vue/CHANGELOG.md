@@ -22,6 +22,9 @@
   anything Vue-related in your constructors. To be precise, *constructors can no longer be
   used as a substitute for the created lifecycle hook*. Instead, override the new
   `void lifecycleCreated()` method.
+- **BREAKING CHANGE** The event API has been overhauled. Instead of the vanilla Vue-style
+  `$on` and `$emit` API, it's now built around Dart-native streams and sinks. The result
+  is far more type-safe than before. The old functions have been removed.
 - **BREAKING CHANGE** `bool` props now create a boolean prop, instead of a prop that's
   either `null` or an empty string.
 - Dart 2.0 is now supported!
