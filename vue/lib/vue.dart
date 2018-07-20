@@ -351,6 +351,7 @@ class VueEventSpec<E> {
 
   dynamic _getVueObj(obj) => obj is VueApi ? obj.vuethis : obj;
 
+  void check(void func(E)) {}
   VueEventSink<E> createSink(obj) =>
     new VueEventSink<E>._create(this, _getVueObj(obj));
   VueEventStream<E> createStream(obj) =>
