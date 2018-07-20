@@ -42,7 +42,7 @@ class Data {
 
 class Computed {
   final String name;
-  bool hasSetter;
+  bool hasSetter = false;
 
   Computed(this.name);
 }
@@ -83,7 +83,6 @@ class VueImportedComponent {
   String get prefixed => prefix != null ? '$prefix.$name' : name;
 }
 
-
 class VuedartBuildContext {
   final BuilderOptions options;
   final BuildStep buildStep;
@@ -110,6 +109,15 @@ class VuedartBuildContext {
   Annotation getVueAnn(ClassDeclaration cls) =>
     getAnn(cls, ['VueApp', 'VueComponent', 'VueMixin']);
   bool containsVueAnn(ClassDeclaration cls) => getVueAnn(cls) != null;
+
+  Map<String, Expression> getAnnArgs(Annotation ann) =>
+    new Map.fromIterable(
+      ann.arguments.arguments
+        .where((arg) => arg is NamedExpression)
+        .cast<NamedExpression>(),
+      key: (arg) => arg.name.label.name,
+      value: (arg) => arg.expression,
+    );
 
   String computedGet(String name) => 'vuedart_INTERNAL_cg_$name';
   String computedSet(String name) => 'vuedart_INTERNAL_cs_$name';
@@ -179,8 +187,8 @@ class VuedartBuildContext {
 
   String codegenConstructor(String name) => '${name}()';
 
-  String codegenConstructorList(List<DartType> items, {String suffix = ''}) =>
-    '[${items.map((type) => '${type.name + suffix}()').join(', ')}]';
+  String codegenConstructorList(List<String> items, {String suffix = ''}) =>
+    '[${items.map((typename) => '${typename + suffix}()').join(', ')}]';
 
   List<ClassDeclaration> getVueClasses(LibraryElement lib) =>
     lib.units.expand((unit) => unit.unit.declarations)
@@ -190,7 +198,8 @@ class VuedartBuildContext {
   List<VueImportedComponent> getVueComponents(List<ClassDeclaration> classes,
                                               [String prefix]) =>
     classes.where((cls) => getVueAnn(cls)?.name?.name == 'VueComponent')
-           .map((cls) => new VueImportedComponent(prefix, cls.name.name));
+           .map((cls) => new VueImportedComponent(prefix, cls.name.name))
+           .toList();
 
   void processField(FieldDeclaration member, VueClassInfo info) {
     var fields = member.fields;
@@ -352,7 +361,7 @@ $typestring $name${member.parameters.toSource()} =>
             );
           }
 
-          var errors = [];
+          var errors = <css.Message>[];
           var parsed = css.parse(styleContents, errors: errors);
 
           if (errors.isNotEmpty) {
@@ -379,10 +388,15 @@ $typestring $name${member.parameters.toSource()} =>
   }
 
   List<DartType> gatherVueMixins(ClassDeclaration cls) {
+    if (cls.name.name == 'App') {
+    log.warning('${cls.name.name}: ${cls.element.mixins.map((mx) => mx.element?.metadata.map((mt) => mt.element is ConstructorElement ? mt.element.enclosingElement.name : 'nope').toList()).toList()}');
+    }
+
     return cls.element.mixins
       .where((InterfaceType mixin) =>
         mixin.element.metadata.any((ElementAnnotation el) =>
-          el.constantValue.type?.name == 'VueMixin'))
+          el.element is ConstructorElement &&
+            (el.element as ConstructorElement).enclosingElement.name == 'VueMixin'))
       .toList();
   }
 
@@ -399,11 +413,16 @@ $typestring $name${member.parameters.toSource()} =>
       }
     }
 
-    var mixins = gatherVueMixins(cls);
+    // var components = (annValue.getField('components')?.toListValue() ?? [])
+    //                   .map((DartObject component) => component.toTypeValue())
+    //                   .toList();
+    // Work around a weird analyzer issue.
+    var args = getAnnArgs(ann);
+    var components = ((args['components'] as ListLiteral)?.elements ?? <Expression>[])
+                        .map((expr) => expr.toSource()).toList();
 
-    var components = (annValue.getField('components')?.toListValue() ?? [])
-                      .map((DartObject component) => component.toTypeValue())
-                      .toList();
+    var mixins = gatherVueMixins(cls).map((el) => el.name).toList();
+
     var opts = '''
   data: {${info.data.map(codegenData).join('\n')}},
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},
@@ -479,7 +498,7 @@ $opts
   }
 
   Future build() async {
-    var outputStyle = options.config['output_style'];
+    var outputStyle = options.config['sass_output_style'];
     if (outputStyle != null) {
       switch (outputStyle) {
       case 'expanded':
