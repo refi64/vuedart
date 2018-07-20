@@ -388,10 +388,6 @@ $typestring $name${member.parameters.toSource()} =>
   }
 
   List<DartType> gatherVueMixins(ClassDeclaration cls) {
-    if (cls.name.name == 'App') {
-    log.warning('${cls.name.name}: ${cls.element.mixins.map((mx) => mx.element?.metadata.map((mt) => mt.element is ConstructorElement ? mt.element.enclosingElement.name : 'nope').toList()).toList()}');
-    }
-
     return cls.element.mixins
       .where((InterfaceType mixin) =>
         mixin.element.metadata.any((ElementAnnotation el) =>
