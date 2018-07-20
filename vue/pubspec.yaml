@@ -6,14 +6,14 @@ homepage: https://refi64.com/vuedart
 environment:
   sdk: ">=1.8.0 <2.0.0"
 dependencies:
-  analyzer: ^0.31.1
+  analyzer: ^0.32.2
   async: ^2.0.7
-  build: ^0.12.4
-  csslib: ^0.14.1
-  html: ^0.13.2
-  sass: ^1.6.0
-  sass_builder: ^2.0.0
-  scopify: ^0.2.0
-  source_maps: ^0.10.4
+  build: ^0.12.7
+  csslib: ^0.14.4
+  html: ^0.13.3
+  sass: ^1.8.0
+  sass_builder: ^2.1.0
+  scopify: ^0.2.1
+  source_maps: ^0.10.6
   source_span: ^1.4.0
-  uuid: ^0.5.0
+  uuid: ^1.0.0
