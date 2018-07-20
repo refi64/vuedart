@@ -8,8 +8,8 @@ import 'package:vuedart_site/common.dart';
 import 'package:vuedart_site/app_root.dart';
 
 
-@VueApp(el: '#app', components: [AppRoot], mixins: [MComponentsMixin])
-class App extends VueAppBase {
+@VueApp(el: '#app', components: [AppRoot])
+class App extends VueAppBase with MComponentsMixin {
 }
 
 

@@ -18,3 +18,5 @@ dependency_overrides:
     path: ../vue
   vdmc:
     path: ../../vdmc/vdmc
+  protic:
+    path: /home/ryan/protic/protic

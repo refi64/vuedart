@@ -4,7 +4,7 @@ import 'package:vue/vue.dart';
 
 import 'package:vdmc/vdmc.dart';
 
-import 'app_navlist.vue.dart';
+import 'app_navlist.template.dart';
 
 
 bool checkIsMobile() => document.body.clientWidth <= 480;
@@ -35,11 +35,6 @@ class AppRoot extends VueComponentBase {
   @method
   void toggleNav() {
     navOpen = !mobileNav.open;
-  }
-
-  @method
-  void navChanged(bool value) {
-    navOpen = value;
   }
 
   @ref

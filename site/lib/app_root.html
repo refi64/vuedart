@@ -21,8 +21,7 @@
         </m-layout-grid-cell>
 
         <m-layout-grid-cell :span="useToggleNav ? 12 : 10" :span-phone="4">
-          <m-drawer-temporary ref="mobileNav" :open="navOpen" @change="navChanged"
-                              v-if="useToggleNav">
+          <m-drawer-temporary ref="mobileNav" v-model="navOpen" v-if="useToggleNav">
             <m-top-app-bar-fixed-adjust></m-top-app-bar-fixed-adjust>
             <app-navlist></app-navlist>
           </m-drawer-temporary>
@@ -34,6 +33,12 @@
 </template>
 
 <style scoped bleeds>
+
+  @media(max-width: 481px) {
+    .mdc-top-app-bar__title {
+      padding-left: 0;
+    }
+  }
 
   .mdc-top-app-bar__section {
     justify-content: space-between;
