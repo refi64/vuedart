@@ -15,6 +15,13 @@ final TEMPLATE_README_MD = '''
 Enter your README contents here.
 ''';
 
+final TEMPLATE_ANALYSIS_OPTIONS = '''
+analyzer:
+  exclude: [build/**]
+  errors:
+    uri_has_not_been_generated: ignore
+''';
+
 final TEMPLATE_ASPEN_YML = '''
 targets:
   default:
@@ -86,7 +93,7 @@ final TEMPLATE_INDEX_HTML = '''
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script defer type="application/dart" src="index.vue.dart.js"></script>
+  <script defer type="application/dart" src="index.template.dart.js"></script>
 </head>
 
 <body>
@@ -151,6 +158,7 @@ class MyComponent extends VueComponentBase {
 
 final TEMPLATES = {
   'README.md': TEMPLATE_README_MD,
+  'analysis_options.yaml': TEMPLATE_ANALYSIS_OPTIONS,
   'pubspec.yaml': TEMPLATE_PUBSPEC,
   'build.release.yaml': TEMPLATE_BUILD_RELEASE,
   'web/index.html': TEMPLATE_INDEX_HTML,
@@ -161,6 +169,7 @@ final TEMPLATES = {
 
 final ASPEN_TEMPLATES = {
   'README.md': TEMPLATE_README_MD,
+  'analysis_options.yaml': TEMPLATE_ANALYSIS_OPTIONS,
   'aspen.yml': TEMPLATE_ASPEN_YML,
   'package.json': TEMPLATE_PACKAGE_JSON,
   'pubspec.yaml': TEMPLATE_PUBSPEC_ASPEN,

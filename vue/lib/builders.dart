@@ -537,7 +537,7 @@ $opts
 
         if (importedClasses.isNotEmpty) {
           var renamed = new AssetId.resolve(imported.uri, from: inputId)
-                                   .changeExtension('.vue.dart');
+                                   .changeExtension('.template.dart');
           rewriter.edit(imported.uriOffset, imported.uriEnd, "'${renamed.uri}'");
         }
       }
@@ -546,7 +546,7 @@ $opts
     var printer = rewriter.commit();
     printer.build(null);
     // print(printer.text);
-    buildStep.writeAsString(inputId.changeExtension('.vue.dart'), printer.text);
+    buildStep.writeAsString(inputId.changeExtension('.template.dart'), printer.text);
 
     return new Future.value();
   }
@@ -561,7 +561,7 @@ class _VuedartBuilder extends Builder {
     new _VuedartBuilder(options);
 
   @override final buildExtensions = const {
-    '.dart': const ['.vue.dart'],
+    '.dart': const ['.template.dart'],
   };
 
   @override

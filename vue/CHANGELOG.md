@@ -1,10 +1,15 @@
 ## development (0.4.0)
 
+- Dart 2.0 is now supported!
 - **BREAKING CHANGE** vue2 and vue2_cli have been renamed to vue and vue_cli, respectively.
 - **BREAKING CHANGE** `package:build` is now used instead of Pub transformers. Using Pub
   is no longer supported.
 - **BREAKING CHANGE** Components are never globally registered. Instead, they must
   explicitly be passed to the `VueComponent` annotation.
+- **BREAKING CHANGE** You will have to change your component imports to the modified
+  versions, ending in .template.dart. (Note that this extension may be changed in the
+  future, once [dart-lang/sdk#33750](https://github.com/dart-lang/sdk/issues/33750) is
+  fixed.)
 - **BREAKING CHANGE** A new, extensible `VueAppOptions` API has been added for passing
   miscellaneous options to app constructors, and the specialized `router` argument
   has been dropped in favor of `options`.
@@ -27,7 +32,7 @@
   is far more type-safe than before. The old functions have been removed.
 - **BREAKING CHANGE** `bool` props now create a boolean prop, instead of a prop that's
   either `null` or an empty string.
-- Dart 2.0 is now supported!
+- **BREAKING CHANGE**
 - You can now use Sass in your styles!! Just set `lang="sass"` or `lang="scss"` on your
   `<style scoped>` tags.
 - Mixins are now supported on a `VueApp`.
