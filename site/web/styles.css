@@ -3,12 +3,23 @@
   --mdc-theme-secondary: #0D47A1;
 }
 
+.title, .mdc-list-item,
+.mdc-typography--headline1, .mdc-typography--headline2,
+.mdc-typography--headline3, .mdc-typography--headline4,
+.mdc-typography--headline5 {
+  font-family: Quicksand, Roboto, sans-serif !important;
+}
+
+.mdc-list-item {
+  font-size: 1em !important;
+}
+
 .center {
   text-align: center;
 }
 
-pre[class*="language-"] {
-  font-family: "Roboto Mono", monospace;
+pre[class*="language-"], code[class*="language-"] {
+  font-family: "Roboto Mono", monospace !important;
 }
 
 a {

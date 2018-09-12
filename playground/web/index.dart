@@ -40,8 +40,6 @@ class CheckBox extends VueComponentBase {
     checkStatusChangedStream.listen((bool checked) => print('checked is now $checked'));
   }
 
-  @override
-  void lifecycleDestroyed() => checkStatusChangedSink.close();
 
   @model(event: CheckBox._EVENT)
   // @model()
