@@ -14,9 +14,11 @@ dev_dependencies:
   build_runner: any
   build_web_compilers: any
 dependency_overrides:
+  aspen_assets:
+    path: /code/aspen/assets
   vue:
-    path: ../vue
+    path: /code/vuedart/vue
   vdmc:
-    path: ../../vdmc/vdmc
+    path: /code/vdmc/vdmc
   protic:
-    path: /home/ryan/protic/protic
+    path: /code/protic/protic

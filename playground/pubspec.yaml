@@ -4,7 +4,7 @@ description: TODO
 author: Ryan Gonzalez <rymg19@gmail.com>
 homepage: https://refi64.com/vuedart
 environment:
-  sdk: ">=1.8.0 <2.0.0"
+  sdk: ">=2.0.0 <3.0.0"
 dependencies:
   js: ^0.6.1
   vue: any
