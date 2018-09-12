@@ -235,6 +235,7 @@ abstract class VueMixinRequirements implements VueApi {}
 
 class _VueBase implements VueApi {
   dynamic vuethis;
+  List<Sink> _toClose = [];
 
   dynamic vuedart_get(String key) => getProperty(vuethis, key);
   void vuedart_set(String key, dynamic value) => setProperty(vuethis, key, value);
@@ -250,6 +251,14 @@ class _VueBase implements VueApi {
   void lifecycleBeforeDestroy() { }
   void lifecycleDestroyed() {}
 
+  void _lifecycleDestroyed() {
+    for (var sink in _toClose) {
+      sink.close();
+    }
+
+    lifecycleDestroyed();
+  }
+
   static Map<String, dynamic> lifecycleHooks = {
     'mounted': _interopWithObj((obj) => obj.lifecycleMounted()),
     'beforeUpdate': _interopWithObj((obj) => obj.lifecycleBeforeDestroy()),
@@ -257,7 +266,7 @@ class _VueBase implements VueApi {
     'activated': _interopWithObj((obj) => obj.lifecycleActivated()),
     'deactivated': _interopWithObj((obj) => obj.lifecycleDeactivated()),
     'beforeDestroy': _interopWithObj((obj) => obj.lifecycleBeforeDestroy()),
-    'destroyed': _interopWithObj((obj) => obj.lifecycleDestroyed()),
+    'destroyed': _interopWithObj((obj) => obj._lifecycleDestroyed()),
   };
 
   dynamic $ref(String name) {
@@ -300,7 +309,7 @@ class VueEventSink<E> extends DelegatingSink<E> {
 
   VueEventSink._(this.spec, StreamSink<E> sink): super(sink);
 
-  factory VueEventSink._create(VueEventSpec<E> spec, dynamic vue) {
+  factory VueEventSink._create(VueEventSpec<E> spec, dynamic owner, dynamic vue) {
     var controller = new StreamController<E>();
     controller.stream.listen((E evt) {
       var args = [spec.name as dynamic];
@@ -308,7 +317,12 @@ class VueEventSink<E> extends DelegatingSink<E> {
       callMethod(vue, r'$emit', args);
     });
 
-    return new VueEventSink._(spec, controller.sink);
+    var result = new VueEventSink._(spec, controller.sink);
+    if (owner is _VueBase) {
+      owner._toClose.add(result);
+    }
+
+    return result;
   }
 }
 
@@ -353,7 +367,7 @@ class VueEventSpec<E> {
 
   void check(void func(E)) {}
   VueEventSink<E> createSink(obj) =>
-    new VueEventSink<E>._create(this, _getVueObj(obj));
+    new VueEventSink<E>._create(this, obj, _getVueObj(obj));
   VueEventStream<E> createStream(obj) =>
     new VueEventStream<E>._create(this, _getVueObj(obj));
 }
