@@ -93,7 +93,7 @@ final TEMPLATE_INDEX_HTML = '''
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script defer type="application/dart" src="index.template.dart.js"></script>
+  <script defer type="application/dart" src="index.vue.dart.js"></script>
 </head>
 
 <body>

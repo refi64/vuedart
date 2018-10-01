@@ -6,10 +6,6 @@
   is no longer supported.
 - **BREAKING CHANGE** Components are never globally registered. Instead, they must
   explicitly be passed to the `VueComponent` annotation.
-- **BREAKING CHANGE** You will have to change your component imports to the modified
-  versions, ending in .template.dart. (Note that this extension may be changed in the
-  future, once [dart-lang/sdk#33750](https://github.com/dart-lang/sdk/issues/33750) is
-  fixed.)
 - **BREAKING CHANGE** A new, extensible `VueAppOptions` API has been added for passing
   miscellaneous options to app constructors, and the specialized `router` argument
   has been dropped in favor of `options`.

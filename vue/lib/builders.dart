@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
@@ -93,6 +92,8 @@ class VuedartBuildContext {
   AssetId inputId;
   TextEditTransaction rewriter;
   CompilationUnit unit;
+
+  Map<String, bool> libraryIdContainsVueClasses = <String, bool>{};
 
   VuedartBuildContext(this.options, this.buildStep): inputId = buildStep.inputId;
 
@@ -190,16 +191,10 @@ class VuedartBuildContext {
   String codegenConstructorList(List<String> items, {String suffix = ''}) =>
     '[${items.map((typename) => '${typename + suffix}()').join(', ')}]';
 
-  List<ClassDeclaration> getVueClasses(LibraryElement lib) =>
+  Iterable<ClassDeclaration> getVueClassesIter(LibraryElement lib) =>
     lib.units.expand((unit) => unit.unit.declarations)
              .where((d) => d is ClassDeclaration && containsVueAnn(d))
-             .map((d) => d as ClassDeclaration).toList();
-
-  List<VueImportedComponent> getVueComponents(List<ClassDeclaration> classes,
-                                              [String prefix]) =>
-    classes.where((cls) => getVueAnn(cls)?.name?.name == 'VueComponent')
-           .map((cls) => new VueImportedComponent(prefix, cls.name.name))
-           .toList();
+             .map((d) => d as ClassDeclaration);
 
   void processField(FieldDeclaration member, VueClassInfo info) {
     var fields = member.fields;
@@ -356,8 +351,8 @@ $typestring $name${member.parameters.toSource()} =>
             styleContents = await sass.compileStringAsync(
               styleContents,
               importers: [new BuildImporter(buildStep)],
-              indented: lang == 'sass',
               style: sassOutputStyle,
+              syntax: lang == 'sass' ? sass.Syntax.sass : sass.Syntax.scss,
             );
           }
 
@@ -388,7 +383,7 @@ $typestring $name${member.parameters.toSource()} =>
   }
 
   List<DartType> gatherVueMixins(ClassDeclaration cls) {
-    return cls.element.mixins
+    return cls.declaredElement.mixins
       .where((InterfaceType mixin) =>
         mixin.element.metadata.any((ElementAnnotation el) =>
           el.element is ConstructorElement &&
@@ -493,6 +488,51 @@ $opts
     rewriter.edit(cls.end-1, cls.end-1, code);
   }
 
+  List<UriReferencedElement> getUrisUsedByLibrary(LibraryElement lib) =>
+    <UriReferencedElement>[]
+      ..addAll(lib.imports)
+      ..addAll(lib.exports);
+
+  bool doesUriHaveVueClasses(UriReferencedElement uriElement) {
+    LibraryElement lib;
+
+    if (uriElement is ImportElement) {
+      lib = uriElement.importedLibrary;
+    } else if (uriElement is ExportElement) {
+      lib = uriElement.exportedLibrary;
+    } else {
+      throw UnsupportedError('Unsupported UriReferencedElement ${uriElement}');
+    }
+
+    if (libraryIdContainsVueClasses.containsKey(lib.identifier)) {
+      return libraryIdContainsVueClasses[lib.identifier];
+    }
+    if (lib.isInSdk) {
+      return false;
+    }
+    if (lib != null && getVueClassesIter(lib).isNotEmpty) {
+      return true;
+    }
+
+    libraryIdContainsVueClasses[lib.identifier] = false;
+    var result = getUrisUsedByLibrary(lib).any(doesUriHaveVueClasses);
+    libraryIdContainsVueClasses[lib.identifier] = result;
+    return result;
+  }
+
+  bool rewriteVueImportUris(LibraryElement lib) {
+    var hasAny = false;
+
+    for (var uriElement in getUrisUsedByLibrary(lib).where(doesUriHaveVueClasses)) {
+      hasAny = true;
+      var renamed = new AssetId.resolve(uriElement.uri, from: inputId)
+                               .changeExtension('.vue.dart');
+      rewriter.edit(uriElement.uriOffset, uriElement.uriEnd, "'${renamed.uri}'");
+    }
+
+    return hasAny;
+  }
+
   Future build() async {
     var outputStyle = options.config['sass_output_style'];
     if (outputStyle != null) {
@@ -518,8 +558,9 @@ $opts
     source = new SourceFile.fromString(contents);
     rewriter = new TextEditTransaction(contents, source);
 
-    var classes = getVueClasses(lib);
-    if (classes.isEmpty) {
+    var hasAnyVueImports = rewriteVueImportUris(lib);
+    var classes = getVueClassesIter(lib).toList();
+    if (classes.isEmpty && !hasAnyVueImports) {
       return new Future.value();
     }
 
@@ -527,26 +568,10 @@ $opts
       await processClass(cls);
     }
 
-    if (lib.entryPoint != null) {
-      var components = <VueImportedComponent>[];
-      components.addAll(getVueComponents(classes));
-
-      for (var imported in lib.imports) {
-        var importedClasses = getVueClasses(imported.importedLibrary);
-        components.addAll(getVueComponents(importedClasses, imported.prefix?.name));
-
-        if (importedClasses.isNotEmpty) {
-          var renamed = new AssetId.resolve(imported.uri, from: inputId)
-                                   .changeExtension('.template.dart');
-          rewriter.edit(imported.uriOffset, imported.uriEnd, "'${renamed.uri}'");
-        }
-      }
-    }
-
     var printer = rewriter.commit();
     printer.build(null);
     // print(printer.text);
-    buildStep.writeAsString(inputId.changeExtension('.template.dart'), printer.text);
+    buildStep.writeAsString(inputId.changeExtension('.vue.dart'), printer.text);
 
     return new Future.value();
   }
@@ -561,7 +586,7 @@ class _VuedartBuilder extends Builder {
     new _VuedartBuilder(options);
 
   @override final buildExtensions = const {
-    '.dart': const ['.template.dart'],
+    '.dart': const ['.vue.dart'],
   };
 
   @override

@@ -3,5 +3,5 @@ builders:
     target: vue
     import: 'package:vue/builders.dart'
     builder_factories: ['vuedartBuilder']
-    build_extensions: {'.dart': ['.template.dart']}
+    build_extensions: {'.dart': ['.vue.dart']}
     auto_apply: dependents

@@ -373,8 +373,13 @@ class VueEventSpec<E> {
 }
 
 
+dynamic _unsupportedNullConstructor() {
+  throw new UnsupportedError('The VueDart builder has not processed this component.');
+}
+
+
 class VueComponentBase extends _VueBase {
-  VueComponentConstructor get constructor => null;
+  VueComponentConstructor get constructor => _unsupportedNullConstructor();
   bool get isMixin => false;
 
   void _setContext(dynamic context) {
@@ -452,7 +457,7 @@ abstract class VueAppOptions {
 }
 
 class VueAppBase extends _VueBase {
-  VueAppConstructor get constructor => null;
+  VueAppConstructor get constructor => _unsupportedNullConstructor();
 
   void _setContext(dynamic context) {
     vuethis = context;

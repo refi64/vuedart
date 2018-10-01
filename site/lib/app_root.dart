@@ -4,7 +4,7 @@ import 'package:vue/vue.dart';
 
 import 'package:vdmc/vdmc.dart';
 
-import 'app_navlist.template.dart';
+import 'app_navlist.dart';
 
 
 bool checkIsMobile() => document.body.clientWidth <= 480;
