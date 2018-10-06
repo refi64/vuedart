@@ -61,7 +61,7 @@ author: {{author}}
 version: 0.1.0
 description: Project description goes here
 dependencies:
-  aspen_assets: ^0.2.0
+  aspen_assets: ^0.2.1
   vue: ^0.4.0
 dev_dependencies:
   build_runner: any
@@ -93,7 +93,7 @@ final TEMPLATE_INDEX_HTML = '''
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script defer type="application/dart" src="index.vue.dart.js"></script>
+  <script defer src="index.vue.dart.js"></script>
 </head>
 
 <body>
@@ -118,7 +118,7 @@ class App extends VueAppBase {
 App app;
 
 void main() {
-  app = new App();
+  app = App();
   app.create();
 }
 ''';
@@ -265,7 +265,7 @@ class MigrateCommand extends Command {
     argParser.addOption('target', help: 'The target version', defaultsTo: '0.4');
   }
 
-  List<int> _getIndentBefore(String source, int offset) {
+  int _getIndentBefore(String source, int offset) {
     var indent = 0;
     offset--;
 
@@ -441,7 +441,7 @@ class MigrateCommand extends Command {
     warn('    - Add an explicit components annotation to your app and components.');
     warn('    - Remove all the constructor boilerplate.');
     warn('    - Change the old router argument to the new options API.');
-    warn('    - Change component symbols in router declarations to constructors.')
+    warn('    - Change component symbols in router declarations to constructors.');
     warn('    - Rename the lifecycle callbacks (e.g. mounted -> lifecycleMounted).');
     warn('  See the release blog post for more info.');
   }
@@ -468,6 +468,9 @@ class MigrateCommand extends Command {
   }
 
   void run() {
+    warn("'vuedart migrate' is unsupported. This basically means that you're free to use it,");
+    warn("but there's no guarantee it'll work perfectly. Tread carefully and make backups!");
+
     final VERSIONS = ['0.2', '0.3', '0.4'];
 
     final TRANSFORMS = {
@@ -526,7 +529,8 @@ class MigrateCommand extends Command {
       note('Migrating from $version to $nextVersion...');
 
       for (var transform in transforms) {
-        var name = MirrorSystem.getName(reflect(transform).function.simpleName);
+        var name = MirrorSystem.getName((reflect(transform) as ClosureMirror)
+                                          .function.simpleName);
         note('  - Running transform $name...');
 
         var rewriters = {};
