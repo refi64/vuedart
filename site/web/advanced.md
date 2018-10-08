@@ -11,7 +11,7 @@ All the examples thus far have manually loaded Vue:
   <title>VueDart first example</title>
   <!-- Here -->
   <script src="https://unpkg.com/vue"></script>
-  <script defer type="application/dart" src="index.dart"></script>
+  <script defer src="index.vue.dart.js"></script>
 </head>
 ```
 
@@ -95,11 +95,10 @@ import 'package:aspen_assets/aspen_assets.dart' as aspen;
 
 // ..
 
-Future main() async {
+void main() {
   // This will apply the style to the document.
   aspen.loadGlobal('vue-material-css');
-
-  }
+}
 ```
 
 In order to bundle the assets, run `aspen`, or `aspen -m prod` to bundle in production
@@ -131,10 +130,8 @@ class Person {
   Person({this.name, this.age});
 }
 
-@VueComponent(name: 'show-name', template: '<p>{{person.name}} is {{person.age}}</p>')
+@VueComponent(template: '<p>{{person.name}} is {{person.age}}</p>')
 class ShowName extends VueComponentBase {
-  ShowName(context): super(context);
-
   @prop
   Person person;
 }
@@ -197,7 +194,7 @@ class Things {
 // ...
 
 // Now we want to create a new instance of Things
-new Things(
+Things(
   things: mapToJs({
     'thing1': 'value',
     'thing2': 'value',
@@ -211,36 +208,106 @@ functions to access the properties on the object (such as `getProperty` and `set
 All this seems rather complex, but once you've got it down, you'll be passing objects around
 in no time!!
 
-<div id="instance"></div>
+<div id="events"></div>
 
-## Events via $emit, and other instance methods
+## Emitting and listening to events
 
-VueDart supports the `$emit`, `$on`, `$off`, and `$once` functions:
+Of course, VueDart already supports the standard Vue way of listening to events:
+`<my-component @event="callback">`. However, instead of using `$emit`, `$on`, `$off`,
+and `$once`, VueDart provides a type-safe event API that uses Dart's own `Stream` system.
+
+Let's say we're creating a `TimeClickedButton` that emits the time the button was clicked along
+with the event. First, we need a `VueEventSpec`:
 
 ```dart
-@VueComponent(name: 'my-component', template: '<button @click="click">Click me!</button>')
-class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
+@VueComponent(template: '<button @click="click">Click me!</button>')
+class TimeClickedButton extends VueComponentBase {
+  static final buttonClicked = VueEventSpec<int>('button-clicked');
+}
+```
 
-  @method
-  void click(event) {
-    $emit('my-custom-event', ['some arg', 'some other arg']);
+`int` is the type of the data being passed along with the event, and `button-clicked` is the
+event name.
 
-    $on('something', (event) {
-      print(123);
-    });
-    // Same for $off and $once
+Now, we also need a `VueEventSink` and a `VueEventStream`:
+
+```dart
+@VueComponent(template: '<button @click="click">Click me!</button>')
+class TimeClickedButton extends VueComponentBase {
+  static final buttonClicked = VueEventSpec<int>('button-clicked');
+
+  VueEventSink<int> buttonClickedSink;
+  VueEventStream<int> buttonClickedStream;
+
+  @override
+  void lifecycleCreated() {
+    buttonClickedSink = buttonClicked.createSink(this);
+    buttonClickedStream = buttonClickedStream.createStream(this);
   }
 }
 ```
 
-In addition, `$nextTick`, `$forceUpdate`, and `$destroy` are also supported:
+The `VueEventSink` is used for emitting events, and the `VueEventStream` is used for listening
+to them. They're subclasses of `StreamSink` and `Stream`, respectively.
+
+Last of all, we need to emit some events:
 
 ```dart
-@VueComponent(name: 'my-component', template: '<<')
-class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
+@VueComponent(template: '<button @click="click">Click me!</button>')
+class TimeClickedButton extends VueComponentBase {
+  static final buttonClicked = VueEventSpec<int>('button-clicked');
 
+  VueEventSink<int> buttonClickedSink;
+  VueEventStream<int> buttonClickedStream;
+
+  @override
+  void lifecycleCreated() {
+    buttonClickedSink = buttonClicked.createSink(this);
+    buttonClickedStream = buttonClickedStream.createStream(this);
+  }
+
+  // Equivalent to $emit
+  @method
+  void click() => buttonClickedStream.add(DateTime.now().millisecondsSinceEpoch);
+}
+```
+
+Listening for events is now easy and type-safe:
+
+```dart
+@VueComponent(template: '<time-clicked-button ref="button"></time-clicked-button>',
+              components: [TimeClickedButton])
+class AnotherComponent {
+  @ref
+  TimeClickedButton button;
+
+  @override
+  void lifecycleCreated() {
+    // Listen to some events (equivalent to $on).
+    var subscription = button.buttonClickedStream.listen((time) {
+      print('Milliseconds since epoch when clicked: $time');
+    });
+
+    // Later on, cancel the subscription (equivalent to $off)
+    subscription.cancel();
+
+    // Listen to one event (equivalent to $once)
+    button.buttonClickedStream.first.then((time) {
+      print('Milliseconds since epoch when clicked: $time');
+    });
+  }
+}
+```
+
+<div id="instance"></div>
+
+## Miscellaneous instance methods
+
+VueDart supports the `$nextTick`, `$forceUpdate`, and `$destroy` instance methods:
+
+```dart
+@VueComponent(template: '<<')
+class MyComponent extends VueComponentBase {
   @method
   void click(event) {
     // $nextTick returns a Future
@@ -267,10 +334,8 @@ To declare a custom render function, you just leave out the `template:` value an
 the `render` method:
 
 ```dart
-@VueComponent(name: 'my-component') // <-- no template!
+@VueComponent() // <-- no template!
 class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
-
   @override
   void render(CreateElement createElement) =>
     // function body goes here
@@ -292,25 +357,6 @@ the outer maps are converted automatically, the inner maps aren't. In this case,
 Other than that, just note that all the return values here are `dynamic`, and if
 you make a mistake, Dart's type system isn't going to be there to save you when it fails.
 Beware!
-
-<div id="migrate"></div>
-
-## Using the VueDart CLI to perform migrations
-
-VueDart's CLI also comes with a simple tool to help with version migrations. Just run
-`vuedart migrate` like so:
-
-```
-$ vuedart migrate . pubspec.yaml web/* lib/*
-```
-
-The first argument is the root directory of your project; the rest of the arguments
-are the source files that should be included in the migration. To include everything,
-just do something like this:
-
-```
-$ find * -not -path '*/\.*' -type f | xargs vuedart migrate .
-```
 
 <div id="ignore"></div>
 

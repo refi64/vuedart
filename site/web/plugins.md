@@ -11,21 +11,40 @@ the meantime, VueDart contains support for some commonly used Vue plugins.
 Note that for all of the below plugins, you still need to manually load their
 corresponding assets, [preferably using Aspen](advanced.html#assets).
 
+<div id="app-options"></div>
+
+## Passing options to the Vue constructor
+
+In many JS plugins, options need to be passed to the `Vue({...})` constructor. In order
+to accomplish this in VueDart, derive your plugin class from `VueAppOptions` and pass it to
+`VueAppBase.create`:
+
+```dart
+import 'package:vue/vue.dart';
+
+class MyPlugin extends VuePlugin implements VueAppOptions {
+  static void use() => VuePlugin.use('my-plugin-name');
+
+  // These options will be passed to the Vue constructor.
+  Map<String, dynamic> get appOptions => {
+    'some-option': 'some-value'
+  };
+}
+```
+
 <div id="vue-router"></div>
 
 ## VueRouter
 
 ```dart
-import 'vue/vue.dart';
-import 'vue/plugins/vue_router.dart';
+import 'package:vue/vue.dart';
+import 'package:vue/plugins/vue_router.dart';
 
 
 // Define some components to be used in the router
 @VueComponent(template: '''<p>vue-router demo! Id is: {{id}}</p>
                            <router-view></router-view>''')
 class RootComponent extends VueComponentBase with VueRouterMixin {
-  RootComponent(context): super(context);
-
   // Params can be accessed just like in the JS world.
   @computed
   int get id => $route.params['id'];
@@ -33,18 +52,11 @@ class RootComponent extends VueComponentBase with VueRouterMixin {
 
 @VueComponent(template: '<p>child component!</p>')
 class ChildComponent extends VueComponentBase with VueRouterMixin {
-  DemoComponent(context): super(context);
 }
 
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  // When using vue-router, the factory here changes a bit. Notice that now we're passing
-  // down a 'router' named parameter. You should be able to mostly just copy-paste this
-  // without needing to worry about its workings.
-  factory App({router}) => VueAppBase.create((context) => new App._(context),
-                                             router: router);
-  App._(context): super(context);
 }
 
 
@@ -53,20 +65,21 @@ App app;
 
 Future main() async {
   // Here is an example router. This should look quite close to the official VueRouter,
-  // except for the extra type constructors. Note that each component is prefixed with a
-  // # sign: this is very important!
-  final router = new VueRouter(routes: [
-    new VueRoute(path: '/item/:id', component: #RootComponent, children: [
+  // except for the extra type constructors.
+  final router = VueRouter(routes: [
+    VueRoute(path: '/item/:id', component: RootComponent(), children: [
       // Nested children work
-      new VueRoute(path: 'info', component: #ChildComponent),
+      VueRoute(path: 'info', component: ChildComponent()),
     ]),
     // As do named views:
-    new VueRoute(path: '/named-view/:id', components: {
-      'root': #RootComponent,
+    VueRoute(path: '/named-view/:id', components: {
+      'root': RootComponent(),
     }),
   ]);
 
-  app = new App(router: router);
+  app = App();
+  // Note that we're passing the router to the options: argument.
+  app.create(options: [router]);
 }
 ```
 
@@ -74,35 +87,41 @@ Future main() async {
 
 ## VueMaterial
 
-Note that this is only for VueMaterial 0.7, not 0.8 (yet!).
+**Note:** The VueMaterial API here is going to eventually be superceded by
+[vdmc](https://github.com/kirbyfan64/vdmc), a VueDart wrapper over
+[Material Components Vue](https://matsp.github.io/material-components-vue/), which is in turn a
+Vue wrapper over Google's official
+[Material Components for Web](https://github.com/material-components/material-components-web).
+This change will likely be complete by either VueDart 0.4.1 or 0.5, pending a new revamp of
+Aspen.
+
+Note that this is only for VueMaterial 0.7, not 0.8.
 
 Here's a pretty thorough example:
 
 ```dart
-import 'vue/vue.dart';
-import 'vue/plugins/vuematerial.dart';
+import 'package:vue/vue.dart';
+import 'package:vue/plugins/vuematerial_legacy.dart';
 
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
 }
 
 
 App app;
 
 
-Future main() async {
+void main() {
   // Equivalent to Vue.use(VueMaterial)
   VueMaterial.use();
 
   // Equivalent to Vue.material.registerTheme
-  VueMaterial.registerTheme('main', new MdTheme(
+  VueMaterial.registerTheme('main', MdTheme(
     // Simple color names.
     primary: 'indigo',
     // You can give hues, too.
-    accent: new MdColor(color: 'blue', hue: 800),
+    accent: MdColor(color: 'blue', hue: 800),
     warn: 'red',
     background: 'white',
   ));
@@ -110,7 +129,8 @@ Future main() async {
   // Equivalent to Vue.material.setCurrentTheme
   VueMaterial.setCurrentTheme('main');
 
-  app = new App();
+  app = App();
+  app.create();
 }
 ```
 
@@ -119,8 +139,6 @@ For menus, dialogs, sidenavs, and snackbars, you can use the `Md*` types:
 ```dart
 @VueComponent(name: 'my-component', template: '<<')
 class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
-
   // Dialog ref.
   @ref
   MdDialog dialog;

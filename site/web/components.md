@@ -14,22 +14,24 @@ Toss this in `lib/show_name.dart`:
 import 'package:vue/vue.dart';
 
 
-@VueComponent(name: 'show-name', template: '<p>Your name is: Bob</p>')
+@VueComponent(template: '<p>Your name is: Bob</p>')
 class ShowName extends VueComponentBase {
-  ShowName(context): super(context);
 }
 ```
 
-Also, add the following import to `index.dart`:
+Also, change `index.dart`:
 
 ```dart
-import 'package:vuedart_example/show_name.dart'; // <-- Component import goes here
+import 'package:vuedart_example/show_name.dart';  // <-- This imports your component
+
+@VueApp(el: '#app', components: [ShowName])  // <-- Use the component here
+class App // ...
 ```
 
-and change `index.html` like so:
+and `index.html`:
 
 ```html
-<body vuedart>
+<body>
   <div id="app">
     <input v-model="name">
     <show-name></show-name>
@@ -39,13 +41,12 @@ and change `index.html` like so:
 
 Now refresh your browser page. You should see it now say, *Your name is Bob*.
 
-But let's take a few steps back. What exactly is going on here?
+Let's take a few steps back. What exactly is going on here?
 
 - New components are defined using the *VueComponent* annotation and the *VueComponentBase*
   base class. You pass your template through the *template:* argument on the annotation
   (there's a better way, but we'll get to that later).
-- As before, it's important to declare your constructor, except now it's taking a single
-  argument, though it's still just passing it up a level.
+- The component name is given to `@VueApp`, just like `components:` does in Vue.
 
 That being said, putting templates in the annotation string is just nasty. In vanilla Vue,
 you can use webpack for stuff like this. Does VueDart have an alternative? *Yup!*
@@ -53,7 +54,7 @@ you can use webpack for stuff like this. Does VueDart have an alternative? *Yup!
 Change the *VueComponent* annotation in `show_name.dart` to read:
 
 ```dart
-@VueComponent('show-name', template: '<<show_name.html')
+@VueComponent(template: '<<show_name.html')
 ```
 
 and create `lib/show_name.html` containing the following:
@@ -71,7 +72,7 @@ the same name as your Dart code (e.g. `show_name.dart` and `show_name.html`), Vu
 uses that as the default. Therefore, you can abbreviate all this to:
 
 ```dart
-@VueComponent('show-name', template: '<<')
+@VueComponent(template: '<<')
 ```
 
 and VueDart will automatically use the template in `show_name.html`.
@@ -84,10 +85,8 @@ Well, this component is a bit of a downgrade. Before, we could display *any* nam
 we're limited to Bob's. Let's try using some properties:
 
 ```dart
-@VueComponent(name: 'show-name', template: '<<')
+@VueComponent(template: '<<')
 class ShowName extends VueComponentBase {
-  ShowName(context): super(context);
-
   @prop
   String name;
 }
@@ -125,10 +124,8 @@ VueDart also supports scoped styles via
 [scopify](https://pub.dartlang.org/packages/scopify). Here's how they work:
 
 ```dart
-@VueComponent(name: 'show-name', template: '<<')
+@VueComponent(template: '<<')
 class ShowName extends VueComponentBase {
-  ShowName(context): super(context);
-
   @prop
   String name;
 }
@@ -167,7 +164,7 @@ Mixins are easy to declare in VueDart. Take this example:
 
 ```dart
 @VueMixin()
-abstract class TodoMixin {
+abstract class TodoMixin implements VueMixinRequirements {
   @method
   String capitalize(String thing) => thing.toUpperCase();
 }
@@ -175,58 +172,40 @@ abstract class TodoMixin {
 
 There are three important things about this:
 
-- The `@VueMixin()` annotation should go on *any* VueDart mixin, otherwise you'll get
-  incredibly bizarre analyzer errors.
+- The `@VueMixin()` annotation defines a mixin. You can also use `components: [...]` just like
+  on other VueDart annotations.
+  mixin, otherwise you'll get incredibly bizarre analyzer errors.
 - Mixins must not use other mixins!
 - Mixins must be `abstract`.
+- Mixins must have `implements VueMixinRequirements`.
 
 Now you can use your mixin:
 
 ```dart
-@VueComponent(name: 'show-name', template: '<<', mixins: const [TodoMixin])
+@VueComponent(template: '<<')
 class ShowName extends VueComponentBase with TodoMixin {
   // ...
 }
 ```
 
-Note that the only difference between using a standard Dart mixin and a VueDart mixin is
-the extra `mixins:` argument to `@VueComponent`.
+This looks exactly like a normal Dart mixin, except the `@VueMixin()` annotation from earlier
+makes it a Vue mixin.
 
 <div id="lifecycle"></div>
 
 ## Lifecycle callbacks
 
-Lifecycle callbacks are dead simple in VueDart! For starters, the `created` lifecycle
-callback is just your constructor. For example:
+Lifecycle callbacks are dead simple in VueDart! They're just simple method overrides:
 
 ```dart
-@VueComponent(name: 'my-component', template: '<pHello!</p>')
+@VueComponent(template: '<pHello!</p>')
 class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context) {
-    // This is the VueDart equivalent of the 'created' lifecycle callback
-  }
-}
-
-@VueApp(el: '#app')
-class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context) {
-    // Same here.
-  }
-}
-```
-
-The others are just method overrides:
-
-```dart
-@VueComponent(name: 'my-component', template: '<pHello!</p>')
-class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
-
   @override
-  void mounted() => print("mounted!");
+  void lifecycleCreated() => print("created!");
   @override
-  void destroyed() => print("destroyed!");
+  void lifecycleMounted() => print("mounted!");
+  @override
+  void lifecycleDestroyed() => print("destroyed!");
 }
 ```
 
@@ -239,12 +218,10 @@ and so forth for all the other lifecycle callbacks.
 Take the following component:
 
 ```dart
-@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
+@VueComponent(template: '<div ref="text">Hello!</div>')
 class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
-
   @override
-  void mounted() {
+  void lifecycleMounted() {
     // How to access the div element?
   }
 }
@@ -253,17 +230,15 @@ class MyComponent extends VueComponentBase {
 For this, you can use the `@ref` annotation:
 
 ```dart
-import 'dart:html'; // to get DivElement
+import 'dart:html';  // to get DivElement
 
-@VueComponent(name: 'my-component', template: '<div ref="text">Hello!</div>')
+@VueComponent(template: '<div ref="text">Hello!</div>')
 class MyComponent extends VueComponentBase {
-  MyComponent(context): super(context);
-
   @ref
   DivElement text;
 
   @override
-  void mounted() => print(text.text);
+  void lifecycleMounted() => print(text.text);
 }
 ```
 
@@ -272,7 +247,7 @@ Piece of cake, right? It's like declaring a normal attribute.
 Accessing component refs is just as simple:
 
 ```dart
-@VueComponent('first-component', template: '<div>Hello!</div>')
+@VueComponent(template: '<div>Hello!</div>')
 class FirstComponent extends VueComponentBase {
   FirstComponent(context): super(context);
 
@@ -280,16 +255,14 @@ class FirstComponent extends VueComponentBase {
   String get stuff => 'Hello!';
 }
 
-@VueComponent('second-component',
-              template: '<first-component ref="first"></first-component>')
+@VueComponent(template: '<first-component ref="first"></first-component>',
+              components: [FirstComponent])
 class SecondComponent extends VueComponentBase {
-  SecondComponent(context): super(context);
-
   @ref
   FirstComponent first;
 
   @override
-  void mounted() => print(first.stuff); // Hello!
+  void lifecycleMounted() => print(first.stuff); // Hello!
 }
 ```
 
@@ -297,7 +270,7 @@ If you need to get a ref by name instead of declaring it ahead-of-type, use the 
 function:
 
 ```dart
-void mounted() {
+void lifecycleMounted() {
   print($ref('first') as FirstComponent);
 }
 ```

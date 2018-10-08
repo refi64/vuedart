@@ -28,27 +28,23 @@ Now create a new file `web/index.dart` and add this:
 
 ```dart
 import 'package:vue/vue.dart';
-import 'dart:async';
 
 
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
 }
 
 App app;
 
-Future main() async {
-  app = new App();
+void main() {
+  app = App();
+  app.create();
 }
 ```
 
-For those familiar with Vue, this should be rather self-explanatory. Only point of
-interest is the whole factory+constructor dance; that's just boilerplate that will
-hopefully be removed in the future version of VueDart. Here, *App* is the equivalent of
-a global *Vue* instance. The *VueApp* annotation is where you declare which element is
-your root. *initVue* does what you think it does: it initializes VueDart.
+For those familiar with Vue, this should be rather self-explanatory. Here, *App* is the
+equivalent of a global *Vue* instance, and *app.create* connects . The *VueApp* annotation is
+where you declare which element is your root.
 
 Also, add this to `web/index.html`:
 
@@ -60,7 +56,7 @@ Also, add this to `web/index.html`:
 
   <script src="https://unpkg.com/vue"></script>
 
-  <script defer type="application/dart" src="index.dart"></script>
+  <script defer src="index.vue.dart.js"></script>
   <script defer src="packages/browser/dart.js"></script>
 </head>
 
@@ -73,10 +69,9 @@ Also, add this to `web/index.html`:
 
 Again, this should be pretty self-explanatory. Interesting things to note:
 
-- VueDart will automatically change your Vue script imports to `vue.min.js` when you're
-  building in release mode.
-- Note the *vuedart* tag on the *body* element. This is pretty important, since that's
-  VueDart uses to know if it's working with a Vue application.
+- The filename is `index.vue.dart.js`, not `index.dart`. The VueDart transformer will compile
+  `index.dart` into `index.vue.dart`, and then the compiler will compile it to
+  `index.vue.dart.js`.
 - The `defer` tag is to prevent your Dart code from running before the page has finished
   loading.
 
@@ -87,33 +82,28 @@ name: vuedart_example
 version: 0.1.0
 description: VueDart example app
 author: Foo Bar
+environment:
+  sdk: ">=2.0.0 <3.0.0"
 dependencies:
-  browser: any
   vue: any
-transformers:
-  - vue:
-      # This is important!! See below.
-      entry_points:
-        - web/index.dart
+dev_dependencies:
+  build_runner: any
+  build_web_compilers: any
 ```
 
-Note the `entry_points` argument. This contains all your Vue-using web entry points
-**TL;DR:** all your Dart files that define `main` and also setup a Vue app should be in
-`entry_points`.
+The `dev_dependencies` section
 
-If you ever get an error like this:
+Before running our new VueDart web app, we need to install the `webdev` package:
 
-```text
-[Vue warn]: Unknown custom element: <my-component> - did you register the component correctly?
+```bash
+$ pub global activate webdev
 ```
-
-you probably didn't add an entry point to `entry_points`.
 
 Now that everything's been put together, run:
 
 ```bash
 $ pub get
-$ pub serve --web-compiler dartdevc
+$ webdev serve
 ```
 
 and open your browser to `localhost:8080`. Congratulations, you just made your first
@@ -129,11 +119,8 @@ easier to debug.
 
 ### Addendum #2: Building for production
 
-If you want to deploy a VueDart app in production, you'll want to run `pub build`; while
-`pub serve` defaults to debug mode builds, `pub build` defaults to release mode. Also note
-that, when doing a release build, your `vue` scripts from unpkg will automatically be
-converted to `vue.min.js`.
-
+If you want to deploy a VueDart app in production, you'll want to run `webdev build`; while
+`webdev serve` defaults to debug mode builds, `webdev build` defaults to release mode.
 <div id="data"></div>
 
 ## Declaring data
@@ -146,9 +133,6 @@ Modify your app class to look like so:
 ```dart
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
-
   @data
   String name = '';
 }
@@ -159,7 +143,7 @@ variable, and VueDart will compile it into Vue data accesses. Now it's time to r
 a name in our HTML file:
 
 ```html
-<body vuedart>
+<body>
   <div id="app">
     <input v-model="name">
     <p>Your name is: {{name}}</p>
@@ -180,9 +164,6 @@ use methods:
 ```dart
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
-
   @data
   String name;
 
@@ -192,7 +173,7 @@ class App extends VueAppBase {
 ```
 
 ```html
-<body vuedart>
+<body>
   <div id="app">
     <input v-model="name">
     <p>Your name is: {{capitalize(name)}}</p>
@@ -214,9 +195,6 @@ that's done in VueDart:
 ```dart
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
-
   @data
   String name = '';
 
@@ -227,7 +205,7 @@ class App extends VueAppBase {
 ```
 
 ```html
-<body vuedart>
+<body>
   <div id="app">
     <input v-model="name">
     <p>Your name is: {{capitalizedName}}</p>
@@ -252,9 +230,6 @@ a more Dart-ified syntax.
 ```dart
 @VueApp(el: '#app')
 class App extends VueAppBase {
-  factory App() => VueAppBase.create((context) => new App._(context));
-  App._(context): super(context);
-
   @data
   int value1 = 0, value2 = 0, value3 = 0;
 

@@ -61,7 +61,8 @@ class AppNavlist extends VueComponentBase {
       contents: [
         ['Bundling your assets via Aspen', 'assets'],
         ['Crossing the JavaScript and Dart boundary', 'boundary'],
-        ['Events via \$emit, and other instance methods', 'instance'],
+        ['Emitting and listening to events', 'events'],
+        ['Miscellaneous instance methods', 'instance'],
         ['Render functions', 'render'],
         ['Using the VueDart CLI to perform migrations', 'migrate'],
         ['Ignoring elements', 'ignore'],
@@ -72,6 +73,7 @@ class AppNavlist extends VueComponentBase {
       addr: 'plugins.html',
       contents: [
         ['How do plugins work in VueDart?', 'work'],
+        ['Passing options to the Vue constructor', 'app-options'],
         ['VueRouter', 'vue-router'],
         ['VueMaterial', 'vuematerial'],
       ],
