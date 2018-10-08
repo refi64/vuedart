@@ -1,6 +1,8 @@
-## 0.2.0
+## 0.4.0
 
-Update for VueDart 0.4.
+- The version numbering has been changed to be in sync with VueDart.
+- Updates for VueDart 0.4.
+- The *migrate* command is now considered unsupported due to technical issues with it.
 
 ## 0.1.1
 
