@@ -124,8 +124,13 @@ class VuedartBuildContext {
   String computedSet(String name) => 'vuedart_INTERNAL_cs_$name';
   String method(String name) => 'vuedart_INTERAL_m_$name';
 
-  String methodParams(List<FormalParameter> params) =>
-    params.map((p) => p.identifier.name).join(', ');
+  String methodParams(List<FormalParameter> params, {bool isDecl = false}) =>
+    params
+      .map((p) =>
+        p is DefaultFormalParameter && isDecl
+          ? '[${p.identifier.name} = ${p.defaultValue.toSource()}]'
+          : p.identifier.name)
+      .join(', ');
 
   String sourceOrNull(AstNode node) => node?.toSource() ?? 'null';
 
@@ -180,7 +185,7 @@ class VuedartBuildContext {
 
   String codegenMethod(Method meth) =>
     '''
-    '${meth.name}': (_, ${methodParams(meth.params)}) =>
+    '${meth.name}': (_, ${methodParams(meth.params, isDecl: true)}) =>
               vueGetObj(_).${method(meth.name)}(${methodParams(meth.params)}),
     ''';
 
@@ -296,6 +301,11 @@ $typestring $name${member.parameters.toSource()}
       info.watchers.add(new Watcher(name, propName, member.parameters.parameters.length,
                                     deep));
     } else if (ann.name.name == 'method') {
+      if (member.parameters.parameters.any((p) => p.kind == ParameterKind.NAMED)) {
+        error(member.parameters, '@method does not support named arguments');
+        return;
+      }
+
       rewriter.edit(member.offset, member.end, '''
 $typestring ${method(name)}${member.parameters.toSource()}
   ${member.body.toSource()}

@@ -33,6 +33,7 @@
   `<style scoped>` tags.
 - Mixins are now supported on a `VueApp`.
 - Models are supported via `@model([event: '...'])`.
+- Fix methods that take optional arguments under Dart 2.0.
 
 ## 0.3.2
 
