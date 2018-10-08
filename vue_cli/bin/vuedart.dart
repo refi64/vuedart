@@ -68,20 +68,6 @@ dev_dependencies:
   build_web_compilers: any
 ''';
 
-final TEMPLATE_BUILD_RELEASE = r'''
-targets:
-  $default:
-    builders:
-      build_web_compilers|entrypoint:
-        options:
-          compiler: dart2js
-          dart2js_args:
-          - --fast-startup
-          - --minify
-          - --trust-type-annotations
-          - --trust-primitives
-''';
-
 final TEMPLATE_INDEX_HTML = '''
 <!DOCTYPE html>
 
@@ -160,7 +146,6 @@ final TEMPLATES = {
   'README.md': TEMPLATE_README_MD,
   'analysis_options.yaml': TEMPLATE_ANALYSIS_OPTIONS,
   'pubspec.yaml': TEMPLATE_PUBSPEC,
-  'build.release.yaml': TEMPLATE_BUILD_RELEASE,
   'web/index.html': TEMPLATE_INDEX_HTML,
   'web/index.dart': TEMPLATE_INDEX_DART,
   'lib/my_component.html': TEMPLATE_MY_COMPONENT_HTML,
@@ -173,7 +158,6 @@ final ASPEN_TEMPLATES = {
   'aspen.yml': TEMPLATE_ASPEN_YML,
   'package.json': TEMPLATE_PACKAGE_JSON,
   'pubspec.yaml': TEMPLATE_PUBSPEC_ASPEN,
-  'build.release.yaml': TEMPLATE_BUILD_RELEASE,
   'web/index.html': TEMPLATE_INDEX_HTML_ASPEN,
   'web/index.dart': TEMPLATE_INDEX_DART_ASPEN,
   'lib/my_component.html': TEMPLATE_MY_COMPONENT_HTML,
