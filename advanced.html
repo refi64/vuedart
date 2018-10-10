@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> VueDart: Advanced topics </title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Quicksand:400,500|Roboto:400,700|Roboto+Mono|Material+Icons">
+
+  <script src="dist/vendor.js"></script>
+  <script defer src="index.vue.dart.js"></script>
+
+  <style> [v-cloak] { display: none; } </style>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <app-root>
+      <m-typo-headline :level="3" id="advanced-topics">Advanced topics</m-typo-headline><div id="assets"></div>
+<m-typo-headline :level="4" id="bundling-your-assets-via-aspen">Bundling your assets via Aspen</m-typo-headline>
+<p>All the examples thus far have manually loaded Vue:</p>
+<pre><code v-pre class="language-html">&lt;head&gt;
+  &lt;title&gt;VueDart first example&lt;/title&gt;
+  &lt;!-- Here --&gt;
+  &lt;script src="https://unpkg.com/vue"&gt;&lt;/script&gt;
+  &lt;script defer src="index.vue.dart.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+</code></pre>
+<p>Obviously, once you start to throw in plugins and UI libraries, this doesn't scale
+well:</p>
+<pre><code v-pre class="language-html">&lt;script src="https://unpkg.com/vue"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/vue-router"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/vue-material"&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.css"&gt;
+</code></pre>
+<p>The preferred way to bundle these assets together is via
+<a href="https://pub.dartlang.org/packages/aspen">Aspen</a> + yarn/npm. Install Aspen via:</p>
+<pre><code v-pre>$ pub global activate aspen
+</code></pre>
+<p>and add <code v-pre>aspen_assets</code> to your <code v-pre>pubspec.yaml</code>:</p>
+<pre><code v-pre class="language-yaml">dependencies:
+  aspen_assets: any
+  vue: any
+</code></pre>
+<p>Now run <code v-pre>yarn init</code> to set up your <code v-pre>package.json</code>, and <code v-pre>yarn add</code> your dependencies:</p>
+<pre><code v-pre>$ yarn init
+# Follow the prompts
+$ yarn add vue
+$ yarn add vue-router
+# and so forth...
+</code></pre>
+<p>Now create a file named <code v-pre>aspen.yml</code> containing something like the following:</p>
+<pre><code v-pre class="language-yaml">targets:
+  default:
+    outputs:
+      default: web/vendor.js
+
+    assets:
+    - dev: node_modules/vue/dist/vue.js
+      prod: node_modules/vue/dist/vue.min.js
+</code></pre>
+<p>This says that when bundling in development mode, <code v-pre>vue.js</code> will be used, else
+<code v-pre>vue.min.js</code> will be used. This and any others assets will be bundled into
+<code v-pre>web/vendor.js</code>.</p>
+<p>Other assets can be added too:</p>
+<pre><code v-pre class="language-yaml">targets:
+  default:
+    outputs:
+      default: web/vendor.js
+
+    assets:
+    - dev: node_modules/vue/dist/vue.js
+      prod: node_modules/vue/dist/vue.min.js
+    - dev: node_modules/vue-material/dist/vue-material.debug.js
+      prod: node_modules/vue-material/dist/vue-material.js
+    - name: vue-material-css
+      # 'default' is used to declare the same file for both dev and prod
+      default: node_modules/vue-material/dist/vue-material.css
+</code></pre>
+<p>Notice that <code v-pre>vue-material-css</code> is named; this is because CSS assets are not
+automatically applied to the document (similar to Webpack). In order to do so,
+you need to use <code v-pre>aspen_assets</code>:</p>
+<pre><code v-pre class="language-dart">import 'package:vue/vue.dart';
+import 'package:aspen_assets/aspen_assets.dart' as aspen;
+
+// ..
+
+void main() {
+  // This will apply the style to the document.
+  aspen.loadGlobal('vue-material-css');
+}
+</code></pre>
+<p>In order to bundle the assets, run <code v-pre>aspen</code>, or <code v-pre>aspen -m prod</code> to bundle in production
+mode. Now only <code v-pre>vendor.js</code> needs to be included:</p>
+<pre><code v-pre>&lt;script src="vendor.js"&gt;&lt;/script&gt;
+</code></pre>
+<p>If you're using the VueDart CLI, you can use <code v-pre>vuedart create my-project --aspen</code> to
+create a new project that uses Aspen and npm/Yarn instead of the default that uses
+the unpkg CDN.</p><div id="boundary"></div>
+<m-typo-headline :level="4" id="crossing-the-javascript-and-dart-boundary">Crossing the JavaScript and Dart boundary</m-typo-headline>
+<p>This is one of the trickier things you'll need to know to use VueDart efficiently. Going
+back to the <code v-pre>show-name</code> component from the last section, what if you wanted a property
+value to be an object? For instance:</p>
+<pre><code v-pre class="language-dart">// DO NOT DO THIS; IT DOESN'T WORK
+
+class Person {
+  String name;
+  int age;
+
+  Person({this.name, this.age});
+}
+
+@VueComponent(template: '&lt;p&gt;{{person.name}} is {{person.age}}&lt;/p&gt;')
+class ShowName extends VueComponentBase {
+  @prop
+  Person person;
+}
+</code></pre>
+<p>If you couldn't tell by the giant warning comment...this won't work. The problem here is
+that the JavaScript world doesn't see objects like the Dart world does. The answer to this
+dilemma is <a href="https://pub.dartlang.org/packages/js">the js package</a>.</p>
+<p>Before you continue, look through the package documentation (especially the <em>JavaScript
+object literals</em> section) and the Chart.js example.</p>
+<p>Now, with that in mind, here's how you'd do the above <em>properly</em>:</p>
+<pre><code v-pre class="language-dart">@anonymous
+@JS()
+class Person {
+  String name;
+  int age;
+
+  external Person({String name, int age});
+}
+</code></pre>
+<p>Since <code v-pre>@anonymous</code> is declaring a normal JavaScript anonymous object, this version of
+<code v-pre>Person</code> will survive being passed over the JS-and-Dart boundary. You can use basic types,
+like <code v-pre>String</code>, <code v-pre>int</code>, and <code v-pre>List</code>.</p>
+<p>Another thing to note: <em>you cannot put maps in your objects if you plan to use them from the
+JS side</em>. For instance, this won't work:</p>
+<pre><code v-pre class="language-dart">// DON'T DO THIS
+
+@anonymous
+@JS()
+class Things {
+  Map&lt;String, String&gt; things;
+
+  external Person({Map&lt;String, String&gt; things});
+}
+</code></pre>
+<p>Instead, you need to use <code v-pre>package:js/js_util.dart</code>, whose documentation is (confusingly!)
+available under the name
+<a href="https://api.dartlang.org/stable/dart-js_util/dart-js_util-library.html"><code v-pre>dart:js_util</code></a>,
+and the <code v-pre>mapToJs</code> helper function. Here's a concrete example:</p>
+<pre><code v-pre class="language-dart">@anonymous
+@JS()
+class Things {
+  // Use 'dynamic' to reference JavaScript objects.
+  dynamic things;
+
+  external Person({dynamic things});
+}
+
+// ...
+
+// Now we want to create a new instance of Things
+Things(
+  things: mapToJs({
+    'thing1': 'value',
+    'thing2': 'value',
+  }),
+)
+</code></pre>
+<p><code v-pre>mapToJs</code> converts a Dart map to a standard JavaScript object. After this, use the <code v-pre>js_util</code>
+functions to access the properties on the object (such as <code v-pre>getProperty</code> and <code v-pre>setProperty</code>).</p>
+<p>All this seems rather complex, but once you've got it down, you'll be passing objects around
+in no time!!</p><div id="events"></div>
+<m-typo-headline :level="4" id="emitting-and-listening-to-events">Emitting and listening to events</m-typo-headline>
+<p>Of course, VueDart already supports the standard Vue way of listening to events:
+<code v-pre>&lt;my-component @event="callback"&gt;</code>. However, instead of using <code v-pre>$emit</code>, <code v-pre>$on</code>, <code v-pre>$off</code>,
+and <code v-pre>$once</code>, VueDart provides a type-safe event API that uses Dart's own <code v-pre>Stream</code> system.</p>
+<p>Let's say we're creating a <code v-pre>TimeClickedButton</code> that emits the time the button was clicked along
+with the event. First, we need a <code v-pre>VueEventSpec</code>:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;button @click="click"&gt;Click me!&lt;/button&gt;')
+class TimeClickedButton extends VueComponentBase {
+  static final buttonClicked = VueEventSpec&lt;int&gt;('button-clicked');
+}
+</code></pre>
+<p><code v-pre>int</code> is the type of the data being passed along with the event, and <code v-pre>button-clicked</code> is the
+event name.</p>
+<p>Now, we also need a <code v-pre>VueEventSink</code> and a <code v-pre>VueEventStream</code>:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;button @click="click"&gt;Click me!&lt;/button&gt;')
+class TimeClickedButton extends VueComponentBase {
+  static final buttonClicked = VueEventSpec&lt;int&gt;('button-clicked');
+
+  VueEventSink&lt;int&gt; buttonClickedSink;
+  VueEventStream&lt;int&gt; buttonClickedStream;
+
+  @override
+  void lifecycleCreated() {
+    buttonClickedSink = buttonClicked.createSink(this);
+    buttonClickedStream = buttonClickedStream.createStream(this);
+  }
+}
+</code></pre>
+<p>The <code v-pre>VueEventSink</code> is used for emitting events, and the <code v-pre>VueEventStream</code> is used for listening
+to them. They're subclasses of <code v-pre>StreamSink</code> and <code v-pre>Stream</code>, respectively.</p>
+<p>Last of all, we need to emit some events:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;button @click="click"&gt;Click me!&lt;/button&gt;')
+class TimeClickedButton extends VueComponentBase {
+  static final buttonClicked = VueEventSpec&lt;int&gt;('button-clicked');
+
+  VueEventSink&lt;int&gt; buttonClickedSink;
+  VueEventStream&lt;int&gt; buttonClickedStream;
+
+  @override
+  void lifecycleCreated() {
+    buttonClickedSink = buttonClicked.createSink(this);
+    buttonClickedStream = buttonClickedStream.createStream(this);
+  }
+
+  // Equivalent to $emit
+  @method
+  void click() =&gt; buttonClickedStream.add(DateTime.now().millisecondsSinceEpoch);
+}
+</code></pre>
+<p>Listening for events is now easy and type-safe:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;time-clicked-button ref="button"&gt;&lt;/time-clicked-button&gt;',
+              components: [TimeClickedButton])
+class AnotherComponent {
+  @ref
+  TimeClickedButton button;
+
+  @override
+  void lifecycleMounted() {
+    // Listen to some events (equivalent to $on).
+    var subscription = button.buttonClickedStream.listen((time) {
+      print('Milliseconds since epoch when clicked: $time');
+    });
+
+    // Later on, cancel the subscription (equivalent to $off)
+    subscription.cancel();
+
+    // Listen to one event (equivalent to $once)
+    button.buttonClickedStream.first.then((time) {
+      print('Milliseconds since epoch when clicked: $time');
+    });
+  }
+}
+</code></pre><div id="instance"></div>
+<m-typo-headline :level="4" id="miscellaneous-instance-methods">Miscellaneous instance methods</m-typo-headline>
+<p>VueDart supports the <code v-pre>$nextTick</code>, <code v-pre>$forceUpdate</code>, and <code v-pre>$destroy</code> instance methods:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;&lt;')
+class MyComponent extends VueComponentBase {
+  @method
+  void click(event) {
+    // $nextTick returns a Future
+    $nextTick().then(() =&gt; {
+      print('In \$nextTick callback!');
+    });
+
+    // $forceUpdate is simple
+    $forceUpdate();
+    // same for $destroy
+    $destroy();
+  }
+}
+</code></pre><div id="render"></div>
+<m-typo-headline :level="4" id="render-functions">Render functions</m-typo-headline>
+<p><strong>Note that render functions in VueDart right now are rather suboptimal from a Dart-ish-ness
+perspective; they will eventually be improved, and this section will be rewritten.</strong></p>
+<p>To declare a custom render function, you just leave out the <code v-pre>template:</code> value and override
+the <code v-pre>render</code> method:</p>
+<pre><code v-pre class="language-dart">@VueComponent() // &lt;-- no template!
+class MyComponent extends VueComponentBase {
+  @override
+  void render(CreateElement createElement) =&gt;
+    // function body goes here
+}
+</code></pre>
+<p>The hard part isn't <em>declaring</em> it though: it's <em>writing</em> it. Here's an example:</p>
+<pre><code v-pre class="language-dart">void render(CreateElement createElement) =&gt;
+  createElement('div', {'style': mapToJs({'color': 'red'})},
+                'div contents here');
+</code></pre>
+<p>The main difference here in comparison to vanilla Vue is the <code v-pre>mapToJs</code> function: although
+the outer maps are converted automatically, the inner maps aren't. In this case, the
+<code v-pre>{'style': ...}</code> map is automatically converted, but the <code v-pre>{'color': 'red'}</code> map isn't.</p>
+<p>Other than that, just note that all the return values here are <code v-pre>dynamic</code>, and if
+you make a mistake, Dart's type system isn't going to be there to save you when it fails.
+Beware!</p><div id="ignore"></div>
+<m-typo-headline :level="4" id="ignoring-elements">Ignoring elements</m-typo-headline>
+<p>The VueDart equivalent of <code v-pre>Vue.config.ignoredElements</code> is <code v-pre>VueConfig.ignoredElements</code>:</p>
+<pre><code v-pre class="language-dart">void main() async {
+  VueConfig.ignoredElements = ['my-element'];
+  // ...
+}
+</code></pre>
+
+    </app-root>
+  </div>
+</body>

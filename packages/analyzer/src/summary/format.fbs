@@ -7,6 +7,27 @@
 
 
 /**
+ * Enum used to indicate the kind of an entity reference.
+ */
+enum EntityRefKind : byte {
+  /**
+   * The entity represents a named type.
+   */
+  named,
+
+  /**
+   * The entity represents a generic function type.
+   */
+  genericFunctionType,
+
+  /**
+   * The entity represents a function type that was synthesized by a LUB
+   * computation.
+   */
+  syntheticFunction
+}
+
+/**
  * Enum used to indicate the kind of a name in index.
  */
 enum IndexNameKind : byte {
@@ -206,17 +227,211 @@ enum ReferenceKind : byte {
   /**
    * The entity being referred to does not exist.
    */
-  unresolved
+  unresolved,
+
+  /**
+   * The entity is a typedef expressed using generic function type syntax.
+   */
+  genericFunctionTypedef
+}
+
+/**
+ * Enum used to indicate the kind of the error during top-level inference.
+ */
+enum TopLevelInferenceErrorKind : byte {
+  assignment,
+
+  instanceGetter,
+
+  dependencyCycle,
+
+  overrideConflictFieldType,
+
+  overrideConflictReturnType,
+
+  overrideConflictParameterType
+}
+
+/**
+ * Enum used to indicate the style of a typedef.
+ */
+enum TypedefStyle : byte {
+  /**
+   * A typedef that defines a non-generic function type. The syntax is
+   * ```
+   * 'typedef' returnType? identifier typeParameters? formalParameterList ';'
+   * ```
+   * The typedef can have type parameters associated with it, but the function
+   * type that results from applying type arguments does not.
+   */
+  functionType,
+
+  /**
+   * A typedef expressed using generic function type syntax. The syntax is
+   * ```
+   * typeAlias ::=
+   *     'typedef' identifier typeParameters? '=' genericFunctionType ';'
+   * genericFunctionType ::=
+   *     returnType? 'Function' typeParameters? parameterTypeList
+   * ```
+   * Both the typedef itself and the function type that results from applying
+   * type arguments can have type parameters.
+   */
+  genericFunctionType
+}
+
+/**
+ * Enum used to indicate the kind of an constructor initializer.
+ */
+enum UnlinkedConstructorInitializerKind : byte {
+  /**
+   * Initialization of a field.
+   */
+  field,
+
+  /**
+   * Invocation of a constructor in the same class.
+   */
+  thisInvocation,
+
+  /**
+   * Invocation of a superclass' constructor.
+   */
+  superInvocation,
+
+  /**
+   * Invocation of `assert`.
+   */
+  assertInvocation
+}
+
+/**
+ * Enum used to indicate the kind of an executable.
+ */
+enum UnlinkedExecutableKind : byte {
+  /**
+   * Executable is a function or method.
+   */
+  functionOrMethod,
+
+  /**
+   * Executable is a getter.
+   */
+  getter,
+
+  /**
+   * Executable is a setter.
+   */
+  setter,
+
+  /**
+   * Executable is a constructor.
+   */
+  constructor
+}
+
+/**
+ * Enum representing the various kinds of assignment operations combined
+ * with:
+ *    [UnlinkedExprOperation.assignToRef],
+ *    [UnlinkedExprOperation.assignToProperty],
+ *    [UnlinkedExprOperation.assignToIndex].
+ */
+enum UnlinkedExprAssignOperator : byte {
+  /**
+   * Perform simple assignment `target = operand`.
+   */
+  assign,
+
+  /**
+   * Perform `target ??= operand`.
+   */
+  ifNull,
+
+  /**
+   * Perform `target *= operand`.
+   */
+  multiply,
+
+  /**
+   * Perform `target /= operand`.
+   */
+  divide,
+
+  /**
+   * Perform `target ~/= operand`.
+   */
+  floorDivide,
+
+  /**
+   * Perform `target %= operand`.
+   */
+  modulo,
+
+  /**
+   * Perform `target += operand`.
+   */
+  plus,
+
+  /**
+   * Perform `target -= operand`.
+   */
+  minus,
+
+  /**
+   * Perform `target <<= operand`.
+   */
+  shiftLeft,
+
+  /**
+   * Perform `target >>= operand`.
+   */
+  shiftRight,
+
+  /**
+   * Perform `target &= operand`.
+   */
+  bitAnd,
+
+  /**
+   * Perform `target ^= operand`.
+   */
+  bitXor,
+
+  /**
+   * Perform `target |= operand`.
+   */
+  bitOr,
+
+  /**
+   * Perform `++target`.
+   */
+  prefixIncrement,
+
+  /**
+   * Perform `--target`.
+   */
+  prefixDecrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixIncrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixDecrement
 }
 
 /**
  * Enum representing the various kinds of operations which may be performed to
- * produce a constant value.  These options are assumed to execute in the
+ * in an expression.  These options are assumed to execute in the
  * context of a stack which is initially empty.
  */
-enum UnlinkedConstOperation : byte {
+enum UnlinkedExprOperation : byte {
   /**
-   * Push the next value from [UnlinkedConst.ints] (a 32-bit unsigned integer)
+   * Push the next value from [UnlinkedExpr.ints] (a 32-bit unsigned integer)
    * onto the stack.
    *
    * Note that Dart supports integers larger than 32 bits; these are
@@ -225,15 +440,15 @@ enum UnlinkedConstOperation : byte {
   pushInt,
 
   /**
-   * Get the number of components from [UnlinkedConst.ints], then do this number
+   * Get the number of components from [UnlinkedExpr.ints], then do this number
    * of times the following operations: multiple the current value by 2^32, "or"
-   * it with the next value in [UnlinkedConst.ints]. The initial value is zero.
+   * it with the next value in [UnlinkedExpr.ints]. The initial value is zero.
    * Push the result into the stack.
    */
   pushLongInt,
 
   /**
-   * Push the next value from [UnlinkedConst.doubles] (a double precision
+   * Push the next value from [UnlinkedExpr.doubles] (a double precision
    * floating point value) onto the stack.
    */
   pushDouble,
@@ -249,13 +464,13 @@ enum UnlinkedConstOperation : byte {
   pushFalse,
 
   /**
-   * Push the next value from [UnlinkedConst.strings] onto the stack.
+   * Push the next value from [UnlinkedExpr.strings] onto the stack.
    */
   pushString,
 
   /**
    * Pop the top n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), convert them to strings (if they aren't already),
+   * [UnlinkedExpr.ints]), convert them to strings (if they aren't already),
    * concatenate them into a single string, and push it back onto the stack.
    *
    * This operation is used to represent constants whose value is a literal
@@ -264,7 +479,7 @@ enum UnlinkedConstOperation : byte {
   concatenate,
 
   /**
-   * Get the next value from [UnlinkedConst.strings], convert it to a symbol,
+   * Get the next value from [UnlinkedExpr.strings], convert it to a symbol,
    * and push it onto the stack.
    */
   makeSymbol,
@@ -276,14 +491,14 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Push the value of the function parameter with the name obtained from
-   * [UnlinkedConst.strings].
+   * [UnlinkedExpr.strings].
    */
   pushParameter,
 
   /**
    * Evaluate a (potentially qualified) identifier expression and push the
    * resulting value onto the stack.  The identifier to be evaluated is
-   * obtained from [UnlinkedConst.references].
+   * obtained from [UnlinkedExpr.references].
    *
    * This operation is used to represent the following kinds of constants
    * (which are indistinguishable from an unresolved AST alone):
@@ -299,21 +514,26 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Pop the top value from the stack, extract the value of the property with
-   * the name obtained from [UnlinkedConst.strings], and push the result back
+   * the name obtained from [UnlinkedExpr.strings], and push the result back
    * onto the stack.
    */
   extractProperty,
 
   /**
    * Pop the top `n` values from the stack (where `n` is obtained from
-   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
-   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * [UnlinkedExpr.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedExpr.strings] and use the lists of names and
    * values to create named arguments.  Then pop the top `m` values from the
-   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * stack (where `m` is obtained from [UnlinkedExpr.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
    * positional and names arguments to invoke a constant constructor obtained
-   * from [UnlinkedConst.references], and push the resulting value back onto the
+   * from [UnlinkedExpr.references], and push the resulting value back onto the
    * stack.
+   *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
    *
    * Note that for an invocation of the form `const a.b(...)` (where no type
    * arguments are specified), it is impossible to tell from the unresolved AST
@@ -326,14 +546,14 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Pop the top n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), place them in a [List], and push the result back
+   * [UnlinkedExpr.ints]), place them in a [List], and push the result back
    * onto the stack.  The type parameter for the [List] is implicitly `dynamic`.
    */
   makeUntypedList,
 
   /**
    * Pop the top 2*n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), interpret them as key/value pairs, place them in a
+   * [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
    * [Map], and push the result back onto the stack.  The two type parameters
    * for the [Map] are implicitly `dynamic`.
    */
@@ -341,17 +561,17 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Pop the top n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), place them in a [List], and push the result back
+   * [UnlinkedExpr.ints]), place them in a [List], and push the result back
    * onto the stack.  The type parameter for the [List] is obtained from
-   * [UnlinkedConst.references].
+   * [UnlinkedExpr.references].
    */
   makeTypedList,
 
   /**
    * Pop the top 2*n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), interpret them as key/value pairs, place them in a
-   * [Map], and push the result back onto the stack.  The two type parameters for
-   * the [Map] are obtained from [UnlinkedConst.references].
+   * [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
+   * [Map], and push the result back onto the stack.  The two type parameters
+   * for the [Map] are obtained from [UnlinkedExpr.references].
    */
   makeTypedMap,
 
@@ -495,13 +715,13 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Pop from the stack `value` and get the next `target` reference from
-   * [UnlinkedConst.references] - a top-level variable (prefixed or not), an
+   * [UnlinkedExpr.references] - a top-level variable (prefixed or not), an
    * assignable field of a class (prefixed or not), or a sequence of getters
    * ending with an assignable property `a.b.b.c.d.e`.  In general `a.b` cannot
    * not be distinguished between: `a` is a prefix and `b` is a top-level
    * variable; or `a` is an object and `b` is the name of a property.  Perform
    * `reference op= value` where `op` is the next assignment operator from
-   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   * [UnlinkedExpr.assignmentOperators].  Push `value` back into the stack.
    *
    * If the assignment operator is a prefix/postfix increment/decrement, then
    * `value` is not present in the stack, so it should not be popped and the
@@ -516,7 +736,7 @@ enum UnlinkedConstOperation : byte {
    * `target`.  This operation is used when we know that the `target` is an
    * object reference expression, e.g. `new Foo().a.b.c` or `a.b[0].c.d`.
    * Perform `target.property op= value` where `op` is the next assignment
-   * operator from [UnlinkedConst.assignmentOperators].  Push `value` back into
+   * operator from [UnlinkedExpr.assignmentOperators].  Push `value` back into
    * the stack.
    *
    * If the assignment operator is a prefix/postfix increment/decrement, then
@@ -529,7 +749,7 @@ enum UnlinkedConstOperation : byte {
   /**
    * Pop from the stack `index`, `target` and `value`.  Perform
    * `target[index] op= value`  where `op` is the next assignment operator from
-   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   * [UnlinkedExpr.assignmentOperators].  Push `value` back into the stack.
    *
    * If the assignment operator is a prefix/postfix increment/decrement, then
    * `value` is not present in the stack, so it should not be popped and the
@@ -546,17 +766,22 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Pop the top `n` values from the stack (where `n` is obtained from
-   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
-   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * [UnlinkedExpr.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedExpr.strings] and use the lists of names and
    * values to create named arguments.  Then pop the top `m` values from the
-   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * stack (where `m` is obtained from [UnlinkedExpr.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
    * positional and names arguments to invoke a method (or a function) with
-   * the reference from [UnlinkedConst.references].  If `k` is nonzero (where
-   * `k` is obtained from [UnlinkedConst.ints]), obtain `k` type arguments from
-   * [UnlinkedConst.references] and use them as generic type arguments for the
+   * the reference from [UnlinkedExpr.references].  If `k` is nonzero (where
+   * `k` is obtained from [UnlinkedExpr.ints]), obtain `k` type arguments from
+   * [UnlinkedExpr.references] and use them as generic type arguments for the
    * aforementioned method or function.  Push the result of the invocation onto
    * the stack.
+   *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
    *
    * In general `a.b` cannot not be distinguished between: `a` is a prefix and
    * `b` is a top-level function; or `a` is an object and `b` is the name of a
@@ -567,17 +792,22 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Pop the top `n` values from the stack (where `n` is obtained from
-   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
-   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * [UnlinkedExpr.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedExpr.strings] and use the lists of names and
    * values to create named arguments.  Then pop the top `m` values from the
-   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * stack (where `m` is obtained from [UnlinkedExpr.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
    * positional and names arguments to invoke the method with the name from
-   * [UnlinkedConst.strings] of the target popped from the stack.  If `k` is
-   * nonzero (where `k` is obtained from [UnlinkedConst.ints]), obtain `k` type
-   * arguments from [UnlinkedConst.references] and use them as generic type
+   * [UnlinkedExpr.strings] of the target popped from the stack.  If `k` is
+   * nonzero (where `k` is obtained from [UnlinkedExpr.ints]), obtain `k` type
+   * arguments from [UnlinkedExpr.references] and use them as generic type
    * arguments for the aforementioned method.  Push the result of the
    * invocation onto the stack.
+   *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
    *
    * This operation should be used for invocation of a method invocation
    * where `target` is known to be an object instance.
@@ -597,13 +827,13 @@ enum UnlinkedConstOperation : byte {
 
   /**
    * Pop the top value from the stack and cast it to the type with reference
-   * from [UnlinkedConst.references], push the result into the stack.
+   * from [UnlinkedExpr.references], push the result into the stack.
    */
   typeCast,
 
   /**
    * Pop the top value from the stack and check whether it is a subclass of the
-   * type with reference from [UnlinkedConst.references], push the result into
+   * type with reference from [UnlinkedExpr.references], push the result into
    * the stack.
    */
   typeCheck,
@@ -614,151 +844,66 @@ enum UnlinkedConstOperation : byte {
   throwException,
 
   /**
-   * Obtain two values `n` and `m` from [UnlinkedConst.ints].  Then, starting at
+   * Obtain two values `n` and `m` from [UnlinkedExpr.ints].  Then, starting at
    * the executable element for the expression being evaluated, if n > 0, pop to
    * the nth enclosing function element.  Then, push the mth local function of
    * that element onto the stack.
    */
-  pushLocalFunctionReference
-}
-
-/**
- * Enum used to indicate the kind of an constructor initializer.
- */
-enum UnlinkedConstructorInitializerKind : byte {
-  /**
-   * Initialization of a field.
-   */
-  field,
+  pushLocalFunctionReference,
 
   /**
-   * Invocation of a constructor in the same class.
-   */
-  thisInvocation,
-
-  /**
-   * Invocation of a superclass' constructor.
-   */
-  superInvocation
-}
-
-/**
- * Enum used to indicate the kind of an executable.
- */
-enum UnlinkedExecutableKind : byte {
-  /**
-   * Executable is a function or method.
-   */
-  functionOrMethod,
-
-  /**
-   * Executable is a getter.
-   */
-  getter,
-
-  /**
-   * Executable is a setter.
-   */
-  setter,
-
-  /**
-   * Executable is a constructor.
-   */
-  constructor
-}
-
-/**
- * Enum representing the various kinds of assignment operations combined
- * with:
- *    [UnlinkedConstOperation.assignToRef],
- *    [UnlinkedConstOperation.assignToProperty],
- *    [UnlinkedConstOperation.assignToIndex].
- */
-enum UnlinkedExprAssignOperator : byte {
-  /**
-   * Perform simple assignment `target = operand`.
-   */
-  assign,
-
-  /**
-   * Perform `target ??= operand`.
+   * Pop the top two values from the stack.  If the first value is non-null,
+   * keep it and discard the second.  Otherwise, keep the second and discard the
+   * first.
    */
   ifNull,
 
   /**
-   * Perform `target *= operand`.
+   * Pop the top value from the stack.  Treat it as a Future and await its
+   * completion.  Then push the awaited value onto the stack.
    */
-  multiply,
+  await,
 
   /**
-   * Perform `target /= operand`.
+   * Push an abstract value onto the stack. Abstract values mark the presence of
+   * a value, but whose details are not included.
+   *
+   * This is not used by the summary generators today, but it will be used to
+   * experiment with prunning the initializer expression tree, so only
+   * information that is necessary gets included in the output summary file.
    */
-  divide,
+  pushUntypedAbstract,
 
   /**
-   * Perform `target ~/= operand`.
+   * Get the next type reference from [UnlinkedExpr.references] and push an
+   * abstract value onto the stack that has that type.
+   *
+   * Like [pushUntypedAbstract], this is also not used by the summary generators
+   * today. The plan is to experiment with prunning the initializer expression
+   * tree, and include just enough type information to perform strong-mode type
+   * inference, but not all the details of how this type was obtained.
    */
-  floorDivide,
+  pushTypedAbstract,
 
   /**
-   * Perform `target %= operand`.
+   * Push an error onto the stack.
+   *
+   * Like [pushUntypedAbstract], this is not used by summary generators today.
+   * This will be used to experiment with prunning the const expression tree. If
+   * a constant has an error, we can omit the subexpression containing the error
+   * and only include a marker that an error was detected.
    */
-  modulo,
+  pushError,
 
   /**
-   * Perform `target += operand`.
+   * Push `this` expression onto the stack.
    */
-  plus,
+  pushThis,
 
   /**
-   * Perform `target -= operand`.
+   * Push `super` expression onto the stack.
    */
-  minus,
-
-  /**
-   * Perform `target <<= operand`.
-   */
-  shiftLeft,
-
-  /**
-   * Perform `target >>= operand`.
-   */
-  shiftRight,
-
-  /**
-   * Perform `target &= operand`.
-   */
-  bitAnd,
-
-  /**
-   * Perform `target ^= operand`.
-   */
-  bitXor,
-
-  /**
-   * Perform `target |= operand`.
-   */
-  bitOr,
-
-  /**
-   * Perform `++target`.
-   */
-  prefixIncrement,
-
-  /**
-   * Perform `--target`.
-   */
-  prefixDecrement,
-
-  /**
-   * Perform `target++`.
-   */
-  postfixIncrement,
-
-  /**
-   * Perform `target++`.
-   */
-  postfixDecrement
+  pushSuper
 }
 
 /**
@@ -782,6 +927,269 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
+ * Information about the context of an exception in analysis driver.
+ */
+table AnalysisDriverExceptionContext {
+  /**
+   * The exception string.
+   */
+  exception:string (id: 1);
+
+  /**
+   * The state of files when the exception happened.
+   */
+  files:[AnalysisDriverExceptionFile] (id: 3);
+
+  /**
+   * The path of the file being analyzed when the exception happened.
+   */
+  path:string (id: 0);
+
+  /**
+   * The exception stack trace string.
+   */
+  stackTrace:string (id: 2);
+}
+
+/**
+ * Information about a single file in [AnalysisDriverExceptionContext].
+ */
+table AnalysisDriverExceptionFile {
+  /**
+   * The content of the file.
+   */
+  content:string (id: 1);
+
+  /**
+   * The path of the file.
+   */
+  path:string (id: 0);
+}
+
+/**
+ * Information about a resolved unit.
+ */
+table AnalysisDriverResolvedUnit {
+  /**
+   * The full list of analysis errors, both syntactic and semantic.
+   */
+  errors:[AnalysisDriverUnitError] (id: 0);
+
+  /**
+   * The index of the unit.
+   */
+  index:AnalysisDriverUnitIndex (id: 1);
+}
+
+/**
+ * Information about a subtype of one or more classes.
+ */
+table AnalysisDriverSubtype {
+  /**
+   * The names of defined instance members.
+   * The list is sorted in ascending order.
+   */
+  members:[string] (id: 2);
+
+  /**
+   * The name of the class.
+   */
+  name:string (id: 0);
+
+  /**
+   * The identifiers of the direct supertypes.
+   * The list is sorted in ascending order.
+   */
+  supertypes:[string] (id: 1);
+}
+
+/**
+ * Information about an error in a resolved unit.
+ */
+table AnalysisDriverUnitError {
+  /**
+   * The optional correction hint for the error.
+   */
+  correction:string (id: 4);
+
+  /**
+   * The length of the error in the file.
+   */
+  length:uint (id: 1);
+
+  /**
+   * The message of the error.
+   */
+  message:string (id: 3);
+
+  /**
+   * The offset from the beginning of the file.
+   */
+  offset:uint (id: 0);
+
+  /**
+   * The unique name of the error code.
+   */
+  uniqueName:string (id: 2);
+}
+
+/**
+ * Information about a resolved unit.
+ */
+table AnalysisDriverUnitIndex {
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the synthetic element.
+   */
+  elementKinds:[IndexSyntheticElementKind] (id: 4);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  elementNameClassMemberIds:[uint] (id: 7);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  elementNameParameterIds:[uint] (id: 8);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the top-level element name, or `null` if the element is
+   * the unit.  The list is sorted in ascending order, so that the client can
+   * quickly check whether an element is referenced in this index.
+   */
+  elementNameUnitMemberIds:[uint] (id: 6);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  elementUnits:[uint] (id: 5);
+
+  /**
+   * Identifier of the null string in [strings].
+   */
+  nullStringId:uint (id: 1);
+
+  /**
+   * List of unique element strings used in this index.  The list is sorted in
+   * ascending order, so that the client can quickly check the presence of a
+   * string in this index.
+   */
+  strings:[string] (id: 0);
+
+  /**
+   * The list of classes declared in the unit.
+   */
+  subtypes:[AnalysisDriverSubtype] (id: 18);
+
+  /**
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  unitLibraryUris:[uint] (id: 2);
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  unitUnitUris:[uint] (id: 3);
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  usedElementIsQualifiedFlags:[ubyte] (id: 13);
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  usedElementKinds:[IndexRelationKind] (id: 10);
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  usedElementLengths:[uint] (id: 12);
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  usedElementOffsets:[uint] (id: 11);
+
+  /**
+   * Each item of this list is the index into [elementUnits],
+   * [elementNameUnitMemberIds], [elementNameClassMemberIds] and
+   * [elementNameParameterIds].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this index.
+   */
+  usedElements:[uint] (id: 9);
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  usedNameIsQualifiedFlags:[ubyte] (id: 17);
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  usedNameKinds:[IndexRelationKind] (id: 15);
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  usedNameOffsets:[uint] (id: 16);
+
+  /**
+   * Each item of this list is the index into [strings] for a used name.  The
+   * list is sorted in ascending order, so that the client can quickly find
+   * whether a name is used in this index.
+   */
+  usedNames:[uint] (id: 14);
+}
+
+/**
+ * Information about an unlinked unit.
+ */
+table AnalysisDriverUnlinkedUnit {
+  /**
+   * List of class member names defined by the unit.
+   */
+  definedClassMemberNames:[string] (id: 3);
+
+  /**
+   * List of top-level names defined by the unit.
+   */
+  definedTopLevelNames:[string] (id: 2);
+
+  /**
+   * List of external names referenced by the unit.
+   */
+  referencedNames:[string] (id: 0);
+
+  /**
+   * List of names which are used in `extends`, `with` or `implements` clauses
+   * in the file. Import prefixes and type arguments are not included.
+   */
+  subtypedNames:[string] (id: 4);
+
+  /**
+   * Unlinked information for the unit.
+   */
+  unit:UnlinkedUnit (id: 1);
+}
+
+/**
  * Information about an element code range.
  */
 table CodeRange {
@@ -797,11 +1205,22 @@ table CodeRange {
 }
 
 /**
- * Summary information about a reference to a an entity such as a type, top
- * level executable, or executable within a class.
+ * Summary information about a reference to an entity such as a type, top level
+ * executable, or executable within a class.
  */
 table EntityRef {
   /**
+   * The kind of entity being represented.
+   */
+  entityKind:EntityRefKind (id: 8);
+
+  /**
+   * Notice: This will be deprecated. However, its not deprecated yet, as we're
+   * keeping it for backwards compatibilty, and marking it deprecated makes it
+   * unreadable.
+   *
+   * TODO(mfairhurst) mark this deprecated, and remove its logic.
+   *
    * If this is a reference to a function type implicitly defined by a
    * function-typed parameter, a list of zero-based indices indicating the path
    * from the entity referred to by [reference] to the appropriate type
@@ -853,6 +1272,19 @@ table EntityRef {
   reference:uint (id: 0);
 
   /**
+   * If this [EntityRef] appears in a syntactic context where its type arguments
+   * might need to be inferred by a method other than instantiate-to-bounds,
+   * and [typeArguments] is empty, a slot id (which is unique within the
+   * compilation unit).  If an entry appears in [LinkedUnit.types] whose [slot]
+   * matches this value, that entry will contain the complete inferred type.
+   *
+   * This is called `refinedSlot` to clarify that if it points to an inferred
+   * type, it points to a type that is a "refinement" of this one (one in which
+   * some type arguments have been inferred).
+   */
+  refinedSlot:uint (id: 9);
+
+  /**
    * If this [EntityRef] is contained within [LinkedUnit.types], slot id (which
    * is unique within the compilation unit) identifying the target of type
    * propagation or type inference with which this [EntityRef] is associated.
@@ -882,6 +1314,12 @@ table EntityRef {
    * type arguments used to instantiate it (if any).
    */
   typeArguments:[EntityRef] (id: 1);
+
+  /**
+   * If this is a function type, the type parameters defined for the function
+   * type (if any).
+   */
+  typeParameters:[UnlinkedTypeParam] (id: 7);
 }
 
 /**
@@ -890,17 +1328,13 @@ table EntityRef {
  */
 table LinkedDependency {
   /**
-   * URI for the compilation units listed in the library's `part` declarations.
-   * These URIs are relative to the importing library.
+   * Absolute URI for the compilation units listed in the library's `part`
+   * declarations, empty string for invalid URI.
    */
   parts:[string] (id: 1);
 
   /**
-   * The relative URI of the dependent library.  This URI is relative to the
-   * importing library, even if there are intervening `export` declarations.
-   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
-   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
-   * `b/d/e.dart`.
+   * The absolute URI of the dependent library, e.g. `package:foo/bar.dart`.
    */
   uri:string (id: 0);
 }
@@ -977,7 +1411,7 @@ table LinkedLibrary {
    * Indicates whether this library was summarized in "fallback mode".  If
    * true, all other fields in the data structure have their default values.
    */
-  fallbackMode:bool (id: 5);
+  fallbackMode:bool (id: 5, deprecated);
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -1036,11 +1470,9 @@ table LinkedReference {
   /**
    * If [kind] is [ReferenceKind.function] (that is, the entity being referred
    * to is a local function), the index of the function within
-   * [UnlinkedExecutable.localFunctions].  If [kind] is
-   * [ReferenceKind.variable], the index of the variable within
-   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
-  localIndex:uint (id: 6);
+  localIndex:uint (id: 6, deprecated);
 
   /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
@@ -1079,9 +1511,9 @@ table LinkedUnit {
   constCycles:[uint] (id: 2);
 
   /**
-   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
-   * corresponding to parameters that inherit `@covariant` behavior from a base
-   * class.
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
+   * [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
+   * that inherit `@covariant` behavior from a base class.
    */
   parametersInheritingCovariant:[uint] (id: 3);
 
@@ -1094,6 +1526,11 @@ table LinkedUnit {
    * (e.g. elements involved in inferred or propagated types).
    */
   references:[LinkedReference] (id: 0);
+
+  /**
+   * The list of type inference errors.
+   */
+  topLevelInferenceErrors:[TopLevelInferenceError] (id: 4);
 
   /**
    * List associating slot ids found inside the unlinked summary for the
@@ -1210,8 +1647,8 @@ table PackageIndex {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the identifier of the class member element name, or `null` if the element is
-   * a top-level element.  The list is sorted in ascending order, so that the
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
    * client can quickly check whether an element is referenced in this
    * [PackageIndex].
    */
@@ -1266,6 +1703,28 @@ table PackageIndex {
    * [strings] list.
    */
   unitUnitUris:[uint] (id: 3);
+}
+
+/**
+ * Summary information about a top-level type inference error.
+ */
+table TopLevelInferenceError {
+  /**
+   * The [kind] specific arguments.
+   */
+  arguments:[string] (id: 2);
+
+  /**
+   * The kind of the error.
+   */
+  kind:TopLevelInferenceErrorKind (id: 1);
+
+  /**
+   * The slot id (which is unique within the compilation unit) identifying the
+   * target of type inference with which this [TopLevelInferenceError] is
+   * associated.
+   */
+  slot:uint (id: 0);
 }
 
 /**
@@ -1358,7 +1817,7 @@ table UnlinkedClass {
   /**
    * Annotations for this class.
    */
-  annotations:[UnlinkedConst] (id: 5);
+  annotations:[UnlinkedExpr] (id: 5);
 
   /**
    * Code range of the class.
@@ -1481,61 +1940,6 @@ table UnlinkedConfiguration {
 }
 
 /**
- * Unlinked summary information about a compile-time constant expression, or a
- * potentially constant expression.
- *
- * Constant expressions are represented using a simple stack-based language
- * where [operations] is a sequence of operations to execute starting with an
- * empty stack.  Once all operations have been executed, the stack should
- * contain a single value which is the value of the constant.  Note that some
- * operations consume additional data from the other fields of this class.
- */
-table UnlinkedConst {
-  /**
-   * Sequence of operators used by assignment operations.
-   */
-  assignmentOperators:[UnlinkedExprAssignOperator] (id: 6);
-
-  /**
-   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
-   */
-  doubles:[double] (id: 4);
-
-  /**
-   * Sequence of unsigned 32-bit integers consumed by the operations
-   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
-   * `makeList`, and `makeMap`.
-   */
-  ints:[uint] (id: 1);
-
-  /**
-   * Indicates whether the expression is a valid potentially constant
-   * expression.
-   */
-  isValidConst:bool (id: 5);
-
-  /**
-   * Sequence of operations to execute (starting with an empty stack) to form
-   * the constant value.
-   */
-  operations:[UnlinkedConstOperation] (id: 0);
-
-  /**
-   * Sequence of language constructs consumed by the operations
-   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
-   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
-   * actual entity being referred to may be something other than a type.
-   */
-  references:[EntityRef] (id: 2);
-
-  /**
-   * Sequence of strings consumed by the operations `pushString` and
-   * `invokeConstructor`.
-   */
-  strings:[string] (id: 3);
-}
-
-/**
  * Unlinked summary information about a constructor initializer.
  */
 table UnlinkedConstructorInitializer {
@@ -1550,13 +1954,13 @@ table UnlinkedConstructorInitializer {
    * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
    * invocation.  Otherwise empty.
    */
-  arguments:[UnlinkedConst] (id: 3);
+  arguments:[UnlinkedExpr] (id: 3);
 
   /**
    * If [kind] is `field`, the expression of the field initializer.
    * Otherwise `null`.
    */
-  expression:UnlinkedConst (id: 1);
+  expression:UnlinkedExpr (id: 1);
 
   /**
    * The kind of the constructor initializer (field, redirect, super).
@@ -1603,7 +2007,7 @@ table UnlinkedEnum {
   /**
    * Annotations for this enum.
    */
-  annotations:[UnlinkedConst] (id: 4);
+  annotations:[UnlinkedExpr] (id: 4);
 
   /**
    * Code range of the enum.
@@ -1638,6 +2042,11 @@ table UnlinkedEnum {
  */
 table UnlinkedEnumValue {
   /**
+   * Annotations for this value.
+   */
+  annotations:[UnlinkedExpr] (id: 3);
+
+  /**
    * Documentation comment for the enum value, or `null` if there is no
    * documentation comment.
    */
@@ -1662,14 +2071,14 @@ table UnlinkedExecutable {
   /**
    * Annotations for this executable.
    */
-  annotations:[UnlinkedConst] (id: 6);
+  annotations:[UnlinkedExpr] (id: 6);
 
   /**
    * If this executable's function body is declared using `=>`, the expression
    * to the right of the `=>`.  May be omitted if neither type inference nor
    * constant evaluation depends on the function body.
    */
-  bodyExpr:UnlinkedConst (id: 29);
+  bodyExpr:UnlinkedExpr (id: 29);
 
   /**
    * Code range of the executable.
@@ -1765,12 +2174,12 @@ table UnlinkedExecutable {
   /**
    * The list of local labels.
    */
-  localLabels:[UnlinkedLabel] (id: 22);
+  localLabels:[string] (id: 22, deprecated);
 
   /**
    * The list of local variables.
    */
-  localVariables:[UnlinkedVariable] (id: 19);
+  localVariables:[UnlinkedVariable] (id: 19, deprecated);
 
   /**
    * Name of the executable.  For setters, this includes the trailing "=".  For
@@ -1853,7 +2262,7 @@ table UnlinkedExportNonPublic {
   /**
    * Annotations for this export directive.
    */
-  annotations:[UnlinkedConst] (id: 3);
+  annotations:[UnlinkedExpr] (id: 3);
 
   /**
    * Offset of the "export" keyword.
@@ -1896,13 +2305,67 @@ table UnlinkedExportPublic {
 }
 
 /**
+ * Unlinked summary information about an expression.
+ *
+ * Expressions are represented using a simple stack-based language
+ * where [operations] is a sequence of operations to execute starting with an
+ * empty stack.  Once all operations have been executed, the stack should
+ * contain a single value which is the value of the constant.  Note that some
+ * operations consume additional data from the other fields of this class.
+ */
+table UnlinkedExpr {
+  /**
+   * Sequence of operators used by assignment operations.
+   */
+  assignmentOperators:[UnlinkedExprAssignOperator] (id: 6);
+
+  /**
+   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
+   */
+  doubles:[double] (id: 4);
+
+  /**
+   * Sequence of unsigned 32-bit integers consumed by the operations
+   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
+   * `makeList`, and `makeMap`.
+   */
+  ints:[uint] (id: 1);
+
+  /**
+   * Indicates whether the expression is a valid potentially constant
+   * expression.
+   */
+  isValidConst:bool (id: 5);
+
+  /**
+   * Sequence of operations to execute (starting with an empty stack) to form
+   * the constant value.
+   */
+  operations:[UnlinkedExprOperation] (id: 0);
+
+  /**
+   * Sequence of language constructs consumed by the operations
+   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
+   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
+   * actual entity being referred to may be something other than a type.
+   */
+  references:[EntityRef] (id: 2);
+
+  /**
+   * Sequence of strings consumed by the operations `pushString` and
+   * `invokeConstructor`.
+   */
+  strings:[string] (id: 3);
+}
+
+/**
  * Unlinked summary information about an import declaration.
  */
 table UnlinkedImport {
   /**
    * Annotations for this import declaration.
    */
-  annotations:[UnlinkedConst] (id: 8);
+  annotations:[UnlinkedExpr] (id: 8);
 
   /**
    * Combinators contained in this import declaration.
@@ -1964,39 +2427,13 @@ table UnlinkedImport {
 }
 
 /**
- * Unlinked summary information about a label.
- */
-table UnlinkedLabel {
-  /**
-   * Return `true` if this label is associated with a `switch` member (`case` or
-   * `default`).
-   */
-  isOnSwitchMember:bool (id: 2);
-
-  /**
-   * Return `true` if this label is associated with a `switch` statement.
-   */
-  isOnSwitchStatement:bool (id: 3);
-
-  /**
-   * Name of the label.
-   */
-  name:string (id: 0);
-
-  /**
-   * Offset of the label relative to the beginning of the file.
-   */
-  nameOffset:uint (id: 1);
-}
-
-/**
  * Unlinked summary information about a function parameter.
  */
 table UnlinkedParam {
   /**
    * Annotations for this parameter.
    */
-  annotations:[UnlinkedConst] (id: 9);
+  annotations:[UnlinkedExpr] (id: 9);
 
   /**
    * Code range of the parameter.
@@ -2033,13 +2470,30 @@ table UnlinkedParam {
   inheritsCovariantSlot:uint (id: 14);
 
   /**
-   * The synthetic initializer function of the parameter.  Absent if the variable
-   * does not have an initializer.
+   * The synthetic initializer function of the parameter.  Absent if the
+   * variable does not have an initializer.
    */
   initializer:UnlinkedExecutable (id: 12);
 
   /**
-   * Indicates whether this is a function-typed parameter.
+   * Indicates whether this parameter is explicitly marked as being covariant.
+   */
+  isExplicitlyCovariant:bool (id: 15);
+
+  /**
+   * Indicates whether the parameter is declared using the `final` keyword.
+   */
+  isFinal:bool (id: 16);
+
+  /**
+   * Indicates whether this is a function-typed parameter. A parameter is
+   * function-typed if the declaration of the parameter has explicit formal
+   * parameters
+   * ```
+   * int functionTyped(int p)
+   * ```
+   * but is not function-typed if it does not, even if the type of the parameter
+   * is a function type.
    */
   isFunctionTyped:bool (id: 5);
 
@@ -2094,7 +2548,7 @@ table UnlinkedPart {
   /**
    * Annotations for this part declaration.
    */
-  annotations:[UnlinkedConst] (id: 2);
+  annotations:[UnlinkedExpr] (id: 2);
 
   /**
    * End of the URI string (including quotes) relative to the beginning of the
@@ -2200,7 +2654,7 @@ table UnlinkedTypedef {
   /**
    * Annotations for this typedef.
    */
-  annotations:[UnlinkedConst] (id: 4);
+  annotations:[UnlinkedExpr] (id: 4);
 
   /**
    * Code range of the typedef.
@@ -2229,9 +2683,16 @@ table UnlinkedTypedef {
   parameters:[UnlinkedParam] (id: 3);
 
   /**
-   * Return type of the typedef.
+   * If [style] is [TypedefStyle.functionType], the return type of the typedef.
+   * If [style] is [TypedefStyle.genericFunctionType], the function type being
+   * defined.
    */
   returnType:EntityRef (id: 2);
+
+  /**
+   * The style of the typedef.
+   */
+  style:TypedefStyle (id: 8);
 
   /**
    * Type parameters of the typedef, if any.
@@ -2246,7 +2707,7 @@ table UnlinkedTypeParam {
   /**
    * Annotations for this type parameter.
    */
-  annotations:[UnlinkedConst] (id: 3);
+  annotations:[UnlinkedExpr] (id: 3);
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
@@ -2274,6 +2735,13 @@ table UnlinkedTypeParam {
  * Unlinked summary information about a compilation unit ("part file").
  */
 table UnlinkedUnit {
+  /**
+   * MD5 hash of the non-informative fields of the [UnlinkedUnit] (not
+   * including this one) as 16 unsigned 8-bit integer values.  This can be used
+   * to identify when the API of a unit may have changed.
+   */
+  apiSignature:[uint] (id: 19);
+
   /**
    * Classes declared in the compilation unit.
    */
@@ -2307,7 +2775,7 @@ table UnlinkedUnit {
    * When this field is non-empty, all other fields in the data structure have
    * their default values.
    */
-  fallbackModePath:string (id: 16);
+  fallbackModePath:string (id: 16, deprecated);
 
   /**
    * Import declarations in the compilation unit.
@@ -2315,10 +2783,15 @@ table UnlinkedUnit {
   imports:[UnlinkedImport] (id: 5);
 
   /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  isPartOf:bool (id: 18);
+
+  /**
    * Annotations for the library declaration, or the empty list if there is no
    * library declaration.
    */
-  libraryAnnotations:[UnlinkedConst] (id: 14);
+  libraryAnnotations:[UnlinkedExpr] (id: 14);
 
   /**
    * Documentation comment for the library, or `null` if there is no
@@ -2386,7 +2859,7 @@ table UnlinkedVariable {
   /**
    * Annotations for this variable.
    */
-  annotations:[UnlinkedConst] (id: 8);
+  annotations:[UnlinkedExpr] (id: 8);
 
   /**
    * Code range of the variable.
@@ -2408,6 +2881,16 @@ table UnlinkedVariable {
   inferredTypeSlot:uint (id: 9);
 
   /**
+   * If this is an instance non-final field, a nonzero slot id which is unique
+   * within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then the parameter of the
+   * synthetic setter inherits `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  inheritsCovariantSlot:uint (id: 15);
+
+  /**
    * The synthetic initializer function of the variable.  Absent if the variable
    * does not have an initializer.
    */
@@ -2417,6 +2900,12 @@ table UnlinkedVariable {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   isConst:bool (id: 6);
+
+  /**
+   * Indicates whether this variable is declared using the `covariant` keyword.
+   * This should be false for everything except instance fields.
+   */
+  isCovariant:bool (id: 14);
 
   /**
    * Indicates whether the variable is declared using the `final` keyword.
@@ -2460,12 +2949,12 @@ table UnlinkedVariable {
   /**
    * If a local variable, the length of the visible range; zero otherwise.
    */
-  visibleLength:uint (id: 11);
+  visibleLength:uint (id: 11, deprecated);
 
   /**
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
-  visibleOffset:uint (id: 12);
+  visibleOffset:uint (id: 12, deprecated);
 }
 
 root_type PackageBundle;

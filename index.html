@@ -1,86 +1,102 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html>
+
+<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VueDart</title>
   <link rel="icon" href="favicon.ico">
 
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Quicksand:400,500|Roboto|Roboto+Mono|Material+Icons">
 
   <script src="dist/vendor.js"></script>
+  <script defer src="index.vue.dart.js"></script>
 
-  <script defer="" src="index.initialize.dart.js"></script>
-  
-
-  <style>
-    .card { margin: 1em auto; }
-
-    .card-image {
-      padding-top: 1em;
-      width: inherit !important;
-      display: block;
-      margin: auto;
-      max-width: 196px;
-      max-height: 170px;
-    }
-
-    [v-cloak] { display: none; }
-    a { color: blue; }
-  </style>
+  <style> [v-cloak] { display: none; } </style>
 </head>
 
 <body>
-  <div id="app" v-cloak="">
-    <site-navbar></site-navbar>
+  <div id="app" v-cloak>
+    <app-root>
+      <m-layout-grid>
+        <m-layout-grid-inner>
+          <m-layout-grid-cell :span="12">
+            <m-typo-headline :level="4">Enter the world of VueDart!</m-typo-headline>
 
-    <md-whiteframe style="margin: 1em;">
-      <div style="padding: 2em;">
-        <h1 style="line-height: 1em;">Enter the world of VueDart</h1>
+            <p>
+              VueDart is a work-in-progress library that lets you build your Vue web
+              apps using Dart, including
+              <a href="https://github.com/kirbyfan64/vuedart/tree/master/site">this very
+              site</a>.
+            </p>
 
-        <p>
-          VueDart is a work-and-progress library that lets you build your Vue web apps
-          using Dart.</p>
+            <p>
+              <i>
+                Latest News:
+                <a href="/posts/vuedart-0.3.1-released.html">VueDart 0.3.1 released!</a>
+              </i>
+            </p>
 
-        <p>Want proof that it works?
-          <a href="https://github.com/kirbyfan64/vuedart/tree/master/site">
-            This very site is built using VueDart!</a></p>
+            <m-button raised href="intro.html">Get started</m-button>
+            <m-button raised href="https://refi64.com/tags.html#vuedart">Blog</m-button>
+            <m-button raised href="https://github.com/kirbyfan64/vuedart">Source</m-button>
+          </m-layout-grid-cell>
 
-        <p><i><b>Latest News:</b>
-          <a href="/posts/vuedart-0.3.1-released.html">VueDart 0.3.1 released!</a></i></p>
-      </div>
-    </md-whiteframe>
+          <m-layout-grid-cell :span="4">
+            <div class="center">
+              <m-typo-headline :level="5">Familiar</m-typo-headline>
 
-    <md-layout md-row="" md-gutter="">
-      <md-card class="card">
-        <md-card-media>
-          <img class="card-image" src="logo.png" alt="logo">
-        </md-card-media>
+              <p>VueDart tries to follow existing Vue conventions for best
+                 familiarity.</p>
+            </div>
+          </m-layout-grid-cell>
 
-        <md-card-header>
-          <div class="md-title">Want to learn more? Check out the blog &amp; docs!</div>
+          <m-layout-grid-cell :span="4">
+            <div class="center">
+              <m-typo-headline :level="5">Powerful</m-typo-headline>
 
-          <md-card-actions>
-            <md-button href="https://refi64.com/tags.html#vuedart">Blog</md-button>
-            <md-button href="pages/intro.html">Docs</md-button>
-          </md-card-actions>
-        </md-card-header>
-      </md-card>
+              <p>Many of the Vue.js features you know and love are available,
+                 and the others will be added soon!</p>
+            </div>
+          </m-layout-grid-cell>
 
-      <md-card class="card">
-        <md-card-media>
-          <img class="card-image" src="https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png" alt="github logo">
-        </md-card-media>
+          <m-layout-grid-cell :span="4">
+            <div class="center">
+              <m-typo-headline :level="5">Modern</m-typo-headline>
 
-        <md-card-header>
-          <div class="md-title">Want to contribute? Check out the source!</div>
+              <p>VueDart has been updated for Dart 2.0 and <code>package:build</code>
+                 support. Now you can easily experience Dart's new safer type system and
+                 incremental builds.</p>
+            </div>
+          </m-layout-grid-cell>
+        </m-layout-grid-inner>
 
-          <md-card-actions>
-            <md-button href="https://github.com/kirbyfan64/vuedart">GitHub</md-button>
-          </md-card-actions>
-        </md-card-header>
-      </md-card>
-    </md-layout>
+        <m-layout-grid-inner>
+          <m-layout-grid-cell :span-desktop="2" :span-tablet="1" :span-mobile="1">
+          </m-layout-grid-cell>
+
+          <m-layout-grid-cell :span-desktop="8" :span-tablet="6" :span-mobile="2">
+            <div class="center">
+              <m-typo-headline :level="5">See for yourself!</m-typo-headline>
+
+              <pre><code class="language-dart" v-pre>@VueComponent(template: '&lt;p&gt;{{uppercaseName}}&lt;/p&gt;')
+class ShowName extends VueComponentBase {
+  ShowName(context): super(context);
+
+  @prop
+  String name;
+
+  @computed
+  String get uppercaseName =&gt; name.toUpperCase();
+}</code></pre>
+            </div>
+          </m-layout-grid-cell>
+
+          <m-layout-grid-cell :span-desktop="2" :span-tablet="1" :span-mobile="1">
+          </m-layout-grid-cell>
+        </m-layout-grid-inner>
+      </m-layout-grid>
+    </app-root>
   </div>
-
-</body></html>
+</body>

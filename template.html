@@ -1,39 +1,25 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html>
+
+<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VueDart: {{title}}</title>
+  <+ value="<title> VueDart: $title </title>">
   <link rel="icon" href="favicon.ico">
 
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Quicksand:400,500|Roboto:400,700|Roboto+Mono|Material+Icons">
 
-  <script src="../dist/vendor.js"></script>
+  <script src="dist/vendor.js"></script>
+  <script defer src="index.vue.dart.js"></script>
 
-  <script defer="" src="docs.dart.js"></script>
-  
-
-  <style>
-    #content { padding: 0em 1em; }
-    .md-layout { flex-wrap: nowrap !important; }
-    .highlight .err { border: 0px !important; }
-    pre { overflow-x: auto; }
-    [v-cloak] { display: none; }
-    a:visited:not(.md-button) { color: blue; }
-  </style>
+  <style> [v-cloak] { display: none; } </style>
 </head>
 
 <body>
-  <div id="app" v-cloak="">
-    <site-navbar nested=""></site-navbar>
-
-    <md-layout md-row="" md-column-small="">
-      <docs-navlist></docs-navlist>
-
-      <div id="content" v-pre="">
-        {{content}}
-      </div>
-    </md-layout>
+  <div id="app" v-cloak>
+    <app-root>
+      <+ value="$content">
+    </app-root>
   </div>
-
-</body></html>
+</body>

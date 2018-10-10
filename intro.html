@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> VueDart: Intro to VueDart </title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Quicksand:400,500|Roboto:400,700|Roboto+Mono|Material+Icons">
+
+  <script src="dist/vendor.js"></script>
+  <script defer src="index.vue.dart.js"></script>
+
+  <style> [v-cloak] { display: none; } </style>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <app-root>
+      <m-typo-headline :level="3" id="intro-to-vuedart">Intro to VueDart</m-typo-headline><div id="welcome"></div>
+<m-typo-headline :level="4" id="welcome">Welcome</m-typo-headline>
+<p>Welcome to the VueDart docs!</p>
+<p>First off, note that this documentation assumes you already know how Vue works. If you
+don't, then first check out the <a href="https://vuejs.org/v2/guide/">official Vue guide</a>, then
+come back once you're done.</p>
+<p>Also, the examples shown in this documentation are available
+<a href="https://github.com/kirbyfan64/vuedart/tree/master/example">on GitHub</a>.</p><div id="first-steps"></div>
+<m-typo-headline :level="4" id="first-steps">First steps</m-typo-headline>
+<p>Let's define a basic app with VueDart. Create a new directory:</p>
+<pre><code v-pre class="language-bash">$ mkdir my-project
+$ cd my-project
+</code></pre>
+<p>Now create a new file <code v-pre>web/index.dart</code> and add this:</p>
+<pre><code v-pre class="language-dart">import 'package:vue/vue.dart';
+
+
+@VueApp(el: '#app')
+class App extends VueAppBase {
+}
+
+App app;
+
+void main() {
+  app = App();
+  app.create();
+}
+</code></pre>
+<p>For those familiar with Vue, this should be rather self-explanatory. Here, <em>App</em> is the
+equivalent of a global <em>Vue</em> instance, and <em>app.create</em> connects . The <em>VueApp</em> annotation is
+where you declare which element is your root.</p>
+<p>Also, add this to <code v-pre>web/index.html</code>:</p>
+<pre><code v-pre class="language-html">&lt;!DOCTYPE html&gt;
+
+&lt;head&gt;
+  &lt;title&gt;VueDart first example&lt;/title&gt;
+
+  &lt;script src="https://unpkg.com/vue"&gt;&lt;/script&gt;
+
+  &lt;script defer src="index.vue.dart.js"&gt;&lt;/script&gt;
+  &lt;script defer src="packages/browser/dart.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+
+&lt;body vuedart&gt;
+  &lt;div id="app"&gt;
+    &lt;p&gt;My first Vue app!&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+</code></pre>
+<p>Again, this should be pretty self-explanatory. Interesting things to note:</p><ul><li>The filename is <code v-pre>index.vue.dart.js</code>, not <code v-pre>index.dart</code>. The VueDart transformer will compile
+<code v-pre>index.dart</code> into <code v-pre>index.vue.dart</code>, and then the compiler will compile it to
+<code v-pre>index.vue.dart.js</code>.</li><li>The <code v-pre>defer</code> tag is to prevent your Dart code from running before the page has finished
+loading.</li></ul>
+<p>Now's to build it! Make a <code v-pre>pubspec.yml</code> that looks like this:</p>
+<pre><code v-pre class="language-yaml">name: vuedart_example
+version: 0.1.0
+description: VueDart example app
+author: Foo Bar
+environment:
+  sdk: "&gt;=2.0.0 &lt;3.0.0"
+dependencies:
+  vue: any
+dev_dependencies:
+  build_runner: any
+  build_web_compilers: any
+</code></pre>
+<p>The <code v-pre>dev_dependencies</code> section</p>
+<p>Before running our new VueDart web app, we need to install the <code v-pre>webdev</code> package:</p>
+<pre><code v-pre class="language-bash">$ pub global activate webdev
+</code></pre>
+<p>Now that everything's been put together, run:</p>
+<pre><code v-pre class="language-bash">$ pub get
+$ webdev serve
+</code></pre>
+<p>and open your browser to <code v-pre>localhost:8080</code>. Congratulations, you just made your first
+VueDart app!</p>
+<m-typo-headline :level="5" id="addendum-1-why-dartdevc">Addendum #1: Why dartdevc?</m-typo-headline>
+<p>As a quick side note, Dart has two different Dart-to-JavaScript compilers. dart2js, the
+default, is designed for production use; it has powerful, awesome optimizations, but it's
+also really slow. DDC, the Dart Dev Compiler, is designed for development like we're
+doing; it has faster compile times and compiles down to readable ES6 code to make it
+easier to debug.</p>
+<m-typo-headline :level="5" id="addendum-2-building-for-production">Addendum #2: Building for production</m-typo-headline>
+<p>If you want to deploy a VueDart app in production, you'll want to run <code v-pre>webdev build</code>; while
+<code v-pre>webdev serve</code> defaults to debug mode builds, <code v-pre>webdev build</code> defaults to release mode.</p><div id="data"></div>
+<m-typo-headline :level="4" id="declaring-data">Declaring data</m-typo-headline>
+<p>This app is cool and all...but it's not actually <em>doing</em> anything. Let's read in a name
+and show it to the screen.</p>
+<p>Modify your app class to look like so:</p>
+<pre><code v-pre class="language-dart">@VueApp(el: '#app')
+class App extends VueAppBase {
+  @data
+  String name = '';
+}
+</code></pre>
+<p>This is how you declare data in VueDart: the <em>data</em> annotation. Just put it on an instance
+variable, and VueDart will compile it into Vue data accesses. Now it's time to read in
+a name in our HTML file:</p>
+<pre><code v-pre class="language-html">&lt;body&gt;
+  &lt;div id="app"&gt;
+    &lt;input v-model="name"&gt;
+    &lt;p&gt;Your name is: {{name}}&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+</code></pre>
+<p>Now run your app, enter a name, and watch the fireworks. (Not really, but actual fireworks
+take far too much effort.)</p><div id="methods"></div>
+<m-typo-headline :level="4" id="declaring-methods">Declaring methods</m-typo-headline>
+<p>What if we want to, for instance, capitalize the name? One approach to this is to
+use methods:</p>
+<pre><code v-pre class="language-dart">@VueApp(el: '#app')
+class App extends VueAppBase {
+  @data
+  String name;
+
+  @method
+  void capitalize(String str) =&gt; str.toUpperCase();
+}
+</code></pre>
+<pre><code v-pre class="language-html">&lt;body&gt;
+  &lt;div id="app"&gt;
+    &lt;input v-model="name"&gt;
+    &lt;p&gt;Your name is: {{capitalize(name)}}&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+</code></pre>
+<p>As you can see, declaring Vue methods is the same as declaring a normal method, except
+for the <code v-pre>@method</code> decorator.</p><div id="computed"></div>
+<m-typo-headline :level="4" id="declaring-computed-data">Declaring computed data</m-typo-headline>
+<p>Of course, a better approach in this case would be to use computed data. Here's how
+that's done in VueDart:</p>
+<pre><code v-pre class="language-dart">@VueApp(el: '#app')
+class App extends VueAppBase {
+  @data
+  String name = '';
+
+  // The computed data
+  @computed
+  String get capitalizedName =&gt; name.toUpperCase();
+}
+</code></pre>
+<pre><code v-pre class="language-html">&lt;body&gt;
+  &lt;div id="app"&gt;
+    &lt;input v-model="name"&gt;
+    &lt;p&gt;Your name is: {{capitalizedName}}&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+</code></pre>
+<p>You can also define setters on computed properties using the normal Dart setter syntax:</p>
+<pre><code v-pre class="language-dart">@computed
+void set capitalizedName(String newValue) { /* ... */ }
+</code></pre><div id="watchers"></div>
+<m-typo-headline :level="4" id="watchers">Watchers</m-typo-headline>
+<p>Just like everything else here, watchers work in similar manner to Vue, except with
+a more Dart-ified syntax.</p>
+<pre><code v-pre class="language-dart">@VueApp(el: '#app')
+class App extends VueAppBase {
+  @data
+  int value1 = 0, value2 = 0, value3 = 0;
+
+  @watch('value1')
+  void watchValue1() =&gt; print('Watching value1');
+  @watch('value2')
+  void watchValue2(int newValue) =&gt; print('Watching value2');
+  @watch('value3', deep: true)
+  void watchValue3(int newValue, int oldValue) =&gt; print('Watching value3');
+}
+</code></pre><div id="cli"></div>
+<m-typo-headline :level="4" id="using-the-vuedart-cli-to-create-your-projects">Using the VueDart CLI to create your projects</m-typo-headline>
+<p>VueDart also as a CLI you can use to generate projects from templates. To get started,
+install it:</p>
+<pre><code v-pre>$ pub global activate vue_cli
+</code></pre>
+<p>and then create your project:</p>
+<pre><code v-pre>$ vuedart create my-project
+</code></pre>
+<p>This will create a directory <code v-pre>my-project</code> with everything you need for a basic VueDart
+project.</p>
+
+    </app-root>
+  </div>
+</body>

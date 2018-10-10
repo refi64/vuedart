@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> VueDart: Working with plugins </title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Quicksand:400,500|Roboto:400,700|Roboto+Mono|Material+Icons">
+
+  <script src="dist/vendor.js"></script>
+  <script defer src="index.vue.dart.js"></script>
+
+  <style> [v-cloak] { display: none; } </style>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <app-root>
+      <m-typo-headline :level="3" id="working-with-plugins">Working with plugins</m-typo-headline><div id="work"></div>
+<m-typo-headline :level="4" id="how-do-plugins-work-in-vuedart">How do plugins work in VueDart?</m-typo-headline>
+<p>As of right now, you can't easily define bindings to Vue plugins; support for many of
+them needs to be embedded into VueDart itself. (Generic support is a planned feature.) In
+the meantime, VueDart contains support for some commonly used Vue plugins.</p>
+<p>Note that for all of the below plugins, you still need to manually load their
+corresponding assets, <a href="advanced.html#assets">preferably using Aspen</a>.</p><div id="app-options"></div>
+<m-typo-headline :level="4" id="passing-options-to-the-vue-constructor">Passing options to the Vue constructor</m-typo-headline>
+<p>In many JS plugins, options need to be passed to the <code v-pre>Vue({...})</code> constructor. In order
+to accomplish this in VueDart, derive your plugin class from <code v-pre>VueAppOptions</code> and pass it to
+<code v-pre>VueAppBase.create</code>:</p>
+<pre><code v-pre class="language-dart">import 'package:vue/vue.dart';
+
+class MyPlugin extends VuePlugin implements VueAppOptions {
+  static void use() =&gt; VuePlugin.use('my-plugin-name');
+
+  // These options will be passed to the Vue constructor.
+  Map&lt;String, dynamic&gt; get appOptions =&gt; {
+    'some-option': 'some-value'
+  };
+}
+</code></pre><div id="vue-router"></div>
+<m-typo-headline :level="4" id="vuerouter">VueRouter</m-typo-headline>
+<pre><code v-pre class="language-dart">import 'package:vue/vue.dart';
+import 'package:vue/plugins/vue_router.dart';
+
+
+// Define some components to be used in the router
+@VueComponent(template: '''&lt;p&gt;vue-router demo! Id is: {{id}}&lt;/p&gt;
+                           &lt;router-view&gt;&lt;/router-view&gt;''')
+class RootComponent extends VueComponentBase with VueRouterMixin {
+  // Params can be accessed just like in the JS world.
+  @computed
+  int get id =&gt; $route.params['id'];
+}
+
+@VueComponent(template: '&lt;p&gt;child component!&lt;/p&gt;')
+class ChildComponent extends VueComponentBase with VueRouterMixin {
+}
+
+
+@VueApp(el: '#app')
+class App extends VueAppBase {
+}
+
+
+App app;
+
+
+Future main() async {
+  // Here is an example router. This should look quite close to the official VueRouter,
+  // except for the extra type constructors.
+  final router = VueRouter(routes: [
+    VueRoute(path: '/item/:id', component: RootComponent(), children: [
+      // Nested children work
+      VueRoute(path: 'info', component: ChildComponent()),
+    ]),
+    // As do named views:
+    VueRoute(path: '/named-view/:id', components: {
+      'root': RootComponent(),
+    }),
+  ]);
+
+  app = App();
+  // Note that we're passing the router to the options: argument.
+  app.create(options: [router]);
+}
+</code></pre><div id="vuematerial"></div>
+<m-typo-headline :level="4" id="vuematerial">VueMaterial</m-typo-headline>
+<p><strong>Note:</strong> The VueMaterial API here is going to eventually be superceded by
+<a href="https://github.com/kirbyfan64/vdmc">vdmc</a>, a VueDart wrapper over
+<a href="https://matsp.github.io/material-components-vue/">Material Components Vue</a>, which is in turn a
+Vue wrapper over Google's official
+<a href="https://github.com/material-components/material-components-web">Material Components for Web</a>.
+This change will likely be complete by either VueDart 0.4.1 or 0.5, pending a new revamp of
+Aspen.</p>
+<p>Note that this is only for VueMaterial 0.7, not 0.8.</p>
+<p>Here's a pretty thorough example:</p>
+<pre><code v-pre class="language-dart">import 'package:vue/vue.dart';
+import 'package:vue/plugins/vuematerial_legacy.dart';
+
+
+@VueApp(el: '#app')
+class App extends VueAppBase {
+}
+
+
+App app;
+
+
+void main() {
+  // Equivalent to Vue.use(VueMaterial)
+  VueMaterial.use();
+
+  // Equivalent to Vue.material.registerTheme
+  VueMaterial.registerTheme('main', MdTheme(
+    // Simple color names.
+    primary: 'indigo',
+    // You can give hues, too.
+    accent: MdColor(color: 'blue', hue: 800),
+    warn: 'red',
+    background: 'white',
+  ));
+
+  // Equivalent to Vue.material.setCurrentTheme
+  VueMaterial.setCurrentTheme('main');
+
+  app = App();
+  app.create();
+}
+</code></pre>
+<p>For menus, dialogs, sidenavs, and snackbars, you can use the <code v-pre>Md*</code> types:</p>
+<pre><code v-pre class="language-dart">@VueComponent(name: 'my-component', template: '&lt;&lt;')
+class MyComponent extends VueComponentBase {
+  // Dialog ref.
+  @ref
+  MdDialog dialog;
+  // Sidenav ref.
+  @ref
+  MdSidenav sidenav;
+
+  // and so forth...
+
+  // example usage:
+
+  void mounted() {
+    dialog.open();
+    sidenav.toggle();
+  }
+}
+</code></pre>
+
+    </app-root>
+  </div>
+</body>

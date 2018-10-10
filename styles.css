@@ -1,0 +1,35 @@
+:root {
+  --mdc-theme-primary: #263238;
+  --mdc-theme-secondary: #0D47A1;
+}
+
+.title, .mdc-list-item,
+.mdc-typography--headline1, .mdc-typography--headline2,
+.mdc-typography--headline3, .mdc-typography--headline4,
+.mdc-typography--headline5 {
+  font-family: Quicksand, Roboto, sans-serif !important;
+}
+
+.mdc-list-item {
+  font-size: 1em !important;
+}
+
+.center {
+  text-align: center;
+}
+
+pre[class*="language-"], code[class*="language-"] {
+  font-family: "Roboto Mono", monospace !important;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item):not(.mdc-button) {
+  color: var(--mdc-theme-secondary);
+}
+
+a:visited:not(.mdc-top-app-bar__navigation-icon):not(.mdc-list-item):not(.mdc-button) {
+  color: var(--mdc-theme-secondary);
+}

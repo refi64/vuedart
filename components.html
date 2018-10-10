@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> VueDart: Components </title>
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Quicksand:400,500|Roboto:400,700|Roboto+Mono|Material+Icons">
+
+  <script src="dist/vendor.js"></script>
+  <script defer src="index.vue.dart.js"></script>
+
+  <style> [v-cloak] { display: none; } </style>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <app-root>
+      <m-typo-headline :level="3" id="components">Components</m-typo-headline><div id="component"></div>
+<m-typo-headline :level="4" id="defining-a-component">Defining a component</m-typo-headline>
+<p>Unfortunately, as awesome as our example app is, it's kinda messy. You probably don't want
+this much stuff in one place. Therefore, we're going to move out displaying the name into
+its own component, <code v-pre>show-name</code>.</p>
+<p>Toss this in <code v-pre>lib/show_name.dart</code>:</p>
+<pre><code v-pre class="language-dart">import 'package:vue/vue.dart';
+
+
+@VueComponent(template: '&lt;p&gt;Your name is: Bob&lt;/p&gt;')
+class ShowName extends VueComponentBase {
+}
+</code></pre>
+<p>Also, change <code v-pre>index.dart</code>:</p>
+<pre><code v-pre class="language-dart">import 'package:vuedart_example/show_name.dart';  // &lt;-- This imports your component
+
+@VueApp(el: '#app', components: [ShowName])  // &lt;-- Use the component here
+class App // ...
+</code></pre>
+<p>and <code v-pre>index.html</code>:</p>
+<pre><code v-pre class="language-html">&lt;body&gt;
+  &lt;div id="app"&gt;
+    &lt;input v-model="name"&gt;
+    &lt;show-name&gt;&lt;/show-name&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+</code></pre>
+<p>Now refresh your browser page. You should see it now say, <em>Your name is Bob</em>.</p>
+<p>Let's take a few steps back. What exactly is going on here?</p><ul><li>New components are defined using the <em>VueComponent</em> annotation and the <em>VueComponentBase</em>
+base class. You pass your template through the <em>template:</em> argument on the annotation
+(there's a better way, but we'll get to that later).</li><li>The component name is given to <code v-pre>@VueApp</code>, just like <code v-pre>components:</code> does in Vue.</li></ul>
+<p>That being said, putting templates in the annotation string is just nasty. In vanilla Vue,
+you can use webpack for stuff like this. Does VueDart have an alternative? <em>Yup!</em></p>
+<p>Change the <em>VueComponent</em> annotation in <code v-pre>show_name.dart</code> to read:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;&lt;show_name.html')
+</code></pre>
+<p>and create <code v-pre>lib/show_name.html</code> containing the following:</p>
+<pre><code v-pre class="language-html">&lt;template vuedart&gt;
+  &lt;p&gt;Your name is: Bob&lt;/p&gt;
+&lt;/template&gt;
+</code></pre>
+<p>The <code v-pre>&lt;&lt;show_name.html</code> syntax means <em>read show_name.html and use the template inside here</em>.
+VueDart will read the file, extract the contents of the template element, and use that
+for your template. However, this gets even better! Since your template is almost always
+the same name as your Dart code (e.g. <code v-pre>show_name.dart</code> and <code v-pre>show_name.html</code>), VueDart
+uses that as the default. Therefore, you can abbreviate all this to:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;&lt;')
+</code></pre>
+<p>and VueDart will automatically use the template in <code v-pre>show_name.html</code>.</p><div id="props"></div>
+<m-typo-headline :level="4" id="declaring-properties">Declaring properties</m-typo-headline>
+<p>Well, this component is a bit of a downgrade. Before, we could display <em>any</em> name; now
+we're limited to Bob's. Let's try using some properties:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;&lt;')
+class ShowName extends VueComponentBase {
+  @prop
+  String name;
+}
+</code></pre>
+<pre><code v-pre class="language-html">&lt;template vuedart&gt;
+  &lt;p&gt;Your name is: {{name}}&lt;/p&gt;
+&lt;/template&gt;
+</code></pre>
+<p>Props in VueDart are declared via the <em>prop</em> annotation, and the syntax is just like normal
+Dart. You can also give a default value by doing <code v-pre>String name = "default name"</code>.</p>
+<p>Now modify <code v-pre>index.html</code>:</p>
+<pre><code v-pre class="language-html">&lt;body vuedart&gt;
+  &lt;div id="app"&gt;
+    &lt;input v-model="name"&gt;
+    &lt;show-name :name="name"&gt;&lt;/show-name&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+</code></pre>
+<p>Voila! We're back to the same code, but now it's better organized. Yaaay!!</p>
+<p>(Yes, I left out the capitalization; that's an exercise for the reader!)</p><div id="scoped"></div>
+<m-typo-headline :level="4" id="scoped-styles">Scoped styles</m-typo-headline>
+<p>VueDart also supports scoped styles via
+<a href="https://pub.dartlang.org/packages/scopify">scopify</a>. Here's how they work:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;&lt;')
+class ShowName extends VueComponentBase {
+  @prop
+  String name;
+}
+</code></pre>
+<pre><code v-pre class="language-html">&lt;template vuedart&gt;
+  &lt;p&gt;Your name is: {{name}}&lt;/p&gt;
+&lt;/template&gt;
+
+&lt;style scoped&gt;
+p { color: purple; }
+&lt;/style&gt;
+</code></pre>
+<p>The syntax for scoped styles closely resembles Vue's own single-file components.</p>
+<p>If you want scoped styles to "bleed" into <code v-pre>v-html</code> elements other similar items (e.g.
+jQuery plugins), you can add the <em>bleeds</em> attribute to your <em>style</em> element:</p>
+<pre><code v-pre class="language-html">&lt;template vuedart&gt;
+  &lt;div v-html="'&lt;p&gt;Inside v-html!&lt;/p&gt;'"&gt;&lt;/div&gt;
+&lt;/template&gt;
+
+&lt;style scoped bleeds&gt;
+p { color: purple; }
+&lt;/style&gt;
+</code></pre><div id="mixins"></div>
+<m-typo-headline :level="4" id="mixins">Mixins</m-typo-headline>
+<p>Mixins are easy to declare in VueDart. Take this example:</p>
+<pre><code v-pre class="language-dart">@VueMixin()
+abstract class TodoMixin implements VueMixinRequirements {
+  @method
+  String capitalize(String thing) =&gt; thing.toUpperCase();
+}
+</code></pre>
+<p>There are three important things about this:</p><ul><li>The <code v-pre>@VueMixin()</code> annotation defines a mixin. You can also use <code v-pre>components: [...]</code> just like
+on other VueDart annotations.
+mixin, otherwise you'll get incredibly bizarre analyzer errors.</li><li>Mixins must not use other mixins!</li><li>Mixins must be <code v-pre>abstract</code>.</li><li>Mixins must have <code v-pre>implements VueMixinRequirements</code>.</li></ul>
+<p>Now you can use your mixin:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;&lt;')
+class ShowName extends VueComponentBase with TodoMixin {
+  // ...
+}
+</code></pre>
+<p>This looks exactly like a normal Dart mixin, except the <code v-pre>@VueMixin()</code> annotation from earlier
+makes it a Vue mixin.</p><div id="lifecycle"></div>
+<m-typo-headline :level="4" id="lifecycle-callbacks">Lifecycle callbacks</m-typo-headline>
+<p>Lifecycle callbacks are dead simple in VueDart! They're just simple method overrides:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;pHello!&lt;/p&gt;')
+class MyComponent extends VueComponentBase {
+  @override
+  void lifecycleCreated() =&gt; print("created!");
+  @override
+  void lifecycleMounted() =&gt; print("mounted!");
+  @override
+  void lifecycleDestroyed() =&gt; print("destroyed!");
+}
+</code></pre>
+<p>and so forth for all the other lifecycle callbacks.</p><div id="refs"></div>
+<m-typo-headline :level="4" id="accessing-refs">Accessing refs</m-typo-headline>
+<p>Take the following component:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;div ref="text"&gt;Hello!&lt;/div&gt;')
+class MyComponent extends VueComponentBase {
+  @override
+  void lifecycleMounted() {
+    // How to access the div element?
+  }
+}
+</code></pre>
+<p>For this, you can use the <code v-pre>@ref</code> annotation:</p>
+<pre><code v-pre class="language-dart">import 'dart:html';  // to get DivElement
+
+@VueComponent(template: '&lt;div ref="text"&gt;Hello!&lt;/div&gt;')
+class MyComponent extends VueComponentBase {
+  @ref
+  DivElement text;
+
+  @override
+  void lifecycleMounted() =&gt; print(text.text);
+}
+</code></pre>
+<p>Piece of cake, right? It's like declaring a normal attribute.</p>
+<p>Accessing component refs is just as simple:</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;div&gt;Hello!&lt;/div&gt;')
+class FirstComponent extends VueComponentBase {
+  FirstComponent(context): super(context);
+
+  @computed
+  String get stuff =&gt; 'Hello!';
+}
+
+@VueComponent(template: '&lt;first-component ref="first"&gt;&lt;/first-component&gt;',
+              components: [FirstComponent])
+class SecondComponent extends VueComponentBase {
+  @ref
+  FirstComponent first;
+
+  @override
+  void lifecycleMounted() =&gt; print(first.stuff); // Hello!
+}
+</code></pre>
+<p>If you need to get a ref by name instead of declaring it ahead-of-type, use the <code v-pre>$ref</code>
+function:</p>
+<pre><code v-pre class="language-dart">void lifecycleMounted() {
+  print($ref('first') as FirstComponent);
+}
+</code></pre>
+<m-typo-headline :level="4" id="models">Models</m-typo-headline><div id="models"></div>
+<p>Vue 2.2's <a href="https://vuejs.org/v2/api/#model">model property</a> is also supported, except it
+instead uses the <code v-pre>@model</code> annotation.</p>
+<pre><code v-pre class="language-dart">@VueComponent(template: '&lt;&lt;')
+class MyComponent extends VueComponentBase {
+  @model(event: 'my-event')
+  @prop
+  bool myProp = false;
+}
+</code></pre>
+<p>If you omit <code v-pre>event: ...</code>, it will default to <em>input</em> just like Vue itself.</p>
+
+    </app-root>
+  </div>
+</body>
