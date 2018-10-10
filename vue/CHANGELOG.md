@@ -27,8 +27,9 @@
   `$on` and `$emit` API, it's now built around Dart-native streams and sinks. The result
   is far more type-safe than before. The old functions have been removed.
 - **BREAKING CHANGE** `bool` props now create a boolean prop, instead of a prop that's
-  either `null` or an empty string.
-- **BREAKING CHANGE**
+  either `null` or an empty string. (This is mostly a bugfix.)
+- **BREAKING CHANGE** The `vue_router` plugin now requires you pass components like `Component()`
+  instead of `#Component`.
 - You can now use Sass in your styles!! Just set `lang="sass"` or `lang="scss"` on your
   `<style scoped>` tags.
 - Mixins are now supported on a `VueApp`.

@@ -53,6 +53,7 @@ class AppNavlist extends VueComponentBase {
         ['Mixins', 'mixins'],
         ['Lifecycle callbacks', 'lifecycle'],
         ['Accessing refs', 'refs'],
+        ['Models', 'models'],
       ],
     ),
     new Entry(

@@ -282,7 +282,7 @@ class AnotherComponent {
   TimeClickedButton button;
 
   @override
-  void lifecycleCreated() {
+  void lifecycleMounted() {
     // Listen to some events (equivalent to $on).
     var subscription = button.buttonClickedStream.listen((time) {
       print('Milliseconds since epoch when clicked: $time');

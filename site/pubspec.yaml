@@ -3,22 +3,23 @@ version: 0.1.0
 description: VueDart website
 author: Ryan Gonzalez
 dependencies:
-  aspen_assets: ^0.2.0
+  aspen_assets: ^0.2.1
   build: ^0.12.4
   js: ^0.6.1
   markdown: ^2.0.0
-  protic: ^0.1.1
+  protic: ^0.1.2
   vdmc: any
   vue: any
 dev_dependencies:
   build_runner: any
   build_web_compilers: any
 dependency_overrides:
-  aspen_assets:
-    path: /code/aspen/assets
   vue:
-    path: /code/vuedart/vue
+    git:
+      url: https://github.com/kirbyfan64/vuedart.git
+      path: vue
+    # path: /code/vuedart/vue
   vdmc:
-    path: /code/vdmc/vdmc
-  protic:
-    path: /code/protic/protic
+    git:
+      url: https://github.com/kirbyfan64/vdmc.git
+      path: vdmc

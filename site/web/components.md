@@ -274,3 +274,21 @@ void lifecycleMounted() {
   print($ref('first') as FirstComponent);
 }
 ```
+
+## Models
+
+<div id="models"></div>
+
+Vue 2.2's [model property](https://vuejs.org/v2/api/#model) is also supported, except it
+instead uses the `@model` annotation.
+
+```dart
+@VueComponent(template: '<<')
+class MyComponent extends VueComponentBase {
+  @model(event: 'my-event')
+  @prop
+  bool myProp = false;
+}
+```
+
+If you omit `event: ...`, it will default to *input* just like Vue itself.
