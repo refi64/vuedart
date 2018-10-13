@@ -395,15 +395,6 @@ class MigrateCommand extends Command {
     }
   }
 
-  void addBuildYaml(Map<String, String> sources,
-                    Map<String, TextEditTransaction> rewriters) {
-    if (!sources.containsKey('build.release.yaml')) {
-      sources['build.release.yaml'] = TEMPLATE_BUILD_RELEASE;
-    } else {
-      warn('  build.release.yaml already exists; skipping.');
-    }
-  }
-
   void removeNameField(Map<String, String> sources,
                        Map<String, TextEditTransaction> rewriters) {
     var re = new RegExp(r'VueComponent\((name: [^\s,]+),\s*');
@@ -459,7 +450,7 @@ class MigrateCommand extends Command {
 
     final TRANSFORMS = {
       '0.2': [explicitEntryPoints, rewriteComponentAnnotations],
-      '0.3': [renameVue2ToVue, pubspecRemoveTransformer, removeInitVue, addBuildYaml,
+      '0.3': [renameVue2ToVue, pubspecRemoveTransformer, removeInitVue,
               removeNameField, manualVueDart04Work],
     };
 
