@@ -70,7 +70,7 @@ class App extends VueAppBase with VueRouterMixin, TodoMixin {
   bool checked = false;
 
   @data
-  List<TodoEntry> groceryList = <TodoEntry>[
+  List groceryList = [
     TodoEntry(id: 0, text: 'Vegetables'),
     TodoEntry(id: 1, text: 'Cheese'),
     TodoEntry(id: 2, text: 'Whatever else humans are supposed to eat'),
