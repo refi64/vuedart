@@ -1,4 +1,8 @@
-## development (0.4.0)
+## 0.4.1
+
+- Upgrade packages to work under Dart 2.1.
+
+## 0.4.0
 
 - Dart 2.0 is now supported!
 - **BREAKING CHANGE** vue2 and vue2_cli have been renamed to vue and vue_cli, respectively.

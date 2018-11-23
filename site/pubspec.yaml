@@ -4,7 +4,7 @@ description: VueDart website
 author: Ryan Gonzalez
 dependencies:
   aspen_assets: ^0.2.1
-  build: ^0.12.4
+  build: ^1.0.1
   js: ^0.6.1
   markdown: ^2.0.0
   protic: ^0.1.2
