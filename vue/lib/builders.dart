@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:csslib/visitor.dart' show CssPrinter;
+import 'package:dart_style/dart_style.dart';
 import 'package:html/parser.dart' as html;
 import 'package:sass/sass.dart' as sass;
 import 'package:sass_builder/src/build_importer.dart';
@@ -87,7 +88,7 @@ class VuedartBuildContext {
   final BuildStep buildStep;
 
   sass.OutputStyle sassOutputStyle = sass.OutputStyle.expanded;
-
+  DartFormatter formatter=DartFormatter();
   SourceFile source;
   AssetId inputId;
   TextEditTransaction rewriter;
@@ -581,7 +582,7 @@ $opts
     var printer = rewriter.commit();
     printer.build(null);
     // print(printer.text);
-    buildStep.writeAsString(inputId.changeExtension('.vue.dart'), printer.text);
+    buildStep.writeAsString(inputId.changeExtension('.vue.dart'), formatter.format(printer.text));
 
     return new Future.value();
   }
