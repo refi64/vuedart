@@ -1,12 +1,12 @@
 name: vue
-version: 0.4.1
+version: 0.4.1+1
 description: Vue bindings for Dart
 author: Ryan Gonzalez <rymg19@gmail.com>
 homepage: https://refi64.com/vuedart
 environment:
   sdk: ">=2.0.0 <3.0.0"
 dependencies:
-  analyzer: ^0.34.2
+  analyzer: '>=0.33.0 <0.36.0'
   async: ^2.0.7
   build: ^1.0.1
   csslib: ^0.14.4
