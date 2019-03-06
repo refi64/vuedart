@@ -15,10 +15,7 @@ dev_dependencies:
   build_web_compilers: any
 dependency_overrides:
   vue:
-    git:
-      url: https://github.com/kirbyfan64/vuedart.git
-      path: vue
-    # path: /code/vuedart/vue
+    path: ../vue
   vdmc:
     git:
       url: https://github.com/kirbyfan64/vdmc.git

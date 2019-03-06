@@ -75,13 +75,6 @@ class VueClassInfo {
   VueClassInfo();
 }
 
-class VueImportedComponent {
-  String prefix, name;
-
-  VueImportedComponent(this.prefix, this.name);
-  String get prefixed => prefix != null ? '$prefix.$name' : name;
-}
-
 class VuedartBuildContext {
   final BuilderOptions options;
   final BuildStep buildStep;
@@ -191,10 +184,18 @@ class VuedartBuildContext {
 
   String codegenString(String str) => 'r"""${str.replaceAll('"""', '\\"""')}"""';
 
-  String codegenConstructor(String name) => '${name}()';
+  String codegenComponent(Expression component) {
+    if (component is PrefixedIdentifier && component.isDeferred) {
+      rewriter.edit(component.offset, component.end, 'null');
+      return '''VueAsyncComponent(${codegenString(component.identifier.name)},
+                                  ${component.prefix.name}.loadLibrary(),
+                                  (_) => ${component.toSource()}())''';
+    }
 
-  String codegenConstructorList(List<String> items, {String suffix = ''}) =>
-    '[${items.map((typename) => '${typename + suffix}()').join(', ')}]';
+    return '${component.toSource()}()';
+  }
+
+  String codegenMixin(String mixin) => '${mixin}\$VueDartMixinImpl()';
 
   Iterable<ClassDeclaration> getVueClassesIter(LibraryElement lib) =>
     lib.units.expand((unit) => unit.unit.declarations)
@@ -301,7 +302,7 @@ $typestring $name${member.parameters.toSource()}
       info.watchers.add(new Watcher(name, propName, member.parameters.parameters.length,
                                     deep));
     } else if (ann.name.name == 'method') {
-      if (member.parameters.parameters.any((p) => p.kind == ParameterKind.NAMED)) {
+      if (member.parameters.parameters.any((p) => p.isNamed)) {
         error(member.parameters, '@method does not support named arguments');
         return;
       }
@@ -414,13 +415,8 @@ $typestring $name${member.parameters.toSource()} =>
       }
     }
 
-    // var components = (annValue.getField('components')?.toListValue() ?? [])
-    //                   .map((DartObject component) => component.toTypeValue())
-    //                   .toList();
-    // Work around a weird analyzer issue.
     var args = getAnnArgs(ann);
-    var components = ((args['components'] as ListLiteral)?.elements ?? <Expression>[])
-                        .map((expr) => expr.toSource()).toList();
+    var components = (args['components'] as ListLiteral)?.elements ?? <Expression>[];
 
     var mixins = gatherVueMixins(cls).map((el) => el.name).toList();
 
@@ -429,8 +425,8 @@ $typestring $name${member.parameters.toSource()} =>
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},
   watchers: {${info.watchers.map(codegenWatch).join('\n')}},
   methods: {${info.methods.map(codegenMethod).join('\n')}},
-  components: ${codegenConstructorList(components)},
-  mixins: ${codegenConstructorList(mixins, suffix: r'$VueDartMixinImpl')},
+  components: [${components.map(codegenComponent).join(',')}],
+  mixins: [${mixins.map(codegenMixin).join(',')}],
     ''';
     var code;
 

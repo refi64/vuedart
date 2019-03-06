@@ -1,3 +1,7 @@
+## 0.5.0
+
+- Implement deferred components.
+
 ## 0.4.1
 
 - Upgrade packages to work under Dart 2.1.

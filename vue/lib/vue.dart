@@ -381,6 +381,7 @@ dynamic _unsupportedNullConstructor() {
 class VueComponentBase extends _VueBase {
   VueComponentConstructor get constructor => _unsupportedNullConstructor();
   bool get isMixin => false;
+  String get _name => null;
 
   void _setContext(dynamic context) {
     vuethis = context;
@@ -444,13 +445,29 @@ class VueComponentBase extends _VueBase {
 
   static dynamic componentsMap(List<VueComponentBase> components) =>
     mapToJs(
-      new Map.fromIterable(components, key: (component) => component.constructor.name,
+      new Map.fromIterable(components,
+                           key: (component) => component._name ?? component.constructor.name,
                            value: (component) => component.componentArgs()));
 
   static List mixinsArgs(List<VueComponentBase> mixins) =>
     mixins.map((mixin) => mixin.componentArgs()).toList();
 }
 
+class VueAsyncComponent<T> extends VueComponentBase {
+  final String _name;
+  final Future<T> _waitFor;
+  VueComponentBase Function(T value) _callback;
+
+  VueAsyncComponent(this._name, this._waitFor, this._callback);
+
+  @override
+  dynamic componentArgs() =>
+    allowInterop((resolve, reject) =>
+      _waitFor
+        .then((value) => Future.value(_callback(value)))
+        .then((value) => resolve(value.componentArgs()))
+        .catchError((error) => reject(error.toString())));
+}
 
 abstract class VueAppOptions {
   Map<String, dynamic> get appOptions;

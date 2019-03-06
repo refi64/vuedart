@@ -1,6 +1,7 @@
 import 'package:vue/vue.dart';
 import 'package:vue/plugins/vue_router.dart';
 import 'package:vue_playground/todo_item.dart';
+import 'package:vue_playground/todo_item.dart' deferred as todo_item;
 
 import 'dart:async';
 import 'dart:html';
@@ -56,7 +57,7 @@ class CheckBox extends VueComponentBase {
 }
 
 
-@VueApp(el: '#app', components: const [TodoItem, CheckBox])
+@VueApp(el: '#app', components: const [CheckBox, todo_item.TodoItem])
 class App extends VueAppBase with VueRouterMixin, TodoMixin {
   @override
   void lifecycleMounted() {
