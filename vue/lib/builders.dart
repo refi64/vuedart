@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
@@ -197,10 +197,18 @@ class VuedartBuildContext {
 
   String codegenMixin(String mixin) => '${mixin}\$VueDartMixinImpl()';
 
-  Iterable<ClassDeclaration> getVueClassesIter(LibraryElement lib) =>
-    lib.units.expand((unit) => unit.unit.declarations)
-             .where((d) => d is ClassDeclaration && containsVueAnn(d))
-             .map((d) => d as ClassDeclaration);
+  bool hasVueClasses(LibraryElement lib) =>
+    lib.session.getParsedLibraryByElement(lib)
+      .units
+      .expand((unit) => unit.unit.declarations)
+      .any((d) => d is ClassDeclaration && containsVueAnn(d));
+
+  Future<List<ClassDeclaration>> getVueClasses(LibraryElement lib) async =>
+    (await lib.session.getResolvedLibraryByElement(lib))
+      .units
+      .expand((unit) => unit.unit.declarations)
+      .where((d) => d is ClassDeclaration && containsVueAnn(d))
+      .toList().cast<ClassDeclaration>();
 
   void processField(FieldDeclaration member, VueClassInfo info) {
     var fields = member.fields;
@@ -393,6 +401,9 @@ $typestring $name${member.parameters.toSource()} =>
     }
   }
 
+  List<Expression> getComponents(Map<String, Expression> args) =>
+    ((args['components'] as ListLiteral)?.elements2 ?? []).cast<Expression>();
+
   List<DartType> gatherVueMixins(ClassDeclaration cls) {
     return cls.declaredElement.mixins
       .where((InterfaceType mixin) =>
@@ -416,8 +427,8 @@ $typestring $name${member.parameters.toSource()} =>
     }
 
     var args = getAnnArgs(ann);
-    var components = (args['components'] as ListLiteral)?.elements ?? <Expression>[];
 
+    var components = getComponents(args);
     var mixins = gatherVueMixins(cls).map((el) => el.name).toList();
 
     var opts = '''
@@ -516,7 +527,7 @@ $opts
     if (lib.isInSdk) {
       return false;
     }
-    if (lib != null && getVueClassesIter(lib).isNotEmpty) {
+    if (lib != null && hasVueClasses(lib)) {
       return true;
     }
 
@@ -565,7 +576,7 @@ $opts
     rewriter = new TextEditTransaction(contents, source);
 
     var hasAnyVueImports = rewriteVueImportUris(lib);
-    var classes = getVueClassesIter(lib).toList();
+    var classes = await getVueClasses(lib);
     if (classes.isEmpty && !hasAnyVueImports) {
       return new Future.value();
     }
