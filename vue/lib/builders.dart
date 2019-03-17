@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
@@ -196,10 +196,18 @@ class VuedartBuildContext {
   String codegenConstructorList(List<String> items, {String suffix = ''}) =>
     '[${items.map((typename) => '${typename + suffix}()').join(', ')}]';
 
-  Iterable<ClassDeclaration> getVueClassesIter(LibraryElement lib) =>
-    lib.units.expand((unit) => unit.unit.declarations)
-             .where((d) => d is ClassDeclaration && containsVueAnn(d))
-             .map((d) => d as ClassDeclaration);
+  bool hasVueClasses(LibraryElement lib) =>
+    lib.session.getParsedLibraryByElement(lib)
+      .units
+      .expand((unit) => unit.unit.declarations)
+      .any((d) => d is ClassDeclaration && containsVueAnn(d));
+
+  Future<List<ClassDeclaration>> getVueClasses(LibraryElement lib) async =>
+    (await lib.session.getResolvedLibraryByElement(lib))
+      .units
+      .expand((unit) => unit.unit.declarations)
+      .where((d) => d is ClassDeclaration && containsVueAnn(d))
+      .toList().cast<ClassDeclaration>();
 
   void processField(FieldDeclaration member, VueClassInfo info) {
     var fields = member.fields;
@@ -301,7 +309,7 @@ $typestring $name${member.parameters.toSource()}
       info.watchers.add(new Watcher(name, propName, member.parameters.parameters.length,
                                     deep));
     } else if (ann.name.name == 'method') {
-      if (member.parameters.parameters.any((p) => p.kind == ParameterKind.NAMED)) {
+      if (member.parameters.parameters.any((p) => p.isNamed)) {
         error(member.parameters, '@method does not support named arguments');
         return;
       }
@@ -392,6 +400,10 @@ $typestring $name${member.parameters.toSource()} =>
     }
   }
 
+  List<String> getComponents(Map<String, Expression> args) =>
+    ((args['components'] as ListLiteral)?.elements ?? []).cast<Expression>()
+      .map((expr) => expr.toSource()).toList();
+
   List<DartType> gatherVueMixins(ClassDeclaration cls) {
     return cls.declaredElement.mixins
       .where((InterfaceType mixin) =>
@@ -419,9 +431,8 @@ $typestring $name${member.parameters.toSource()} =>
     //                   .toList();
     // Work around a weird analyzer issue.
     var args = getAnnArgs(ann);
-    var components = ((args['components'] as ListLiteral)?.elements ?? <Expression>[])
-                        .map((expr) => expr.toSource()).toList();
 
+    var components = getComponents(args);
     var mixins = gatherVueMixins(cls).map((el) => el.name).toList();
 
     var opts = '''
@@ -520,7 +531,7 @@ $opts
     if (lib.isInSdk) {
       return false;
     }
-    if (lib != null && getVueClassesIter(lib).isNotEmpty) {
+    if (lib != null && hasVueClasses(lib)) {
       return true;
     }
 
@@ -569,7 +580,7 @@ $opts
     rewriter = new TextEditTransaction(contents, source);
 
     var hasAnyVueImports = rewriteVueImportUris(lib);
-    var classes = getVueClassesIter(lib).toList();
+    var classes = await getVueClasses(lib);
     if (classes.isEmpty && !hasAnyVueImports) {
       return new Future.value();
     }
