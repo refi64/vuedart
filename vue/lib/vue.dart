@@ -38,7 +38,6 @@ dynamic get _vue {
   return vue;
 }
 
-
 // @JS('console.log')
 // external dynamic _log(dynamic value);
 
@@ -116,24 +115,22 @@ dynamic _convertWatchers(Map<String, VueWatcher> watchers) {
   return mapToJs(jswatch);
 }
 
-class VueComponentConstructor {
-  final String name, template, styleInject;
+class VueConstructor {
+  final String name;
   final VueModel model;
   final Map<String, VueProp> props;
   final Map<String, Object> data;
   final Map<String, VueComputed> computed;
   final Map<String, Function> methods;
   final Map<String, VueWatcher> watchers;
-  final List<VueComponentBase> components;
-  final List<VueComponentBase> mixins;
-  Function creator;
+  final List<Vue> mixins;
+  Vue Function() creator;
 
-  bool hasInjectedStyle = false;
+  bool didAlreadyInjectStyle = false;
 
-  VueComponentConstructor({this.name: null, this.template: null, this.styleInject: null,
-                           this.model: null, this.props: null, this.data: null,
-                           this.computed: null, this.methods: null, this.watchers: null,
-                           this.creator: null, this.components, this.mixins: null});
+  VueConstructor({this.name: null, this.model: null, this.props: null, this.data: null,
+                  this.computed: null, this.methods: null, this.watchers: null,
+                  this.creator: null, this.mixins: null});
 
   dynamic jsmodel() {
     if (model == null) {
@@ -185,89 +182,55 @@ class VueComponentConstructor {
   dynamic jswatch() => _convertWatchers(watchers);
 }
 
-class VueAppConstructor {
-  final String el;
-  final Map<String, Object> data;
-  final Map<String, VueComputed> computed;
-  final Map<String, Function> methods;
-  final Map<String, VueWatcher> watchers;
-  final List<VueComponentBase> components;
-  final List<VueComponentBase> mixins;
-
-  VueAppConstructor({this.el, this.data, this.computed, this.methods, this.watchers,
-                     this.components, this.mixins: null});
-
-  dynamic jscomputed() => _convertComputed(computed);
-  dynamic jswatch() => _convertWatchers(watchers);
-}
-
-abstract class VueApi {
-  dynamic vuethis;
-
-  dynamic vuedart_get(String key);
-  void vuedart_set(String key, dynamic value);
-
-  void lifecycleCreated();
-  void lifecycleMounted();
-  void lifecycleBeforeUpdate();
-  void lifecycleUpdated();
-  void lifecycleActivated();
-  void lifecycleDeactivated();
-  void lifecycleBeforeDestroy();
-  void lifecycleDestroyed();
-
-  dynamic $ref(String name);
-
-  dynamic get $data;
-  dynamic get $props;
-  Element get $el;
-  dynamic get $options;
-  dynamic get $parent;
-  dynamic get $root;
-
-  Future<Null> $nextTick();
-
-  void $forceUpdate();
-  void $destroy();
-}
-
-abstract class VueMixinRequirements implements VueApi {}
-
-class _VueBase implements VueApi {
+class Vue {
   dynamic vuethis;
   List<Sink> _toClose = [];
+
+  /// Set to null to use a render function.
+  String get template => '';
+  String get styles => '';
+
+  List<Vue> get components => <Vue>[];
+
+  VueConstructor get constructor =>
+    throw UnsupportedError('The VueDart builder has not processed this component.');
+  bool get isMixin => false;
+  String get _name => null;
 
   dynamic vuedart_get(String key) => getProperty(vuethis, key);
   void vuedart_set(String key, dynamic value) => setProperty(vuethis, key, value);
 
   dynamic render(CreateElement createElement) => null;
 
-  void lifecycleCreated() {}
-  void lifecycleMounted() {}
-  void lifecycleBeforeUpdate() {}
-  void lifecycleUpdated() {}
-  void lifecycleActivated() {}
-  void lifecycleDeactivated() {}
-  void lifecycleBeforeDestroy() { }
-  void lifecycleDestroyed() {}
+  void created() {}
+  void mounted() {}
+  void beforeUpdate() {}
+  void updated() {}
+  void activated() {}
+  void deactivated() {}
+  void beforeDestroy() { }
+  void destroyed() {}
 
-  void _lifecycleDestroyed() {
+  void _wrapDestroyed() {
     for (var sink in _toClose) {
       sink.close();
     }
 
-    lifecycleDestroyed();
+    destroyed();
   }
 
   static Map<String, dynamic> lifecycleHooks = {
-    'mounted': _interopWithObj((obj) => obj.lifecycleMounted()),
-    'beforeUpdate': _interopWithObj((obj) => obj.lifecycleBeforeDestroy()),
-    'updated': _interopWithObj((obj) => obj.lifecycleUpdated()),
-    'activated': _interopWithObj((obj) => obj.lifecycleActivated()),
-    'deactivated': _interopWithObj((obj) => obj.lifecycleDeactivated()),
-    'beforeDestroy': _interopWithObj((obj) => obj.lifecycleBeforeDestroy()),
-    'destroyed': _interopWithObj((obj) => obj._lifecycleDestroyed()),
+    'mounted': _interopWithObj((obj) => obj.mounted()),
+    'beforeUpdate': _interopWithObj((obj) => obj.beforeUpdate()),
+    'updated': _interopWithObj((obj) => obj.updated()),
+    'activated': _interopWithObj((obj) => obj.activated()),
+    'deactivated': _interopWithObj((obj) => obj.deactivated()),
+    'beforeDestroy': _interopWithObj((obj) => obj.beforeDestroy()),
+    'destroyed': _interopWithObj((obj) => obj._wrapDestroyed()),
   };
+
+  void $mount(String selector) => callMethod(vuethis, r'$mount', [selector]);
+  void $mountOn(Element el) => callMethod(vuethis, r'$mount', [el]);
 
   dynamic $ref(String name) {
     var refs = getProperty(vuethis, r'$refs');
@@ -301,8 +264,104 @@ class _VueBase implements VueApi {
 
   void $forceUpdate() => callMethod(vuethis, r'$forceUpdate', []);
   void $destroy() => callMethod(vuethis, r'$destroy', []);
+
+  void _setContext(dynamic context) {
+    vuethis = context;
+    setProperty(vuethis, r'$dartobj', this);
+  }
+
+  dynamic jsargs([Map<String, dynamic> extraOptions = const <String, dynamic>{}]) {
+    var model = constructor.jsmodel();
+    var props = constructor.jsprops();
+    var computed = constructor.jscomputed();
+    var watch = constructor.jswatch();
+    var renderFunc;
+
+    if ((styles?.isNotEmpty ?? false) && !constructor.didAlreadyInjectStyle) {
+      var el = new StyleElement();
+      el.appendText(styles);
+      document.head.append(el);
+
+      constructor.didAlreadyInjectStyle = true;
+    }
+
+    if (template == null && !isMixin) {
+      renderFunc = allowInteropCaptureThis((context, jsCreateElement) {
+        dynamic createElement(dynamic tag, [dynamic arg1, dynamic arg2]) {
+          return jsCreateElement(tag is Map ? mapToJs(tag) : tag,
+                                 arg1 != null && arg1 is Map ? mapToJs(arg1) : arg1,
+                                 arg2);
+        };
+
+        return vueGetObj(context).render(createElement);
+      });
+    }
+
+    var args = mapToJs({
+      'model': model,
+      'props': props,
+      'data': allowInterop(([dynamic _=null]) {
+        var data = mapToJs(constructor.data);
+        setProperty(data, r'$dartobj', null);
+        return data;
+      }),
+      'computed': computed,
+      'methods': _mapMethodsToJs(constructor.methods),
+      'watch': watch,
+      'template': template,
+      'render': renderFunc,
+      'components': _componentsMap(components),
+      'mixins': _mixinsArgs(constructor.mixins),
+    }..addAll(lifecycleHooks)
+     ..addAll(extraOptions));
+
+    if (!isMixin) {
+      setProperty(args, 'created', allowInteropCaptureThis((dynamic context) {
+        var dartobj = constructor.creator();
+        dartobj._setContext(context);
+        dartobj.created();
+      }));
+    }
+
+    return args;
+  }
+
+  dynamic _componentsMap(List<Vue> components) =>
+    mapToJs(Map.fromIterable(components,
+                             key: (component) => component._name ?? component.constructor.name,
+                             value: (component) => component.jsargs()));
+
+  List _mixinsArgs(List<Vue> mixins) =>
+    mixins.map((mixin) => mixin.jsargs()).toList();
 }
 
+abstract class VueAppOptions {
+  Map<String, dynamic> get appOptions;
+}
+
+class VueApp {
+  final Vue app;
+
+  VueApp._(dynamic context): app = vueGetObj(context);
+
+  static Map<String, dynamic> _mergeOptions(List<VueAppOptions> options) {
+    if (options == null) {
+      return <String, dynamic>{};
+    }
+
+    return options.fold(<String, dynamic>{},
+                        (result, opts) => result..addAll(opts.appOptions));
+  }
+
+  factory VueApp.create(Vue app, {List<VueAppOptions> options}) {
+    var args = app.jsargs(VueApp._mergeOptions(options));
+    var context = callConstructor(_vue, [args]);
+    return VueApp._(context);
+  }
+
+  void mount(String selector) => app.$mount(selector);
+  void mountOn(Element el) => app.$mountOn(el);
+}
 
 class VueEventSink<E> extends DelegatingSink<E> {
   final VueEventSpec<E> spec;
@@ -318,7 +377,7 @@ class VueEventSink<E> extends DelegatingSink<E> {
     });
 
     var result = new VueEventSink._(spec, controller.sink);
-    if (owner is _VueBase) {
+    if (owner is Vue) {
       owner._toClose.add(result);
     }
 
@@ -363,7 +422,7 @@ class VueEventSpec<E> {
 
   VueEventSpec(this.name, {this.fromJs, this.toJs});
 
-  dynamic _getVueObj(obj) => obj is VueApi ? obj.vuethis : obj;
+  dynamic _getVueObj(obj) => obj is Vue ? obj.vuethis : obj;
 
   void check(void func(E)) {}
   VueEventSink<E> createSink(obj) =>
@@ -373,144 +432,20 @@ class VueEventSpec<E> {
 }
 
 
-dynamic _unsupportedNullConstructor() {
-  throw new UnsupportedError('The VueDart builder has not processed this component.');
-}
-
-
-class VueComponentBase extends _VueBase {
-  VueComponentConstructor get constructor => _unsupportedNullConstructor();
-  bool get isMixin => false;
-  String get _name => null;
-
-  void _setContext(dynamic context) {
-    vuethis = context;
-    setProperty(vuethis, r'$dartobj', this);
-  }
-
-  dynamic componentArgs() {
-    var model = constructor.jsmodel();
-    var props = constructor.jsprops();
-    var computed = constructor.jscomputed();
-    var watch = constructor.jswatch();
-    var renderFunc;
-
-    if (constructor.styleInject.isNotEmpty && !constructor.hasInjectedStyle) {
-      var el = new StyleElement();
-      el.appendText(constructor.styleInject);
-      document.head.append(el);
-
-      constructor.hasInjectedStyle = true;
-    }
-
-    if (constructor.template == null && !isMixin) {
-      renderFunc = allowInteropCaptureThis((context, jsCreateElement) {
-        dynamic createElement(dynamic tag, [dynamic arg1, dynamic arg2]) {
-          return jsCreateElement(tag is Map ? mapToJs(tag) : tag,
-                                 arg1 != null && arg1 is Map ? mapToJs(arg1) : arg1,
-                                 arg2);
-        };
-
-        return vueGetObj(context).render(createElement);
-      });
-    }
-
-    var args = mapToJs({
-      'model': model,
-      'props': props,
-      'data': allowInterop(([dynamic _=null]) {
-        var data = mapToJs(constructor.data);
-        setProperty(data, r'$dartobj', null);
-        return data;
-      }),
-      'computed': computed,
-      'methods': _mapMethodsToJs(constructor.methods),
-      'watch': watch,
-      'template': constructor.template,
-      'render': renderFunc,
-      'components': VueComponentBase.componentsMap(constructor.components),
-      'mixins': VueComponentBase.mixinsArgs(constructor.mixins),
-    }..addAll(_VueBase.lifecycleHooks));
-
-    if (!isMixin) {
-      setProperty(args, 'created', allowInteropCaptureThis((dynamic context) {
-        var dartobj = constructor.creator();
-        dartobj._setContext(context);
-        dartobj.lifecycleCreated();
-      }));
-    }
-
-    return args;
-  }
-
-  static dynamic componentsMap(List<VueComponentBase> components) =>
-    mapToJs(
-      new Map.fromIterable(components,
-                           key: (component) => component._name ?? component.constructor.name,
-                           value: (component) => component.componentArgs()));
-
-  static List mixinsArgs(List<VueComponentBase> mixins) =>
-    mixins.map((mixin) => mixin.componentArgs()).toList();
-}
-
-class VueAsyncComponent<T> extends VueComponentBase {
+class VueAsyncComponent<T> extends Vue {
   final String _name;
   final Future<T> _waitFor;
-  VueComponentBase Function(T value) _callback;
+  Vue Function(T value) _callback;
 
   VueAsyncComponent(this._name, this._waitFor, this._callback);
 
   @override
-  dynamic componentArgs() =>
+  dynamic jsargs([Map<String, dynamic> extraOptions = const <String, dynamic>{}]) =>
     allowInterop((resolve, reject) =>
       _waitFor
         .then((value) => Future.value(_callback(value)))
-        .then((value) => resolve(value.componentArgs()))
+        .then((value) => resolve(value.jsargs(extraOptions)))
         .catchError((error) => reject(error.toString())));
-}
-
-abstract class VueAppOptions {
-  Map<String, dynamic> get appOptions;
-}
-
-class VueAppBase extends _VueBase {
-  VueAppConstructor get constructor => _unsupportedNullConstructor();
-
-  void _setContext(dynamic context) {
-    vuethis = context;
-    setProperty(vuethis, '\$dartobj', this);
-  }
-
-  static Map<String, dynamic> _mergeOptions(List<VueAppOptions> options) {
-    if (options == null) {
-      return <String, dynamic>{};
-    }
-
-    return options.fold(<String, dynamic>{},
-                        (result, opts) => result..addAll(opts.appOptions));
-  }
-
-  void create({List<VueAppOptions> options}) {
-    var computed = constructor.jscomputed();
-    var watch = constructor.jswatch();
-
-    var args = mapToJs({
-      'el': constructor.el,
-      'created': allowInteropCaptureThis((context) {
-        _setContext(context);
-        lifecycleCreated();
-      }),
-      'data': mapToJs(constructor.data),
-      'computed': computed,
-      'methods': _mapMethodsToJs(constructor.methods),
-      'watch': watch,
-      'components': VueComponentBase.componentsMap(constructor.components),
-      'mixins': VueComponentBase.mixinsArgs(constructor.mixins),
-    }..addAll(_VueBase.lifecycleHooks)
-     ..addAll(VueAppBase._mergeOptions(options)));
-
-      callConstructor(_vue, [args]);
-  }
 }
 
 class VuePlugin {
@@ -527,21 +462,13 @@ class VuePlugin {
   }
 }
 
-class VueComponent {
+class _VueDart { const _VueDart(); }
+const vuedart = _VueDart();
+
+@Deprecated('TODO')
+class AutoTemplate {
   final String template;
-  final List components;
-  const VueComponent({this.template, this.components});
-}
-
-class VueApp {
-  final String el;
-  final List components;
-  const VueApp({this.el, this.components});
-}
-
-class VueMixin {
-  final List components;
-  const VueMixin({this.components});
+  const AutoTemplate(this.template);
 }
 
 class _VueData { const _VueData(); }

@@ -1,40 +1,43 @@
 import 'package:vue/vue.dart';
 import 'package:vue/plugins/vue_router.dart';
 import 'package:vue_playground/todo_item.dart';
-import 'package:vue_playground/todo_item.dart' deferred as todo_item;
+// import 'package:vue_playground/todo_item.dart' deferred as todo_item;
 
 import 'dart:async';
 import 'dart:html';
 
 
-@VueComponent(template: '<p>todo item #{{id}} <router-view></router-view></p>')
-class SingleItem extends VueComponentBase with VueRouterMixin {
+@vuedart
+@AutoTemplate('<p>todo item #{{id}} <router-view></router-view></p>')
+class SingleItem extends Vue with VueRouterMixin {
   @computed
   int get id => int.parse($route.params['id']);
 }
 
 
-@VueComponent(template: '<p>todo item #{{id}} INFO</p>')
-class SingleItemInfo extends VueComponentBase with VueRouterMixin {
+@vuedart
+@AutoTemplate('<p>todo item #{{id}} INFO</p>')
+class SingleItemInfo extends Vue with VueRouterMixin {
   @computed
   int get id => int.parse($route.params['id']);
 }
 
 
-@VueComponent(template: '''
+@vuedart
+@AutoTemplate('''
   <div>
     <input v-model="checkedModel" type="checkbox"/>
     <button @click="reset">Reset</button>
   </div>
 ''')
-class CheckBox extends VueComponentBase {
+class CheckBox extends Vue {
   static const _EVENT = 'check-status-changed';
   static final checkStatusChanged = VueEventSpec<bool>(CheckBox._EVENT);
   VueEventSink<bool> checkStatusChangedSink;
   VueEventStream<bool> checkStatusChangedStream;
 
   @override
-  void lifecycleCreated() {
+  void created() {
     checkStatusChangedSink = checkStatusChanged.createSink(this);
     checkStatusChangedStream = checkStatusChanged.createStream(this);
 
@@ -57,10 +60,13 @@ class CheckBox extends VueComponentBase {
 }
 
 
-@VueApp(el: '#app', components: const [CheckBox, todo_item.TodoItem])
-class App extends VueAppBase with VueRouterMixin, TodoMixin {
+@vuedart
+class App extends Vue with VueRouterMixin, TodoMixin {
+  // TODO: async
+  final components = <Vue>[CheckBox(), TodoItem()];
+
   @override
-  void lifecycleMounted() {
+  void mounted() {
     print('mounted!');
     $nextTick().then((_) {
       print('nextTick called');
@@ -86,9 +92,6 @@ class App extends VueAppBase with VueRouterMixin, TodoMixin {
 }
 
 
-App app;
-
-
 Future main() async {
   final router = VueRouter(routes: [
     VueRoute(path: '/item/:id', component: SingleItem(), children: [
@@ -99,6 +102,6 @@ Future main() async {
     }),
   ]);
 
-  app = App();
-  app.create(options: [router]);
+  final app = VueApp.create(App(), options: [router]);
+  app.mount('#app');
 }

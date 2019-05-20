@@ -16,12 +16,15 @@ class TodoEntry {
   external factory TodoEntry({int id, String text});
 }
 
-@VueComponent(template: '<p><slot></slot></p>')
-class TestComponent extends VueComponentBase {
+@vuedart
+@AutoTemplate('<p><slot></slot></p>')
+class TestComponent extends Vue {
 }
 
-@VueMixin(components: const [TestComponent])
-abstract class TodoMixin implements VueMixinRequirements {
+@vuedart
+abstract class TodoMixin implements Vue {
+  final components = <Vue>[TestComponent()];
+
   @method
   String getTodoText(TodoEntry todo) => todo.text;
 
@@ -29,8 +32,9 @@ abstract class TodoMixin implements VueMixinRequirements {
   String get todoMixinData => 'TodoMixin data!';
 }
 
-@VueComponent(template: '<<')
-class TodoItem extends VueComponentBase with TodoMixin {
+@vuedart
+@AutoTemplate('<<')
+class TodoItem extends Vue with TodoMixin {
   @prop
   List something = [];
 
@@ -38,7 +42,7 @@ class TodoItem extends VueComponentBase with TodoMixin {
   String getTodoText2(TodoEntry todo) => todo.text;
 
   @override
-  void lifecycleMounted() {
+  void mounted() {
     print(li.runtimeType);
     print(tstcomp.runtimeType);
   }

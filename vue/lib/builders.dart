@@ -101,7 +101,7 @@ class VuedartBuildContext {
   }
 
   Annotation getVueAnn(ClassDeclaration cls) =>
-    getAnn(cls, ['VueApp', 'VueComponent', 'VueMixin']);
+    getAnn(cls, ['vuedart']);
   bool containsVueAnn(ClassDeclaration cls) => getVueAnn(cls) != null;
 
   Map<String, Expression> getAnnArgs(Annotation ann) =>
@@ -184,16 +184,16 @@ class VuedartBuildContext {
 
   String codegenString(String str) => 'r"""${str.replaceAll('"""', '\\"""')}"""';
 
-  String codegenComponent(Expression component) {
-    if (component is PrefixedIdentifier && component.isDeferred) {
-      rewriter.edit(component.offset, component.end, 'null');
-      return '''VueAsyncComponent(${codegenString(component.identifier.name)},
-                                  ${component.prefix.name}.loadLibrary(),
-                                  (_) => ${component.toSource()}())''';
-    }
+  // String codegenComponent(Expression component) {
+  //   if (component is PrefixedIdentifier && component.isDeferred) {
+  //     rewriter.edit(component.offset, component.end, 'null');
+  //     return '''VueAsyncComponent(${codegenString(component.identifier.name)},
+  //                                 ${component.prefix.name}.loadLibrary(),
+  //                                 (_) => ${component.toSource()}())''';
+  //   }
 
-    return '${component.toSource()}()';
-  }
+  //   return '${component.toSource()}()';
+  // }
 
   String codegenMixin(String mixin) => '${mixin}\$VueDartMixinImpl()';
 
@@ -401,22 +401,19 @@ $typestring $name${member.parameters.toSource()} =>
     }
   }
 
-  List<Expression> getComponents(Map<String, Expression> args) =>
-    ((args['components'] as ListLiteral)?.elements2 ?? []).cast<Expression>();
-
   List<DartType> gatherVueMixins(ClassDeclaration cls) {
     return cls.declaredElement.mixins
       .where((InterfaceType mixin) =>
+        mixin.element.isAbstract &&
         mixin.element.metadata.any((ElementAnnotation el) =>
-          el.element is ConstructorElement &&
-            (el.element as ConstructorElement).enclosingElement.name == 'VueMixin'))
+          el.element is PropertyAccessorElement && el.element.name == 'vuedart'))
       .toList();
   }
 
   Future processClass(ClassDeclaration cls) async {
     var ann = getVueAnn(cls);
-    var annValue = ann.elementAnnotation.constantValue;
     var info = new VueClassInfo();
+    var isMixin = cls.isAbstract;
 
     for (var member in cls.members) {
       if (member is FieldDeclaration) {
@@ -426,9 +423,6 @@ $typestring $name${member.parameters.toSource()} =>
       }
     }
 
-    var args = getAnnArgs(ann);
-
-    var components = getComponents(args);
     var mixins = gatherVueMixins(cls).map((el) => el.name).toList();
 
     var opts = '''
@@ -436,70 +430,63 @@ $typestring $name${member.parameters.toSource()} =>
   computed: {${info.computed.values.map(codegenComputed).join('\n')}},
   watchers: {${info.watchers.map(codegenWatch).join('\n')}},
   methods: {${info.methods.map(codegenMethod).join('\n')}},
-  components: [${components.map(codegenComponent).join(',')}],
   mixins: [${mixins.map(codegenMixin).join(',')}],
     ''';
     var code;
 
-    if (ann.name.name == 'VueComponent' || ann.name.name == 'VueMixin') {
-      var name = cls.name.name, creator;
+    var name = cls.name.name, creator;
 
-      if (ann.name.name == 'VueComponent') {
-        creator = '() => new $name()';
-      }
+    if (!isMixin) {
+      creator = '() => new $name()';
+    }
 
-      var template = annValue.getField('template')?.toStringValue();
-      var templateString = '';
-      var styleInject = '';
-
-      if (template == null) {
-        templateString = 'null';
-      } else {
-        if (template.startsWith('<<')) {
-          var result = await readTemplate(ann, template);
-          if (result != null) {
-            templateString = codegenString(result[0]);
-            styleInject = result[1];
-          }
-        } else {
-          templateString = codegenString(template);
-        }
-      }
-
-      styleInject = codegenString(styleInject);
-
-      code = '''
+    code = '''
 @override
-VueComponentConstructor get constructor => new VueComponentConstructor(
+VueConstructor get constructor => VueConstructor(
   name: ${codegenString(name)},
   creator: $creator,
-  template: $templateString,
-  styleInject: $styleInject,
   model: ${codegenModel(info.model)},
   props: {${info.props.map(codegenProp).join('\n')}},
 $opts
 );
-      ''';
+    ''';
 
-      if (ann.name.name == 'VueMixin') {
-        code = '''}
+    var autoTemplateAnn = getAnn(cls, ['AutoTemplate']);
+    if (autoTemplateAnn != null) {
+      var autoTemplate = autoTemplateAnn.elementAnnotation.constantValue;
+      var template = autoTemplate.getField('template').toStringValue();
 
-class $name\$VueDartMixinImpl extends VueComponentBase with $name {
+      var templateString = '';
+      var styleInject = '';
+
+      if (template.startsWith('<<')) {
+        var result = await readTemplate(ann, template);
+        if (result != null) {
+          templateString = codegenString(result[0]);
+          styleInject = result[1];
+        }
+      } else {
+        templateString = codegenString(template);
+      }
+
+      styleInject = codegenString(styleInject);
+
+      if (templateString != null) {
+        code += '''
+final template = $templateString;
+final styles = $styleInject;
+        ''';
+      }
+    }
+
+    if (isMixin) {
+      code = '''}
+
+class $name\$VueDartMixinImpl extends Vue with $name {
   @override
   bool get isMixin => true;
   $code
 ''';
-      }
-    } else {
-      var el = annValue.getField('el').toStringValue();
-
-      code = '''
-@override
-VueAppConstructor get constructor => new VueAppConstructor(
-  el: ${el != null ? codegenString(el) : 'null'},
-$opts
-);
-      ''';
     }
 
     rewriter.edit(cls.end-1, cls.end-1, code);
