@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Fixes for latest analyzer and Dart SDKs.
+
 ## 0.4.1
 
 - Upgrade packages to work under Dart 2.1.
